@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>koolArt</title>
+    <link href="https://koolart.net/feed.xml" rel="self" />
+    <link href="https://koolart.net" />
+    <updated>2020-01-02T16:33:24+07:00</updated>
+    <author>
+        <name>Nong</name>
+    </author>
+    <id>https://koolart.net</id>
+
+    <entry>
+        <title>Hello World</title>
+        <author>
+            <name>Nong</name>
+        </author>
+        <link href="https://koolart.net/hello-world.html"/>
+        <id>https://koolart.net/hello-world.html</id>
+
+        <updated>2020-01-02T16:29:50+07:00</updated>
+            <summary>
+                <![CDATA[
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac hendrerit lacus. Ut molestie velit sed elit interdum rhoncus. Pellentesque luctus turpis varius est consectetur, auctor sollicitudin quam rhoncus. Maecenas ultricies mauris eget aliquam consequat. Nulla pulvinar tellus non odio consequat congue. Vestibulum bibendum risus&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac hendrerit lacus. Ut molestie velit sed elit interdum rhoncus. Pellentesque luctus turpis varius est consectetur, auctor sollicitudin quam rhoncus. Maecenas ultricies mauris eget aliquam consequat. Nulla pulvinar tellus non odio consequat congue. Vestibulum bibendum risus fermentum ante venenatis auctor. Morbi consectetur mollis orci vitae scelerisque. Integer sollicitudin porta tempor. Sed tincidunt sem at arcu rutrum lacinia. Aliquam accumsan dictum est viverra placerat. Cras nec facilisis nisl, et suscipit sem. Duis lorem leo, sollicitudin porta hendrerit id, commodo vel dolor. Integer nec aliquet orci.</p>
+<p>Maecenas tincidunt tellus commodo nulla convallis, ac dapibus lacus finibus. Sed bibendum eget leo in rhoncus. Etiam ut bibendum diam, non molestie magna. Aenean at nibh sit amet mi dignissim pretium lobortis sed massa. Vivamus consequat mauris quis odio rutrum, ut feugiat lacus dignissim. Ut ut lacus consectetur, facilisis massa sed, rutrum nunc. Nunc commodo semper dui, quis maximus eros elementum a. Praesent scelerisque nibh vel erat scelerisque malesuada. Fusce blandit in lacus at tincidunt. Nam posuere nisl nec finibus iaculis. Proin vulputate justo quis ex efficitur elementum sed eu nulla. Proin maximus, quam ut scelerisque consectetur, mauris odio dapibus nisi, sit amet ultrices massa velit et lacus. Cras laoreet enim vitae mi consectetur malesuada. Sed tristique, sem non tempor dapibus, justo ex lobortis ex, ac posuere ipsum enim ultrices est.</p>
+<p>Sed fringilla sapien in est laoreet facilisis. Quisque feugiat rutrum dolor. Maecenas nec diam ligula. Quisque sodales euismod est. Sed vel purus ex. Nullam sit amet eros sagittis, auctor massa quis, congue sapien. Duis tristique odio sit amet nunc blandit aliquam. Mauris suscipit bibendum rhoncus. Nulla a mi at felis fermentum faucibus. Donec mattis dapibus eros, nec pharetra dolor.</p>
+<p>Aliquam velit nunc, vulputate quis fringilla nec, condimentum sed ipsum. Mauris imperdiet, mi eu varius ornare, tellus purus fringilla erat, at porttitor nulla felis id diam. Proin maximus, mauris ac fermentum pulvinar, odio nulla mollis orci, quis blandit eros sem et ex. Suspendisse elit mi, pharetra sit amet neque a, tincidunt venenatis augue. Sed a gravida massa, non tincidunt dui. Donec ultrices tempor sodales. Phasellus pretium magna augue, vel cursus dolor maximus ut. Sed nec elementum felis. Quisque auctor quis sapien nec sollicitudin. Proin pellentesque justo bibendum felis hendrerit, non aliquet leo rutrum. Maecenas et pellentesque justo. Vivamus in tellus vitae est efficitur eleifend. Quisque viverra condimentum elit ut dignissim. Vestibulum nunc tortor, hendrerit ac felis et, condimentum scelerisque libero.</p>
+            ]]>
+        </content>
+    </entry>
+</feed>
