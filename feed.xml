@@ -3,7 +3,7 @@
     <title>koolArt</title>
     <link href="https://koolart.net/feed.xml" rel="self" />
     <link href="https://koolart.net" />
-    <updated>2020-01-02T16:33:24+07:00</updated>
+    <updated>2020-01-02T16:38:48+07:00</updated>
     <author>
         <name>Nong</name>
     </author>
@@ -14,8 +14,8 @@
         <author>
             <name>Nong</name>
         </author>
-        <link href="https://koolart.net/hello-world.html"/>
-        <id>https://koolart.net/hello-world.html</id>
+        <link href="https://koolart.net/hello-world/"/>
+        <id>https://koolart.net/hello-world/</id>
 
         <updated>2020-01-02T16:29:50+07:00</updated>
             <summary>
