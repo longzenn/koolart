@@ -10,21 +10,18 @@
     <id>https://koolart.net</id>
 
     <entry>
-        <title>Hello World!</title>
+        <title>Web Design</title>
         <author>
             <name>Nong</name>
         </author>
         <link href="https://koolart.net/hello-world.html"/>
         <id>https://koolart.net/hello-world.html</id>
 
-        <updated>2020-08-17T17:47:37+07:00</updated>
-            <summary>
-                <![CDATA[
-                    Chưa có cái gì hết :)
-                ]]>
-            </summary>
+        <updated>2020-08-19T18:00:48+07:00</updated>
+            <summary></summary>
         <content type="html">
             <![CDATA[
+                    <img src="https://koolart.net/media/posts/1/445821-PF5LWD-853-01.jpg" alt="Web design" />
                 <p>Chưa có cái gì hết :)</p>
             ]]>
         </content>

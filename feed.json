@@ -12,16 +12,16 @@
         {
             "id": "https://koolart.net/hello-world.html",
             "url": "https://koolart.net/hello-world.html",
-            "title": "Hello World!",
-            "summary": "Chưa có cái gì hết :)",
+            "title": "Web Design",
             "content_html": "<p>Chưa có cái gì hết :)</p>",
+            "image": "https://koolart.net/media/posts/1/445821-PF5LWD-853-01.jpg",
             "author": {
                 "name": "Nong"
             },
             "tags": [
             ],
-            "date_published": "2020-08-17T17:47:37+07:00",
-            "date_modified": "2020-08-17T17:47:37+07:00"
+            "date_published": "2020-08-19T18:00:48+07:00",
+            "date_modified": "2020-08-19T18:00:48+07:00"
         }
     ]
 }
