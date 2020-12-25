@@ -10,6 +10,18 @@
     <id>https://koolart.net</id>
 
     <entry>
+        <title>Graphic Design</title>
+        <author>
+            <name>Nong</name>
+        </author>
+        <link href="https://koolart.net/graphic-design.html"/>
+        <id>https://koolart.net/graphic-design.html</id>
+
+        <updated>2020-12-25T09:46:36+07:00</updated>
+            <summary></summary>
+        <content></content>
+    </entry>
+    <entry>
         <title>Web Design</title>
         <author>
             <name>Nong</name>
@@ -17,7 +29,7 @@
         <link href="https://koolart.net/hello-world.html"/>
         <id>https://koolart.net/hello-world.html</id>
 
-        <updated>2020-08-20T16:03:54+07:00</updated>
+        <updated>2020-12-25T09:46:36+07:00</updated>
             <summary></summary>
         <content type="html">
             <![CDATA[
