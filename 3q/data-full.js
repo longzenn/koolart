@@ -262,7 +262,7 @@ const links = [
   { source: "Đổng Trác", target: "Lữ Bố", type: "manipulate" }, // Lợi dụng
   { source: "Lữ Bố", target: "Đổng Trác", type: "enemy" }, // Phản bội coi như enemy
   { source: "Điêu Thuyền", target: "Đổng Trác", type: "manipulate" }, // Bị lợi dụng
-  { source: "ĐiêuThuyền", target: "Lữ Bố", type: "spouse" },
+  { source: "Điêu Thuyền", target: "Lữ Bố", type: "spouse" },
   { source: "Trần Cung", target: "Tào Tháo", type: "enemy" }, // Từng phục vụ, sau phản coi như enemy
   { source: "Trương Lỗ", target: "Tào Tháo", type: "ally" }, // Bị đánh bại, sau hàng coi như ally
   { source: "Mạnh Hoạch", target: "Chúc Dung", type: "spouse" },
