@@ -1,7 +1,11 @@
 // app-enhanced.js
+const nodes = window.nodes;
+const links = window.links;
 
 const width = window.innerWidth;
 const height = window.innerHeight;
+
+d3.select("body").style("margin", 0).style("overflow", "hidden");
 
 const color = d3.scaleOrdinal(d3.schemeCategory10);
 
