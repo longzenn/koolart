@@ -31,6 +31,7 @@ const nodes = [
   { id: "Lưu Phong", group: "Thục", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Liu_Feng_portrait.jpg/250px-Liu_Feng_portrait.jpg", bio: "Con nuôi Lưu Bị, không cứu viện Quan Vũ và bị xử tử." },
   { id: "Mi Chúc", group: "Thục", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Mi_Zhu_portrait.jpg/250px-Mi_Zhu_portrait.jpg", bio: "Anh trai Mi Phương, ủng hộ Lưu Bị từ sớm." },
   { id: "Mi Phương", group: "Thục", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Mi_Fang_portrait.jpg/250px-Mi_Fang_portrait.jpg", bio: "Em trai Mi Chúc, sau phản bội Lưu Bị." },
+  { id: "Chu Thương", group: "Thục", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/GuanYu-ZhouCang.jpg/200px-GuanYu-ZhouCang.jpg", bio: "Chu Thương là một nhân vật hư cấu trong tác phẩm Tam quốc diễn nghĩa. Chu Thương rất ngưỡng mộ Quan Vũ, cam nguyện vứt bỏ tất cả để đi theo." },
 
   // Ngô
   { id: "Tôn Quyền", group: "Ngô", avatar: "https://upload.wikimedia.org/wikipedia/commons/2/2d/Sun_Quan_portrait.jpg", bio: "Người sáng lập Đông Ngô, trị vì lâu dài và ổn định nhất trong Tam Quốc." },
