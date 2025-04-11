@@ -1,6 +1,4 @@
 // app-enhanced.js
-import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
-import { nodes, links } from "./data-full.js";
 
 const width = window.innerWidth;
 const height = window.innerHeight;
