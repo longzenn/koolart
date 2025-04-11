@@ -235,12 +235,10 @@ const links = [
   { source: "Trương Cáp", target: "Tào Tháo", type: "ally" }, // Quy hàng coi như ally
   { source: "Tư Mã Sư", target: "Tư Mã Ý", type: "successor" }, // Người kế thừa coi như successor
   { source: "Tư Mã Chiêu", target: "Tư Mã Ý", type: "successor" }, // Củng cố quyền lực coi như successor
-  { source: "Đặng Ngải", target: "Tào Ngụy", type: "ally" }, // Trung thành coi như ally
-  { source: "Hạ Hầu Bá", target: "Thục Hán", type: "ally" }, // Đầu hàng coi như ally
   { source: "Vương Lãng", target: "Tào Tháo", type: "ally" }, // Phục vụ coi như ally
   { source: "Giả Hủ", target: "Tào Tháo", type: "mentor" }, // Mưu sĩ coi như mentor
   { source: "Man Sủng", target: "Tào Tháo", type: "ally" }, // Tướng lĩnh coi như ally
-  { source: "Văn S聘", target: "Tào Tháo", type: "ally" }, // Quy hàng coi như ally
+  { source: "Văn Sính", target: "Tào Tháo", type: "ally" }, // Quy hàng coi như ally
   { source: "Quách Hoài", target: "Tào Tháo", type: "ally" }, // Tướng phòng thủ coi như ally
 
   // Quần hùng
@@ -279,7 +277,7 @@ const links = [
   { source: "Tả Từ", target: "Tào Tháo", type: "interact" }, // Trêu chọc
   { source: "Vu Cát", target: "Tôn Sách", type: "enemy" }, // Bị giết
   { source: "Thái Văn Cơ", target: "Tào Tháo", type: "ally" }, // Chuộc về coi như ally
-  { source: "Thái Văn Cơ", target: "Đổng T祀", type: "spouse" }, // Vợ chồng cũ
+  { source: "Thái Văn Cơ", target: "Đổng Trác", type: "spouse" }, // Vợ chồng cũ
   { source: "Khổng Dung", target: "Tào Tháo", type: "enemy" }, // Bất đồng quan điểm, bị giết
   { source: "Mê Hành", target: "Hoàng Tổ", type: "enemy" }, // Bị giết
   { source: "Mê Hành", target: "Lưu Biểu", type: "ally" }, // Từng phục vụ
