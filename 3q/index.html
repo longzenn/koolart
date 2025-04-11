@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bản đồ Tam Quốc Diễn Nghĩa</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Noto Serif SC', serif;
+      background: #f2efe3;
+    }
+    svg {
+      width: 100vw;
+      height: 100vh;
+    }
+    .node circle {
+      stroke: #000;
+      stroke-width: 1.5px;
+    }
+    .link {
+      stroke-opacity: 0.6;
+    }
+    .tooltip {
+      position: absolute;
+      text-align: center;
+      padding: 5px;
+      background: #fff;
+      border: 1px solid #aaa;
+      border-radius: 4px;
+      pointer-events: none;
+      font-size: 14px;
+    }
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 8px;
+      z-index: 10;
+    }
+    .legend {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.8);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      margin-right: 6px;
+      border: 1px solid #000;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <label for="factionSelect">Chọn phe:</label>
+    <select id="factionSelect">
+      <option value="all">Tất cả</option>
+      <option value="Thục">Thục</option>
+      <option value="Ngô">Ngô</option>
+      <option value="Ngụy">Ngụy</option>
+      <option value="Quần hùng">Quần hùng</option>
+    </select>
+
+    <label for="characterSelect">Chọn nhân vật:</label>
+    <select id="characterSelect">
+      <option value="all">Tất cả</option>
+    </select>
+
+    <label for="battleSelect">Chọn trận đánh:</label>
+    <select id="battleSelect">
+      <option value="all">Tất cả</option>
+      <option value="Xích Bích">Xích Bích</option>
+      <option value="Di Lăng">Di Lăng</option>
+    </select>
+  </div>
+
+  <div class="legend">
+    <div><strong>Màu theo mối quan hệ:</strong></div>
+    <div class="legend-item"><div class="legend-color" style="background:#4caf50;"></div>Đồng minh</div>
+    <div class="legend-item"><div class="legend-color" style="background:#f44336;"></div>Kẻ thù</div>
+    <div class="legend-item"><div class="legend-color" style="background:#2196f3;"></div>Sư đồ</div>
+  </div>
+
+  <svg></svg>
+  <div class="tooltip" style="opacity:0;"></div>
+  <div id="tooltip" style="position:absolute; top:10px; right:10px; background:white; border:1px solid #ccc; padding:10px; width:300px; display:none; border-radius:10px;"></div>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="./data-full.js"></script>
+  <script src="./app-enhanced.js"></script>
+</body>
+</html>
