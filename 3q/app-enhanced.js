@@ -3,7 +3,10 @@
 const width = window.innerWidth;
 const height = window.innerHeight;
 
-const color = d3.scaleOrdinal(d3.schemeCategory10);
+const color = d3.scaleOrdinal()
+  .domain(["Thục", "Ngô", "Ngụy", "Quần hùng", "Khác", "Trận chiến"])
+  .range(["#fef100", "#d0df9c", "#faad80", "#a05818", "#9b59b6", "#95a5a6"]);
+
 
 const svg = d3.select("body")
   .append("svg")
