@@ -1,5 +1,3 @@
-// app-enhanced.js (cập nhật thêm chức năng lọc)
-
 // Không dùng import vì dùng trong HTML trực tiếp
 const nodes = window.nodes;
 const links = window.links;
