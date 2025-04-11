@@ -129,3 +129,6 @@ const links = [
 if (typeof module !== 'undefined') {
   module.exports = { nodes, links };
 }
+
+window.nodes = nodes;
+window.links = links;
