@@ -1,4 +1,4 @@
-// app-enhanced.js (sửa lỗi 'nodes' đã khai báo từ window)
+// app-enhanced.js (sửa lỗi: không hiển thị node/link ban đầu và resolve source/target)
 
 const width = window.innerWidth;
 const height = window.innerHeight;
@@ -29,11 +29,19 @@ let node = container.append("g").selectAll("circle");
 let label = container.append("g").selectAll("text");
 
 function updateGraph() {
+  // resolve source/target objects
+  const nodeById = Object.fromEntries(currentNodes.map(n => [n.id, n]));
+  const resolvedLinks = currentLinks.map(l => ({
+    ...l,
+    source: nodeById[l.source] || l.source,
+    target: nodeById[l.target] || l.target
+  }));
+
   simulation.nodes(currentNodes);
-  simulation.force("link").links(currentLinks);
+  simulation.force("link").links(resolvedLinks);
   simulation.alpha(1).restart();
 
-  link = link.data(currentLinks, d => d.source.id + "-" + d.target.id);
+  link = link.data(resolvedLinks, d => d.source.id + "-" + d.target.id);
   link.exit().remove();
   const newLinks = link.enter().append("line")
     .attr("stroke-width", 2)
@@ -71,7 +79,7 @@ function updateGraph() {
 }
 
 const simulation = d3.forceSimulation(currentNodes)
-  .force("link", d3.forceLink(currentLinks).id(d => d.id).distance(120))
+  .force("link", d3.forceLink().id(d => d.id).distance(120))
   .force("charge", d3.forceManyBody().strength(-200))
   .force("center", d3.forceCenter(width / 2, height / 2))
   .force("collision", d3.forceCollide().radius(30))
@@ -102,24 +110,27 @@ function drag(simulation) {
   return d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended);
 }
 
-// Bộ lọc phe, nhân vật, trận đánh
+// Bộ lọc
+const nodeList = window.nodes;
+const linkList = window.links;
+
 document.getElementById("factionSelect").addEventListener("change", e => {
   const group = e.target.value;
-  currentNodes = group === "all" ? [...window.nodes] : window.nodes.filter(n => n.group === group);
+  currentNodes = group === "all" ? [...nodeList] : nodeList.filter(n => n.group === group);
   const ids = new Set(currentNodes.map(n => n.id));
-  currentLinks = window.links.filter(l => ids.has(l.source) && ids.has(l.target));
+  currentLinks = linkList.filter(l => ids.has(l.source) && ids.has(l.target));
   updateGraph();
 });
 
 document.getElementById("characterSelect").addEventListener("change", e => {
   const selected = e.target.value;
   if (selected === "all") {
-    currentNodes = [...window.nodes];
-    currentLinks = [...window.links];
+    currentNodes = [...nodeList];
+    currentLinks = [...linkList];
   } else {
-    const related = window.links.filter(l => l.source === selected || l.target === selected);
+    const related = linkList.filter(l => l.source === selected || l.target === selected);
     const relatedIds = new Set([selected, ...related.map(l => l.source), ...related.map(l => l.target)]);
-    currentNodes = window.nodes.filter(n => relatedIds.has(n.id));
+    currentNodes = nodeList.filter(n => relatedIds.has(n.id));
     currentLinks = related;
   }
   updateGraph();
@@ -128,12 +139,12 @@ document.getElementById("characterSelect").addEventListener("change", e => {
 document.getElementById("battleSelect").addEventListener("change", e => {
   const selected = e.target.value;
   if (selected === "all") {
-    currentNodes = [...window.nodes];
-    currentLinks = [...window.links];
+    currentNodes = [...nodeList];
+    currentLinks = [...linkList];
   } else {
-    const related = window.links.filter(l => l.source === selected || l.target === selected);
+    const related = linkList.filter(l => l.source === selected || l.target === selected);
     const relatedIds = new Set([selected, ...related.map(l => l.source), ...related.map(l => l.target)]);
-    currentNodes = window.nodes.filter(n => relatedIds.has(n.id));
+    currentNodes = nodeList.filter(n => relatedIds.has(n.id));
     currentLinks = related;
   }
   updateGraph();
@@ -156,3 +167,6 @@ d3.select("head")
       pointer-events: none;
     }
   `);
+
+// Hiển thị mặc định
+updateGraph();
