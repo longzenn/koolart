@@ -1,6 +1,4 @@
-// Không dùng import vì dùng trong HTML trực tiếp
-const nodes = window.nodes;
-const links = window.links;
+// app-enhanced.js (sửa lỗi 'nodes' đã khai báo từ window)
 
 const width = window.innerWidth;
 const height = window.innerHeight;
@@ -23,15 +21,14 @@ const tooltip = d3.select("body")
   .attr("class", "tooltip")
   .style("opacity", 0);
 
-let currentLinks = [...links];
-let currentNodes = [...nodes];
+let currentLinks = [...window.links];
+let currentNodes = [...window.nodes];
 
 let link = container.append("g").attr("stroke-opacity", 0.6).selectAll("line");
 let node = container.append("g").selectAll("circle");
 let label = container.append("g").selectAll("text");
 
 function updateGraph() {
-  // restart simulation
   simulation.nodes(currentNodes);
   simulation.force("link").links(currentLinks);
   simulation.alpha(1).restart();
@@ -105,24 +102,24 @@ function drag(simulation) {
   return d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended);
 }
 
-// Bổ sung filter
+// Bộ lọc phe, nhân vật, trận đánh
 document.getElementById("factionSelect").addEventListener("change", e => {
   const group = e.target.value;
-  currentNodes = group === "all" ? [...nodes] : nodes.filter(n => n.group === group);
+  currentNodes = group === "all" ? [...window.nodes] : window.nodes.filter(n => n.group === group);
   const ids = new Set(currentNodes.map(n => n.id));
-  currentLinks = links.filter(l => ids.has(l.source) && ids.has(l.target));
+  currentLinks = window.links.filter(l => ids.has(l.source) && ids.has(l.target));
   updateGraph();
 });
 
 document.getElementById("characterSelect").addEventListener("change", e => {
   const selected = e.target.value;
   if (selected === "all") {
-    currentNodes = [...nodes];
-    currentLinks = [...links];
+    currentNodes = [...window.nodes];
+    currentLinks = [...window.links];
   } else {
-    const related = links.filter(l => l.source === selected || l.target === selected);
+    const related = window.links.filter(l => l.source === selected || l.target === selected);
     const relatedIds = new Set([selected, ...related.map(l => l.source), ...related.map(l => l.target)]);
-    currentNodes = nodes.filter(n => relatedIds.has(n.id));
+    currentNodes = window.nodes.filter(n => relatedIds.has(n.id));
     currentLinks = related;
   }
   updateGraph();
@@ -131,12 +128,12 @@ document.getElementById("characterSelect").addEventListener("change", e => {
 document.getElementById("battleSelect").addEventListener("change", e => {
   const selected = e.target.value;
   if (selected === "all") {
-    currentNodes = [...nodes];
-    currentLinks = [...links];
+    currentNodes = [...window.nodes];
+    currentLinks = [...window.links];
   } else {
-    const related = links.filter(l => l.source === selected || l.target === selected);
+    const related = window.links.filter(l => l.source === selected || l.target === selected);
     const relatedIds = new Set([selected, ...related.map(l => l.source), ...related.map(l => l.target)]);
-    currentNodes = nodes.filter(n => relatedIds.has(n.id));
+    currentNodes = window.nodes.filter(n => relatedIds.has(n.id));
     currentLinks = related;
   }
   updateGraph();
