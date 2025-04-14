@@ -59,6 +59,7 @@ const nodes = [
   // Ngụy
   { id: "Tào Tháo", group: "Ngụy", avatar: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Cao_Cao_portrait.jpg", bio: "Thủ lĩnh Ngụy quốc, nhà chiến lược và chính trị lỗi lạc thời Tam Quốc." },
   { id: "Tuân Úc", group: "Ngụy", avatar: "https://upload.wikimedia.org/wikipedia/commons/6/64/Xun_Yu_portrait.jpg", bio: "Mưu sĩ chủ lực của Tào Tháo, có công lớn trong việc xây dựng nền móng Ngụy quốc." },
+  { id: "Tuân Du", group: "Ngụy", avatar: "https://upload.wikimedia.org/wikipedia/commons/6/64/Xun_Yu_portrait.jpg", bio: "Tự Công Đạt (公達), là một là một mưu sĩ giỏi của Tào Tháo." },
   { id: "Quách Gia", group: "Ngụy", avatar: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Guo_Jia_portrait.jpg", bio: "Quân sư Tào Tháo, nổi tiếng với tài tiên liệu chiến cục." },
   { id: "Tào Phi", group: "Ngụy", avatar: "https://upload.wikimedia.org/wikipedia/commons/3/3e/Cao_Pi_portrait.jpg", bio: "Con trai Tào Tháo, lập ra nhà Ngụy và trở thành Ngụy Văn Đế." },
   { id: "Tào Nhân", group: "Ngụy", avatar: "https://upload.wikimedia.org/wikipedia/commons/2/2b/Cao_Ren_statue.jpg", bio: "Tướng lĩnh trung thành, có công lớn trong các chiến dịch của Tào Tháo." },
