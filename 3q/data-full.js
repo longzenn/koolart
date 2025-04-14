@@ -278,7 +278,6 @@ const links = [
   { source: "Tôn Sách", target: "Tôn Quyền", "type": "sibling" },
   { source: "Tôn Sách", target: "Chu Du", "type": "ally" },
   { source: "Tôn Sách", target: "Đại Kiều", "type": "spouse" },
-  { source: "Tôn Sách", target: "Ngu Phi", "type": "spouse" },
   { source: "Lữ Mông", target: "Tôn Quyền", "type": "ally" },
   { source: "Lữ Mông", target: "Lỗ Túc", "type": "successor" },
   { source: "Lữ Mông", target: "Quan Vũ", "type": "enemy" },
