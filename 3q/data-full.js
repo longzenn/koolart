@@ -445,12 +445,12 @@ const links = [
   { source: "Thái Văn Cơ", target: "Tào Tháo", "type": "interact" },
   { source: "Khổng Dung", target: "Tào Tháo", "type": "enemy" },
   { source: "Mê Hành", target: "Lưu Biểu", "type": "interact" },
-  { source: "Mê Hành", target: "Tào Tháo", "type": "interact" }
+  { source: "Mê Hành", target: "Tào Tháo", "type": "interact" },
 
   // Giao điểm trận Xích Bích
   { source: "Trận Xích Bích", target: "Chu Du", type: "battle" }, // Chỉ huy
   { source: "Trận Xích Bích", target: "Gia Cát Lượng", type: "battle" }, // Tham gia liên minh
-  { source: "Trận Xích Bích", target: "Hoàng Cái", type: "battle" } // Khổ nhục kế
+  { source: "Trận Xích Bích", target: "Hoàng Cái", type: "battle" }, // Khổ nhục kế
 ];
 
 if (typeof module !== 'undefined') {
