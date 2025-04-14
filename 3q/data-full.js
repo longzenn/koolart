@@ -3,7 +3,6 @@
 
 const nodes = [
   // Thục
-  // Thục
   { id: "Lưu Bị", group: "Thục", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Liu_Bei_Tang.jpg/250px-Liu_Bei_Tang.jpg", bio: "Hoàng đế khai quốc Thục Hán, nổi tiếng vì nhân nghĩa và tình huynh đệ với Quan Vũ và Trương Phi." },
   { id: "Quan Vũ", group: "Thục", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Guanyu-1.jpg/250px-Guanyu-1.jpg", bio: "Danh tướng Thục Hán, được tôn sùng như Võ Thánh, là anh em kết nghĩa với Lưu Bị." },
   { id: "Trương Phi", group: "Thục", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/ZhangFei.jpg/250px-ZhangFei.jpg", bio: "Một trong ba anh em kết nghĩa Lưu Quan Trương, nổi tiếng vì tính khí nóng nảy nhưng trung nghĩa." },
@@ -32,6 +31,7 @@ const nodes = [
   { id: "Mi Chúc", group: "Thục", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Mi_Zhu_portrait.jpg/250px-Mi_Zhu_portrait.jpg", bio: "Anh trai Mi Phương, ủng hộ Lưu Bị từ sớm." },
   { id: "Mi Phương", group: "Thục", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Mi_Fang_portrait.jpg/250px-Mi_Fang_portrait.jpg", bio: "Em trai Mi Chúc, sau phản bội Lưu Bị." },
   { id: "Chu Thương", group: "Thục", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/GuanYu-ZhouCang.jpg/200px-GuanYu-ZhouCang.jpg", bio: "Chu Thương là một nhân vật hư cấu trong tác phẩm Tam quốc diễn nghĩa. Chu Thương rất ngưỡng mộ Quan Vũ, cam nguyện vứt bỏ tất cả để đi theo." },
+  { id: "Dương Nghi", group: "Thục", avater: "https://static.wikia.nocookie.net/tam-quoc-sat/images/e/e0/Dn2.jpg/revision/latest?cb=20220511050347&path-prefix=vi", bio: "Ban đầu Dương Nghi theo phe Tào Tháo, làm chức chủ bạ dưới trướng thứ sử Kinh châu là Phó Quần. Ít lâu sau ông bỏ Tào Tháo theo Lưu Bị, chạy sang với Quan Vũ đang trấn thủ vùng Kinh châu thuộc Thục. Quan Vũ cho Dương Nghi làm công tào, rồi phái đến Tây Xuyên giúp Lưu Bị, sau được phong làm Thượng thư." },
 
   // Ngô
   { id: "Tôn Quyền", group: "Ngô", avatar: "https://upload.wikimedia.org/wikipedia/commons/2/2d/Sun_Quan_portrait.jpg", bio: "Người sáng lập Đông Ngô, trị vì lâu dài và ổn định nhất trong Tam Quốc." },
