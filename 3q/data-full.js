@@ -103,7 +103,7 @@ const nodes = [
   { id: "Lưu Chương", group: "Quần hùng", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Liu_Zhang_portrait.jpg/250px-Liu_Zhang_portrait.jpg", bio: "Con trai Lưu Yên, Mục Ích Châu, bị Lưu Bị chiếm Ích Châu." },
   { id: "Trương Tú", group: "Quần hùng", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Zhang_Xiu_portrait.jpg/250px-Zhang_Xiu_portrait.jpg", bio: "Lãnh chúa ở Uyển Thành, từng giao chiến với Tào Tháo." },
   { id: "Sái Mạo", group: "Quần hùng", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Cai_Mao_portrait.jpg/250px-Cai_Mao_portrait.jpg", bio: "Tướng lĩnh Kinh Châu, sau đầu hàng Tào Tháo." },
-
+  
   // Trung lập/Khác
   { id: "Hoa Đà", group: "Khác", avatar: "https://upload.wikimedia.org/wikipedia/commons/d/d4/Hua_Tuo_statue.jpg", bio: "Thần y nổi tiếng thời Tam Quốc." },
   { id: "Vương Doãn", group: "Khác", avatar: "https://upload.wikimedia.org/wikipedia/commons/8/8d/Wang_Yun_portrait.jpg", bio: "Quan Tư đồ nhà Hán, dùng Điêu Thuyền để ly gián Đổng Trác và Lữ Bố." },
@@ -113,6 +113,7 @@ const nodes = [
   { id: "Thái Văn Cơ", group: "Khác", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Cai_Wenji_portrait.jpg/250px-Cai_Wenji_portrait.jpg", bio: "Nữ sĩ tài năng, con gái Thái Ung, bị Hung Nô bắt cóc rồi được Tào Tháo chuộc về." },
   { id: "Khổng Dung", group: "Khác", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Kong_Rong_portrait.jpg/250px-Kong_Rong_portrait.jpg", bio: "Nhà Nho nổi tiếng, hậu duệ Khổng Tử, bị Tào Tháo giết." },
   { id: "Mê Hành", group: "Khác", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Mi_Heng_portrait.jpg/250px-Mi_Heng_portrait.jpg", bio: "Nhà Nho tài năng nhưng ngông cuồng, bị Hoàng Tổ giết." },
+  { id: "Tào Tung", group: "Khác", avatar: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Cao_Cao_portrait.jpg", bio: "Là đại thần nhà Đông Hán. Cha của Tào Tháo, ông của hoàng đế khai quốc nhà Tào Ngụy là Tào Phi." },
 
   // Giao điểm trận Xích Bích
   { id: "Trận Xích Bích", group: "Trận chiến", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Red_Cliffs_battle_map.jpg/640px-Red_Cliffs_battle_map.jpg", bio: "Trận đánh kinh điển giữa quân Tào và liên minh Tôn - Lưu, quyết định cục diện Tam Quốc." }
