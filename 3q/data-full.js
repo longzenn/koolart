@@ -82,6 +82,7 @@ const nodes = [
   { id: "Quách Hoài", group: "Ngụy", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Guo_Huai_portrait.jpg/250px-Guo_Huai_portrait.jpg", bio: "Tướng lĩnh quan trọng của Tào Ngụy, phòng thủ phía tây." },
   { id: "Tào Duệ", group: "Ngụy", avatar: "null", bio: "Tào Ngụy Minh Đế (chữ Hán: 曹魏明帝; 204 - 22 tháng 1, 239), tên thật Tào Duệ (tiếng Trung: 曹叡; bính âm: Cáo Rùi), tự Nguyên Trọng (元仲), là vị Hoàng đế thứ hai của triều Tào Ngụy trong lịch sử Trung Quốc. Ông trị vì từ năm 226 đến 239, tổng 13 năm." },
   { id: "Lưu Tông", group: "Ngụy", avatar: "null", bio: "Lưu Tông (chữ Hán: 劉琮; 191-?) là Châu mục Kinh châu đầu thời Tam Quốc trong lịch sử Trung Quốc. Ông kế nghiệp Lưu Biểu ở Kinh châu trong một thời gian ngắn và quy hàng Tào Tháo." },
+  { id: "Thái Mạo", group: "Ngụy", avatar: "null", bio: "Thái Mạo (tiếng Hán: 蔡瑁; Phiên âm: Ts'ai Mao) còn gọi là Sái Mạo tự Đức Khuê (德珪), là một tướng lĩnh chuyên về thủy sư cuối thời kỳ nhà Hán. Ông là người Tương Dương, Kinh Châu và chỉ phục vụ dưới trướng Lưu Biểu trước khi quy hàng Tào Tháo." },
 
   // Quần hùng
   { id: "Viên Thiệu", group: "Quần hùng", avatar: "https://upload.wikimedia.org/wikipedia/commons/d/d2/Yuan_Shao_statue.jpg", bio: "Lãnh chúa phương Bắc, thất bại tại Quan Độ trước Tào Tháo." },
