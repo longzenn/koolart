@@ -116,6 +116,7 @@ const nodes = [
   { id: "Khổng Dung", group: "Khác", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Kong_Rong_portrait.jpg/250px-Kong_Rong_portrait.jpg", bio: "Nhà Nho nổi tiếng, hậu duệ Khổng Tử, bị Tào Tháo giết." },
   { id: "Mê Hành", group: "Khác", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Mi_Heng_portrait.jpg/250px-Mi_Heng_portrait.jpg", bio: "Nhà Nho tài năng nhưng ngông cuồng, bị Hoàng Tổ giết." },
   { id: "Tào Tung", group: "Khác", avatar: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Cao_Cao_portrait.jpg", bio: "Là đại thần nhà Đông Hán. Cha của Tào Tháo, ông của hoàng đế khai quốc nhà Tào Ngụy là Tào Phi." },
+  { id: "Lưu Kỳ", group: "Khác", avatar: "null", bio: "Lưu Kỳ (chữ Hán: 劉琦; 173-210) là Thứ sử Kinh châu đầu thời Tam Quốc trong lịch sử Trung Quốc." },
 
   // Giao điểm trận Xích Bích
   { id: "Trận Xích Bích", group: "Trận chiến", avatar: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Red_Cliffs_battle_map.jpg/640px-Red_Cliffs_battle_map.jpg", bio: "Trận đánh kinh điển giữa quân Tào và liên minh Tôn - Lưu, quyết định cục diện Tam Quốc." }
