@@ -47,6 +47,8 @@
         align-items: center;
         padding: 14px 12px 20px;
         gap: 12px;
+        overscroll-behavior: none;
+        -webkit-tap-highlight-color: transparent;
       }
 
       /* ---------- HUD ---------- */
@@ -101,6 +103,12 @@
         padding: 7px 13px;
         font-weight: 600;
         font-size: 14px;
+        touch-action: manipulation;
+      }
+      /* fullscreen toggle only makes sense on touch devices */
+      #btnFull { display: none; }
+      @media (pointer: coarse) {
+        #btnFull { display: inline-block; }
       }
       .hud button:hover, .overlay button:hover { border-color: var(--accent); color: var(--accent); }
       .hud button.primary, .overlay button.primary {
@@ -123,6 +131,7 @@
         touch-action: none;
         user-select: none;
         -webkit-user-select: none;
+        -webkit-touch-callout: none;
       }
       canvas { display: block; width: 100%; height: auto; }
 
@@ -150,7 +159,8 @@
         /* The canvas is short in portrait, so menus take the full screen. */
         .overlay {
           position: fixed; inset: 0; z-index: 60;
-          gap: 12px; padding: 20px 16px;
+          gap: 12px;
+          padding: calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));
           touch-action: pan-y;
         }
         .overlay h2 { font-size: 24px; }
@@ -235,7 +245,19 @@
       }
       .touch-btn:active { background: rgba(232, 131, 58, 0.75); }
       @media (pointer: coarse) {
-        .touch-controls { display: flex; }
+        .touch-controls { display: flex; padding: 0 12px calc(10px + env(safe-area-inset-bottom)); }
+        .touch-controls .cluster { gap: 8px; align-items: flex-end; }
+        /* bigger targets for thumbs; jump is the most-used button */
+        .touch-btn { width: 62px; height: 62px; }
+        #tJump { width: 72px; height: 72px; font-size: 30px; }
+        #tFire, #tCracker { width: 54px; height: 54px; }
+      }
+      @media (pointer: coarse) and (max-width: 380px) {
+        .touch-controls { padding: 0 10px calc(8px + env(safe-area-inset-bottom)); }
+        .touch-controls .cluster { gap: 6px; }
+        .touch-btn { width: 54px; height: 54px; font-size: 20px; }
+        #tJump { width: 62px; height: 62px; font-size: 26px; }
+        #tFire, #tCracker { width: 48px; height: 48px; }
       }
       .stage.hide-touch .touch-controls { display: none !important; }
 
@@ -258,8 +280,14 @@
         color: var(--ink);
       }
       @media (max-width: 560px) {
+        .hud { gap: 6px 10px; padding: 8px 10px; border-radius: 12px; }
         .hud .level-name { font-size: 15px; }
+        .hud .level-name small { font-size: 11px; }
+        .hud .stat { font-size: 13.5px; }
+        .hud button { padding: 8px 10px; font-size: 13px; min-height: 38px; }
+        body { padding: 10px 8px 16px; gap: 10px; }
         .help .desktop-only { display: none; }
+        .help { font-size: 12.5px; }
       }
     </style>
   </head>
@@ -284,6 +312,7 @@
       <span class="stat" id="hudPower" title="Vật phẩm đang có hiệu lực" style="display:none; color: var(--accent);"></span>
       <button id="btnRestart" type="button">Chơi lại</button>
       <button id="btnSound" type="button" aria-label="Bật / tắt âm thanh">Âm thanh: bật</button>
+      <button id="btnFull" type="button" aria-label="Bật / tắt toàn màn hình">Toàn màn hình</button>
     </div>
 
     <div class="stage" id="stage">
@@ -354,12 +383,31 @@
 
       function fitCanvas() {
         var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        /* Adaptive view window: VIEW_H is the world height and never
+           changes. On a tall, narrow screen (a phone held upright) the
+           full 960-wide view shrinks the world into a thin strip where
+           the character is only a few pixels tall, so narrow the world
+           window (zoom in) until the stage fills a healthy share of the
+           screen height. On short, wide windows widen the window a
+           little instead so the stage is not taller than the screen.
+           Every draw/collision routine reads VIEW_W, so gameplay is
+           unchanged apart from how much of the level is visible. */
+        var stageEl = document.getElementById("stage");
+        var cssW = stageEl ? stageEl.clientWidth : 0;
+        var vh = window.innerHeight || 0;
+        if (cssW > 0 && vh > 0) {
+          var cssH = cssW * VIEW_H / 960;
+          cssH = Math.max(cssH, Math.min(vh * 0.52, 560));
+          cssH = Math.min(cssH, vh * 0.88);
+          VIEW_W = Math.max(400, Math.min(1200, Math.round(VIEW_H * cssW / cssH)));
+        }
         canvas.width = VIEW_W * dpr;
         canvas.height = VIEW_H * dpr;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
       fitCanvas();
       window.addEventListener("resize", fitCanvas);
+      window.addEventListener("orientationchange", function () { setTimeout(fitCanvas, 80); });
 
       /* ============================================================
          Audio — tiny synthesized blips, no assets needed
@@ -3522,6 +3570,47 @@
         this.textContent = "Âm thanh: " + (soundOn ? "bật" : "tắt");
         if (soundOn) ensureAudio();
       });
+
+      /* Fullscreen (touch devices): go fullscreen on the whole page so
+         the HUD stays visible, and try to lock landscape — a platformer
+         plays far better sideways. Both calls are best-effort. */
+      var btnFull = document.getElementById("btnFull");
+      btnFull.addEventListener("click", function () {
+        ensureAudio();
+        if (document.fullscreenElement) {
+          if (document.exitFullscreen) document.exitFullscreen();
+          return;
+        }
+        var root = document.documentElement;
+        if (root.requestFullscreen) {
+          var p = root.requestFullscreen();
+          if (p && p.then) {
+            p.then(function () {
+              if (window.screen && screen.orientation && screen.orientation.lock) {
+                var lp = screen.orientation.lock("landscape");
+                if (lp && lp.catch) lp.catch(function () {});
+              }
+            }).catch(function () {});
+          }
+        }
+      });
+      document.addEventListener("fullscreenchange", function () {
+        btnFull.textContent = document.fullscreenElement ? "Thu nhỏ" : "Toàn màn hình";
+        setTimeout(fitCanvas, 80);
+      });
+
+      /* Auto-pause when the tab/app loses visibility mid-run, so coming
+         back never means a death that happened off-screen. */
+      document.addEventListener("visibilitychange", function () {
+        if (document.hidden && state.mode === "playing") {
+          state.mode = "paused";
+          showMenu();
+        }
+      });
+
+      /* Long-pressing the stage or a touch button must not pop the
+         browser context menu mid-game. */
+      document.getElementById("stage").addEventListener("contextmenu", function (e) { e.preventDefault(); });
       document.getElementById("btnNext").addEventListener("click", function () {
         var nxt = Math.min(state.levelIndex + 1, LEVELS.length - 1);
         showComic(nxt, function () { startLevel(nxt); });
