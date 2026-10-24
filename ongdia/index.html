@@ -110,6 +110,11 @@
       @media (pointer: coarse) {
         #btnFull { display: inline-block; }
       }
+      /* On mobile the top bar stays short: the sound and fullscreen
+         buttons are dropped entirely (desktop keeps the sound toggle). */
+      @media (pointer: coarse), (max-width: 560px) {
+        #btnSound, #btnFull { display: none; }
+      }
       .hud button:hover, .overlay button:hover { border-color: var(--accent); color: var(--accent); }
       .hud button.primary, .overlay button.primary {
         background: var(--accent);
@@ -207,6 +212,9 @@
       .costume-btn small { font-size: 10.5px; font-weight: 500; color: #aebfca; }
       .costume-btn.selected { border-color: #ffd94d; color: #ffd94d; box-shadow: 0 0 0 2px rgba(255, 217, 77, 0.35); }
       .costume-btn.locked { opacity: 0.55; cursor: not-allowed; }
+      .costume-btn.shake { animation: costumeShake 0.4s ease; }
+      .costume-btn.shake small { color: #ff9a8a; }
+      @keyframes costumeShake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-5px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
       .toggle-btn.on { background: #3aa655; border-color: #3aa655; color: #fff; }
 
       /* ---------- Comic panels ---------- */
@@ -235,7 +243,7 @@
           align-items: center;
           justify-content: space-between;
           gap: 8px;
-          padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+          padding: 14px 10px calc(14px + env(safe-area-inset-bottom));
           background: linear-gradient(180deg, #33454f 0%, #24333c 55%, #1d2a31 100%);
           border-top: 3px solid rgba(0, 0, 0, 0.4);
           box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -6px 14px rgba(0, 0, 0, 0.35);
@@ -247,38 +255,37 @@
       }
       .stage.hide-touch .deck { display: none !important; }
 
-      /* D-pad cross plate: up = jump, left/right = move (same as arrow keys) */
-      .dpad { position: relative; width: 138px; height: 138px; flex-shrink: 0; }
-      .dpad::before, .dpad::after {
+      /* D-pad rocker bar: left/right = move only. There is no up button:
+         jumping lives on the big round NHẢY button in the action cluster. */
+      .dpad { position: relative; width: 156px; height: 104px; flex-shrink: 0; }
+      .dpad::after {
         content: "";
         position: absolute;
+        left: 0; top: 26px; width: 156px; height: 52px; border-radius: 14px;
         background: linear-gradient(180deg, #39434a, #232a2f);
         border: 1px solid rgba(0, 0, 0, 0.55);
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 3px 6px rgba(0, 0, 0, 0.4);
       }
-      .dpad::before { left: 46px; top: 0; width: 46px; height: 138px; border-radius: 10px; }
-      .dpad::after { left: 0; top: 46px; width: 138px; height: 46px; border-radius: 10px; }
       .dpad-btn {
         position: absolute;
-        width: 46px; height: 46px;
+        width: 52px; height: 52px;
         background: transparent;
         border: none;
         color: #dfe9ee;
-        font-size: 19px;
+        font-size: 22px;
         display: flex; align-items: center; justify-content: center;
         cursor: pointer;
         touch-action: none;
         z-index: 1;
-        border-radius: 10px;
+        border-radius: 12px;
       }
       .dpad-btn:active { background: rgba(232, 131, 58, 0.55); color: #fff; }
-      .dpad-up { left: 46px; top: 0; }
-      .dpad-left { left: 0; top: 46px; }
-      .dpad-right { right: 0; top: 46px; }
+      .dpad-left { left: 0; top: 26px; }
+      .dpad-right { right: 0; top: 26px; }
       .dpad-hub {
         position: absolute;
-        left: 61px; top: 61px;
-        width: 16px; height: 16px;
+        left: 69px; top: 43px;
+        width: 18px; height: 18px;
         border-radius: 50%;
         background: radial-gradient(circle at 38% 34%, #4a565e, #20262b 70%);
         box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -312,7 +319,7 @@
       .deck-pill:active { transform: translate(-50%, 2px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.45); }
 
       /* round action buttons in a diagonal handheld cluster */
-      .action-cluster { position: relative; width: 172px; height: 128px; flex-shrink: 0; }
+      .action-cluster { position: relative; width: 188px; height: 140px; flex-shrink: 0; }
       .abtn {
         position: absolute;
         border-radius: 50%;
@@ -327,16 +334,16 @@
       }
       .abtn-jump {
         right: 0; bottom: 0;
-        width: 70px; height: 70px;
-        font-size: 15px; letter-spacing: 0.03em;
+        width: 80px; height: 80px;
+        font-size: 16px; letter-spacing: 0.03em;
         background: radial-gradient(circle at 34% 30%, #f0685e, #c93a30 62%, #a02c23);
         box-shadow: 0 5px 0 #6e1d16, 0 8px 14px rgba(0, 0, 0, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.35);
       }
       .abtn-jump:active { transform: translateY(2px); filter: brightness(1.12); box-shadow: 0 2px 0 #6e1d16, 0 5px 10px rgba(0, 0, 0, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.35); }
       .abtn-fire {
-        left: 4px; bottom: 12px;
-        width: 58px; height: 58px;
-        font-size: 13.5px; letter-spacing: 0.03em;
+        left: 2px; bottom: 14px;
+        width: 66px; height: 66px;
+        font-size: 14.5px; letter-spacing: 0.03em;
         background: radial-gradient(circle at 34% 30%, #ffd94d, #e8a91c 62%, #c07f0d);
         color: #5c3a05;
         text-shadow: none;
@@ -344,28 +351,26 @@
       }
       .abtn-fire:active { transform: translateY(2px); filter: brightness(1.08); box-shadow: 0 2px 0 #7d5206, 0 5px 10px rgba(0, 0, 0, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.4); }
       .abtn-cracker {
-        top: 0; right: 40px;
-        width: 48px; height: 48px;
-        font-size: 11.5px; letter-spacing: 0.04em;
+        top: 0; right: 44px;
+        width: 54px; height: 54px;
+        font-size: 12.5px; letter-spacing: 0.04em;
         background: radial-gradient(circle at 34% 30%, #f6a35c, #e8712a 62%, #c2541a);
         box-shadow: 0 4px 0 #7e3a0e, 0 7px 12px rgba(0, 0, 0, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.35);
       }
       .abtn-cracker:active { transform: translateY(2px); filter: brightness(1.1); box-shadow: 0 2px 0 #7e3a0e, 0 4px 8px rgba(0, 0, 0, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.35); }
 
       @media (pointer: coarse) and (max-width: 380px) {
-        .deck { padding: 10px 10px calc(10px + env(safe-area-inset-bottom)); }
-        .dpad { width: 114px; height: 114px; }
-        .dpad::before { left: 38px; width: 38px; height: 114px; }
-        .dpad::after { top: 38px; width: 114px; height: 38px; }
-        .dpad-btn { width: 38px; height: 38px; font-size: 16px; }
-        .dpad-up { left: 38px; }
-        .dpad-left { top: 38px; }
-        .dpad-right { top: 38px; }
-        .dpad-hub { left: 50px; top: 50px; width: 14px; height: 14px; }
-        .action-cluster { width: 148px; height: 112px; }
-        .abtn-jump { width: 62px; height: 62px; font-size: 13.5px; }
-        .abtn-fire { width: 52px; height: 52px; font-size: 12.5px; }
-        .abtn-cracker { width: 43px; height: 43px; font-size: 10.5px; right: 34px; }
+        .deck { padding: 10px 8px calc(10px + env(safe-area-inset-bottom)); }
+        .dpad { width: 132px; height: 88px; }
+        .dpad::after { top: 22px; width: 132px; height: 44px; }
+        .dpad-btn { width: 44px; height: 44px; font-size: 18px; }
+        .dpad-left { top: 22px; }
+        .dpad-right { top: 22px; }
+        .dpad-hub { left: 57px; top: 35px; width: 18px; height: 18px; }
+        .action-cluster { width: 168px; height: 124px; }
+        .abtn-jump { width: 70px; height: 70px; font-size: 14.5px; }
+        .abtn-fire { width: 58px; height: 58px; font-size: 13px; }
+        .abtn-cracker { width: 48px; height: 48px; font-size: 11px; right: 38px; }
         .deck-pill { font-size: 10.5px; padding: 7px 10px; }
       }
 
@@ -461,7 +466,6 @@
 
       <div class="deck" id="touchControls">
         <div class="dpad" role="group" aria-label="Phím điều hướng">
-          <button class="dpad-btn dpad-up" id="tJumpPad" type="button" aria-label="Nhảy">&#9650;</button>
           <button class="dpad-btn dpad-left" id="tLeft" type="button" aria-label="Đi sang trái">&#9664;</button>
           <span class="dpad-hub" aria-hidden="true"></span>
           <button class="dpad-btn dpad-right" id="tRight" type="button" aria-label="Đi sang phải">&#9654;</button>
@@ -1410,10 +1414,6 @@
       bindTouch("tCracker",
         function () { crackerPressed = true; },
         function () {});
-      /* the D-pad's up arm is a second jump button, same as the A button */
-      bindTouch("tJumpPad",
-        function () { if (!keys.jumpHeld) jumpPressed = true; keys.jumpHeld = true; },
-        function () { keys.jumpHeld = false; });
       /* deck START pill: same pause toggle as the P key */
       document.getElementById("tPause").addEventListener("click", function () {
         if (state.mode === "playing") { state.mode = "paused"; showMenu(); }
@@ -2406,22 +2406,22 @@
         var by = feet - hop;
         // tail with a gold tuft, wagging behind
         var wag = Math.sin(t * 6) * 3;
-        ctx.strokeStyle = "#b3541e"; ctx.lineWidth = 3.4; ctx.lineCap = "round";
+        ctx.strokeStyle = "#8e1f14"; ctx.lineWidth = 3.4; ctx.lineCap = "round";
         ctx.beginPath();
         ctx.moveTo(cx - cub.face * 14, by - 10);
         ctx.quadraticCurveTo(cx - cub.face * 22, by - 16, cx - cub.face * 20, by - 24 + wag);
         ctx.stroke();
         ctx.fillStyle = "#f2b134";
         ctx.beginPath(); ctx.arc(cx - cub.face * 20, by - 24 + wag, 3.4, 0, 6.29); ctx.fill();
-        // round cream body
-        ctx.fillStyle = "#f7e3ae";
+        // round red body — bright festival red so the cub pops against the scenery
+        ctx.fillStyle = "#e8402c";
         ctx.beginPath(); ctx.ellipse(cx, by - 13, 17, 12, 0, 0, 6.29); ctx.fill();
-        ctx.fillStyle = "#b3541e";
+        ctx.fillStyle = "#8e1f14";
         ctx.fillRect(cx - 13, by - 3, 8, 3);
         ctx.fillRect(cx + 5, by - 3, 8, 3);
-        // mane: two rings of tufts, same family look as the big beast
+        // mane: two rings of tufts, deep red outside, gold inside
         var hx = cx + cub.face * 9, hy = by - 24;
-        ctx.fillStyle = "#e8833a";
+        ctx.fillStyle = "#b01e14";
         for (var i = 0; i < 8; i++) {
           var a = i / 8 * 6.29;
           ctx.beginPath(); ctx.arc(hx + Math.cos(a) * 11, hy + Math.sin(a) * 10, 4.8, 0, 6.29); ctx.fill();
@@ -2445,10 +2445,10 @@
         ctx.beginPath(); ctx.ellipse(hx + cub.face * 3, hy + 4.6, 5.4, 3.4, 0, 0, 6.29); ctx.fill();
         ctx.fillStyle = "#7a2e1d";
         ctx.beginPath(); ctx.arc(hx + cub.face * 5.4, hy + 3.2, 1.3, 0, 6.29); ctx.fill();
-        // red collar with a gold bell
-        ctx.strokeStyle = "#b03a2e"; ctx.lineWidth = 2.6;
+        // gold collar with a red bell (a red collar would vanish on the red body)
+        ctx.strokeStyle = "#ffd94d"; ctx.lineWidth = 2.6;
         ctx.beginPath(); ctx.arc(cx + cub.face * 2, by - 15, 9, Math.PI * 0.25, Math.PI * 0.8); ctx.stroke();
-        ctx.fillStyle = "#ffd94d";
+        ctx.fillStyle = "#7a150c";
         ctx.beginPath(); ctx.arc(cx + cub.face * 4, by - 6.5, 2.8, 0, 6.29); ctx.fill();
         ctx.restore();
       }
@@ -3062,14 +3062,19 @@
         // belly button
         ctx.fillStyle = "rgba(160,100,50,0.55)";
         ctx.beginPath(); ctx.arc(cx, y + h * 0.68 + jiggle * 0.4, 1.4, 0, 6.29); ctx.fill();
-        // gold trim down the vest opening
+        // vest flaps over the belly sides: without these the bare belly
+        // covers nearly the whole vest and a costume change is invisible
+        ctx.fillStyle = cos.vest;
+        roundRect(x + 0.5, y + headH + 2, w * 0.30, h - headH - 9, 5); ctx.fill();
+        roundRect(x + w - 0.5 - w * 0.30, y + headH + 2, w * 0.30, h - headH - 9, 5); ctx.fill();
+        // gold trim down the inner edge of each flap
         ctx.strokeStyle = cos.trim;
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(cx - w * 0.40, y + headH + 1);
-        ctx.quadraticCurveTo(cx - w * 0.47, y + h * 0.66, cx - w * 0.30, y + h - 8);
-        ctx.moveTo(cx + w * 0.40, y + headH + 1);
-        ctx.quadraticCurveTo(cx + w * 0.47, y + h * 0.66, cx + w * 0.30, y + h - 8);
+        ctx.moveTo(cx - w * 0.19, y + headH + 3);
+        ctx.quadraticCurveTo(cx - w * 0.24, y + h * 0.66, cx - w * 0.17, y + h - 8);
+        ctx.moveTo(cx + w * 0.19, y + headH + 3);
+        ctx.quadraticCurveTo(cx + w * 0.24, y + h * 0.66, cx + w * 0.17, y + h - 8);
         ctx.stroke();
 
         // head — big and round
@@ -3399,7 +3404,7 @@
               text: "Mùa xuân, làng mở hội. Giữa sân đình là chiếc trống hội to, đánh lên là cả làng vui." },
             { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#22304a"/><circle cx="190" cy="24" r="12" fill="#f7e08b"/><circle cx="183" cy="20" r="10" fill="#22304a"/><rect y="104" width="220" height="26" fill="#31435f"/><circle cx="30" cy="20" r="1.8" fill="#fff"/><circle cx="70" cy="12" r="1.4" fill="#fff"/><circle cx="120" cy="26" r="1.6" fill="#fff"/><circle cx="150" cy="10" r="1.3" fill="#fff"/><g fill="#e8a13a"><circle cx="52" cy="52" r="7"/><circle cx="66" cy="46" r="7"/><circle cx="80" cy="52" r="7"/><circle cx="48" cy="66" r="7"/><circle cx="84" cy="66" r="7"/><circle cx="54" cy="78" r="6"/><circle cx="78" cy="78" r="6"/></g><circle cx="66" cy="64" r="16" fill="#c4453c"/><polygon points="56,52 50,40 62,46" fill="#f7e08b"/><polygon points="76,52 82,40 70,46" fill="#f7e08b"/><circle cx="60" cy="62" r="2.6" fill="#fff"/><circle cx="60" cy="62" r="1.3" fill="#1c2b33"/><ellipse cx="72" cy="70" rx="6" ry="4" fill="#e8a37c"/><rect x="86" y="66" width="30" height="20" rx="4" fill="#b03a2e"/><ellipse cx="101" cy="66" rx="15" ry="4" fill="#f5e6c8"/><ellipse cx="130" cy="112" rx="7" ry="2.6" fill="#1b2740"/><ellipse cx="160" cy="118" rx="7" ry="2.6" fill="#1b2740"/><ellipse cx="188" cy="110" rx="7" ry="2.6" fill="#1b2740"/></svg>',
               text: "Đêm xuống, Niên Thú lẻn vào tha mất trống hội. Không trống thì lấy gì múa lân?" },
-            { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#cdeffb"/><circle cx="196" cy="22" r="11" fill="#ffd94d"/><rect y="100" width="220" height="30" fill="#a8d8a0"/><polygon points="0,130 90,100 220,108 220,130" fill="#d9b380"/><rect x="150" y="52" width="5" height="50" fill="#7d5433"/><rect x="132" y="44" width="42" height="16" rx="3" fill="#b03a2e"/><text x="153" y="55" font-size="8.5" font-weight="700" fill="#ffd94d" text-anchor="middle">ĐÒI TRỐNG</text><g><rect x="52" y="56" width="26" height="30" rx="8" fill="#1f7a6d"/><ellipse cx="65" cy="76" rx="11" ry="9" fill="#f7c489"/><circle cx="65" cy="50" r="13" fill="#f7c489"/><circle cx="65" cy="36" r="3.4" fill="#2b2b2b"/><path d="M57 52 Q65 58 73 52" stroke="#402a18" stroke-width="1.8" fill="none"/><polygon points="80,60 94,50 92,66" fill="#e3cf8e"/><rect x="56" y="86" width="8" height="14" fill="#b03a2e"/><rect x="68" y="86" width="8" height="14" fill="#b03a2e"/></g><g><circle cx="112" cy="88" r="10" fill="#f9edbe"/><circle cx="104" cy="80" r="4" fill="#e8833a"/><circle cx="120" cy="80" r="4" fill="#e8833a"/><circle cx="112" cy="78" r="4" fill="#e8833a"/><ellipse cx="112" cy="100" rx="11" ry="8" fill="#f7e3ae"/><rect x="103" y="104" width="5" height="6" fill="#b3541e"/><rect x="116" y="104" width="5" height="6" fill="#b3541e"/></g></svg>',
+            { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#cdeffb"/><circle cx="196" cy="22" r="11" fill="#ffd94d"/><rect y="100" width="220" height="30" fill="#a8d8a0"/><polygon points="0,130 90,100 220,108 220,130" fill="#d9b380"/><rect x="150" y="52" width="5" height="50" fill="#7d5433"/><rect x="132" y="44" width="42" height="16" rx="3" fill="#b03a2e"/><text x="153" y="55" font-size="8.5" font-weight="700" fill="#ffd94d" text-anchor="middle">ĐÒI TRỐNG</text><g><rect x="52" y="56" width="26" height="30" rx="8" fill="#1f7a6d"/><ellipse cx="65" cy="76" rx="11" ry="9" fill="#f7c489"/><circle cx="65" cy="50" r="13" fill="#f7c489"/><circle cx="65" cy="36" r="3.4" fill="#2b2b2b"/><path d="M57 52 Q65 58 73 52" stroke="#402a18" stroke-width="1.8" fill="none"/><polygon points="80,60 94,50 92,66" fill="#e3cf8e"/><rect x="56" y="86" width="8" height="14" fill="#b03a2e"/><rect x="68" y="86" width="8" height="14" fill="#b03a2e"/></g><g><circle cx="112" cy="88" r="10" fill="#f9edbe"/><circle cx="104" cy="80" r="4" fill="#b01e14"/><circle cx="120" cy="80" r="4" fill="#b01e14"/><circle cx="112" cy="78" r="4" fill="#b01e14"/><ellipse cx="112" cy="100" rx="11" ry="8" fill="#e8402c"/><rect x="103" y="104" width="5" height="6" fill="#8e1f14"/><rect x="116" y="104" width="5" height="6" fill="#8e1f14"/></g></svg>',
               text: "Ông Địa xách quạt lên đường đòi lại trống. Lân con cũng lon ton chạy theo." }
           ]
         },
@@ -3410,7 +3415,7 @@
               text: "Đường qua hẻm núi đúng mùa Trung Thu, đèn lồng treo sáng cả lối đi." },
             { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#f7b267"/><rect y="86" width="220" height="44" fill="#e0aa6e"/><ellipse cx="36" cy="100" rx="9" ry="3.4" fill="#a8763f"/><ellipse cx="70" cy="112" rx="9" ry="3.4" fill="#a8763f"/><ellipse cx="106" cy="100" rx="9" ry="3.4" fill="#a8763f"/><ellipse cx="140" cy="112" rx="9" ry="3.4" fill="#a8763f"/><path d="M160 84 Q186 74 200 92 Q196 108 176 106 Q158 102 160 84 Z" fill="#f5e6c8" stroke="#c9a86a" stroke-width="2"/><path d="M168 88 L180 96 L172 102" stroke="#b03a2e" stroke-width="2" fill="none"/><circle cx="30" cy="30" r="13" fill="#f7e08b"/></svg>',
               text: "Trên cát còn in dấu chân Niên Thú và một mảnh da trống bị rách rơi lại." },
-            { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#fde3b8"/><rect y="102" width="220" height="28" fill="#d99a5b"/><ellipse cx="180" cy="112" rx="10" ry="3.6" fill="#a8763f"/><ellipse cx="150" cy="120" rx="10" ry="3.6" fill="#a8763f"/><g><rect x="46" y="56" width="26" height="30" rx="8" fill="#1f7a6d"/><ellipse cx="59" cy="76" rx="11" ry="9" fill="#f7c489"/><circle cx="59" cy="50" r="13" fill="#f7c489"/><circle cx="59" cy="36" r="3.4" fill="#2b2b2b"/><path d="M51 52 Q59 58 67 52" stroke="#402a18" stroke-width="1.8" fill="none"/><rect x="70" y="58" width="20" height="6" rx="3" fill="#f7c489"/><polygon points="42,60 30,50 32,66" fill="#e3cf8e"/><rect x="50" y="86" width="8" height="14" fill="#b03a2e"/><rect x="62" y="86" width="8" height="14" fill="#b03a2e"/></g><g><circle cx="112" cy="90" r="9" fill="#f9edbe"/><circle cx="105" cy="83" r="3.6" fill="#e8833a"/><circle cx="119" cy="83" r="3.6" fill="#e8833a"/><ellipse cx="112" cy="101" rx="10" ry="7" fill="#f7e3ae"/></g><text x="148" y="40" font-size="14" font-weight="700" fill="#b03a2e">Nó ở phía trước!</text></svg>',
+            { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#fde3b8"/><rect y="102" width="220" height="28" fill="#d99a5b"/><ellipse cx="180" cy="112" rx="10" ry="3.6" fill="#a8763f"/><ellipse cx="150" cy="120" rx="10" ry="3.6" fill="#a8763f"/><g><rect x="46" y="56" width="26" height="30" rx="8" fill="#1f7a6d"/><ellipse cx="59" cy="76" rx="11" ry="9" fill="#f7c489"/><circle cx="59" cy="50" r="13" fill="#f7c489"/><circle cx="59" cy="36" r="3.4" fill="#2b2b2b"/><path d="M51 52 Q59 58 67 52" stroke="#402a18" stroke-width="1.8" fill="none"/><rect x="70" y="58" width="20" height="6" rx="3" fill="#f7c489"/><polygon points="42,60 30,50 32,66" fill="#e3cf8e"/><rect x="50" y="86" width="8" height="14" fill="#b03a2e"/><rect x="62" y="86" width="8" height="14" fill="#b03a2e"/></g><g><circle cx="112" cy="90" r="9" fill="#f9edbe"/><circle cx="105" cy="83" r="3.6" fill="#b01e14"/><circle cx="119" cy="83" r="3.6" fill="#b01e14"/><ellipse cx="112" cy="101" rx="10" ry="7" fill="#e8402c"/></g><text x="148" y="40" font-size="14" font-weight="700" fill="#b03a2e">Nó ở phía trước!</text></svg>',
               text: "Ông Địa phẩy quạt: Nó ở ngay phía trước thôi. Đi tiếp!" }
           ]
         },
@@ -3421,7 +3426,7 @@
               text: "Đỉnh băng lạnh buốt, đêm giao thừa đã gần kề mà trống vẫn chưa về làng." },
             { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#8fa9cf"/><rect y="104" width="220" height="26" fill="#e8eef4"/><rect x="150" y="70" width="40" height="28" rx="5" fill="#b03a2e"/><ellipse cx="170" cy="70" rx="20" ry="5" fill="#f5e6c8"/><g fill="#e8a13a"><circle cx="52" cy="44" r="8"/><circle cx="70" cy="36" r="8"/><circle cx="88" cy="44" r="8"/><circle cx="46" cy="62" r="8"/><circle cx="94" cy="62" r="8"/><circle cx="54" cy="80" r="7"/><circle cx="86" cy="80" r="7"/></g><rect x="48" y="58" width="44" height="40" rx="12" fill="#b03a2e"/><circle cx="70" cy="58" r="19" fill="#c4453c"/><polygon points="58,44 50,30 64,38" fill="#f7e08b"/><polygon points="82,44 90,30 76,38" fill="#f7e08b"/><circle cx="63" cy="56" r="3" fill="#fff"/><circle cx="77" cy="56" r="3" fill="#fff"/><circle cx="63" cy="56" r="1.5" fill="#1c2b33"/><circle cx="77" cy="56" r="1.5" fill="#1c2b33"/><ellipse cx="70" cy="66" rx="7" ry="4.6" fill="#e8a37c"/><path d="M64 68 L67 74 L70 68 L73 74 L76 68" stroke="#fff" stroke-width="1.8" fill="none"/></svg>',
               text: "Niên Thú giữ trống hội sau lưng, gầm gừ không cho ai lại gần." },
-            { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#a9c3e2"/><rect y="102" width="220" height="28" fill="#e8eef4"/><polygon points="0,102 50,50 100,102" fill="#dcebf7"/><g><rect x="70" y="54" width="28" height="32" rx="8" fill="#1f7a6d"/><ellipse cx="84" cy="76" rx="12" ry="10" fill="#f7c489"/><circle cx="84" cy="48" r="14" fill="#f7c489"/><circle cx="84" cy="33" r="3.6" fill="#2b2b2b"/><path d="M75 50 Q84 57 93 50" stroke="#402a18" stroke-width="1.8" fill="none"/><rect x="98" y="56" width="16" height="7" rx="2" fill="#d64541"/><rect x="104" y="56" width="3" height="7" fill="#f2b134"/><circle cx="120" cy="52" r="2.4" fill="#ffd94d"/><circle cx="126" cy="46" r="1.7" fill="#ff8c42"/><rect x="74" y="86" width="8" height="14" fill="#b03a2e"/><rect x="86" y="86" width="8" height="14" fill="#b03a2e"/></g><g><circle cx="140" cy="88" r="10" fill="#f9edbe"/><circle cx="132" cy="80" r="4" fill="#e8833a"/><circle cx="148" cy="80" r="4" fill="#e8833a"/><ellipse cx="140" cy="100" rx="11" ry="8" fill="#f7e3ae"/></g><text x="26" y="30" font-size="13" font-weight="700" fill="#b03a2e">Lấy lại trống thôi!</text></svg>',
+            { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#a9c3e2"/><rect y="102" width="220" height="28" fill="#e8eef4"/><polygon points="0,102 50,50 100,102" fill="#dcebf7"/><g><rect x="70" y="54" width="28" height="32" rx="8" fill="#1f7a6d"/><ellipse cx="84" cy="76" rx="12" ry="10" fill="#f7c489"/><circle cx="84" cy="48" r="14" fill="#f7c489"/><circle cx="84" cy="33" r="3.6" fill="#2b2b2b"/><path d="M75 50 Q84 57 93 50" stroke="#402a18" stroke-width="1.8" fill="none"/><rect x="98" y="56" width="16" height="7" rx="2" fill="#d64541"/><rect x="104" y="56" width="3" height="7" fill="#f2b134"/><circle cx="120" cy="52" r="2.4" fill="#ffd94d"/><circle cx="126" cy="46" r="1.7" fill="#ff8c42"/><rect x="74" y="86" width="8" height="14" fill="#b03a2e"/><rect x="86" y="86" width="8" height="14" fill="#b03a2e"/></g><g><circle cx="140" cy="88" r="10" fill="#f9edbe"/><circle cx="132" cy="80" r="4" fill="#b01e14"/><circle cx="148" cy="80" r="4" fill="#b01e14"/><ellipse cx="140" cy="100" rx="11" ry="8" fill="#e8402c"/></g><text x="26" y="30" font-size="13" font-weight="700" fill="#b03a2e">Lấy lại trống thôi!</text></svg>',
               text: "Ông Địa thủ sẵn pháo trong tay: Dậm nó, lấy lại trống cho làng kịp mở hội!" }
           ]
         },
@@ -3432,7 +3437,7 @@
               text: "Niên Thú ôm trống chạy sâu vào rừng tre, dấu chân còn in rõ trên đất ẩm." },
             { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#e8f6e3"/><rect y="106" width="220" height="24" fill="#7fbc7a"/><g stroke="#3f7d33" stroke-width="6"><line x1="24" y1="130" x2="28" y2="30"/><line x1="196" y1="130" x2="192" y2="26"/></g><rect x="92" y="58" width="10" height="52" fill="#8a6a42"/><rect x="118" y="58" width="10" height="52" fill="#8a6a42"/><line x1="86" y1="58" x2="134" y2="58" stroke="#8a6a42" stroke-width="6"/><circle cx="110" cy="46" r="4" fill="#8a6a42"/><rect x="98" y="14" width="24" height="14" rx="3" fill="#f2b134"/><circle cx="110" cy="21" r="4.4" fill="#fff3c4"/><text x="110" y="86" font-size="10" font-weight="700" fill="#7a5b12" text-anchor="middle">CỔNG TRE</text></svg>',
               text: "Trong rừng có cổng tre khóa chặt, còn chìa khóa vàng treo tít trên ngọn tre cao." },
-            { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#dff3e2"/><rect y="102" width="220" height="28" fill="#7fbc7a"/><g stroke="#3f7d33" stroke-width="6"><line x1="188" y1="130" x2="192" y2="16"/><line x1="212" y1="130" x2="208" y2="36"/></g><g><rect x="52" y="56" width="26" height="30" rx="8" fill="#1f7a6d"/><ellipse cx="65" cy="76" rx="11" ry="9" fill="#f7c489"/><circle cx="65" cy="50" r="13" fill="#f7c489"/><circle cx="65" cy="36" r="3.4" fill="#2b2b2b"/><path d="M57 52 Q65 58 73 52" stroke="#402a18" stroke-width="1.8" fill="none"/><polygon points="80,60 94,50 92,66" fill="#e3cf8e"/><rect x="56" y="86" width="8" height="14" fill="#b03a2e"/><rect x="68" y="86" width="8" height="14" fill="#b03a2e"/></g><g><circle cx="118" cy="88" r="10" fill="#f9edbe"/><circle cx="110" cy="80" r="4" fill="#e8833a"/><circle cx="126" cy="80" r="4" fill="#e8833a"/><ellipse cx="118" cy="100" rx="11" ry="8" fill="#f7e3ae"/></g><text x="30" y="34" font-size="13" font-weight="700" fill="#b03a2e">Lấy chìa nào!</text></svg>',
+            { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#dff3e2"/><rect y="102" width="220" height="28" fill="#7fbc7a"/><g stroke="#3f7d33" stroke-width="6"><line x1="188" y1="130" x2="192" y2="16"/><line x1="212" y1="130" x2="208" y2="36"/></g><g><rect x="52" y="56" width="26" height="30" rx="8" fill="#1f7a6d"/><ellipse cx="65" cy="76" rx="11" ry="9" fill="#f7c489"/><circle cx="65" cy="50" r="13" fill="#f7c489"/><circle cx="65" cy="36" r="3.4" fill="#2b2b2b"/><path d="M57 52 Q65 58 73 52" stroke="#402a18" stroke-width="1.8" fill="none"/><polygon points="80,60 94,50 92,66" fill="#e3cf8e"/><rect x="56" y="86" width="8" height="14" fill="#b03a2e"/><rect x="68" y="86" width="8" height="14" fill="#b03a2e"/></g><g><circle cx="118" cy="88" r="10" fill="#f9edbe"/><circle cx="110" cy="80" r="4" fill="#b01e14"/><circle cx="126" cy="80" r="4" fill="#b01e14"/><ellipse cx="118" cy="100" rx="11" ry="8" fill="#e8402c"/></g><text x="30" y="34" font-size="13" font-weight="700" fill="#b03a2e">Lấy chìa nào!</text></svg>',
               text: "Ông Địa vẫy quạt gọi lân con: Leo tre, lấy chìa, đuổi theo nó nào!" }
           ]
         },
@@ -3443,7 +3448,7 @@
               text: "Ra khỏi rừng tre là bến sông trăng lên. Niên Thú đã qua sông bằng chiếc bè cũ." },
             { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#31435f"/><circle cx="40" cy="22" r="11" fill="#f7e08b"/><rect y="86" width="220" height="44" fill="#42588c"/><g><line x1="80" y1="30" x2="80" y2="48" stroke="#8a6a42"/><ellipse cx="80" cy="60" rx="11" ry="14" fill="#e8833a"/><rect x="74" y="44" width="12" height="4" fill="#c98a12"/></g><g><line x1="140" y1="24" x2="140" y2="42" stroke="#8a6a42"/><ellipse cx="140" cy="54" rx="11" ry="14" fill="#d64541"/><rect x="134" y="38" width="12" height="4" fill="#c98a12"/></g><path d="M0 104 Q30 98 60 104 T120 104 T180 104 T220 104" stroke="#d9e4f7" stroke-width="2.2" fill="none"/><ellipse cx="102" cy="112" rx="16" ry="4" fill="#22304a"/></svg>',
               text: "Sông rộng, bến vắng, chỉ còn vài chiếc đèn lồng trôi theo dòng nước trong đêm." },
-            { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#42588c"/><circle cx="196" cy="20" r="11" fill="#f7e08b"/><rect y="90" width="220" height="40" fill="#5d7fb8"/><rect x="52" y="80" width="90" height="9" rx="3" fill="#8a6a42"/><line x1="60" y1="89" x2="66" y2="89" stroke="#6f5230" stroke-width="9"/><g><rect x="76" y="44" width="26" height="30" rx="8" fill="#1f7a6d"/><ellipse cx="89" cy="64" rx="11" ry="9" fill="#f7c489"/><circle cx="89" cy="38" r="13" fill="#f7c489"/><circle cx="89" cy="24" r="3.4" fill="#2b2b2b"/><path d="M81 40 Q89 46 97 40" stroke="#402a18" stroke-width="1.8" fill="none"/><line x1="104" y1="52" x2="122" y2="76" stroke="#7d5433" stroke-width="3.4"/><rect x="80" y="74" width="8" height="12" fill="#b03a2e"/><rect x="92" y="74" width="8" height="12" fill="#b03a2e"/></g><g><circle cx="128" cy="70" r="9" fill="#f9edbe"/><circle cx="121" cy="63" r="3.6" fill="#e8833a"/><circle cx="135" cy="63" r="3.6" fill="#e8833a"/><ellipse cx="128" cy="81" rx="10" ry="7" fill="#f7e3ae"/></g><text x="16" y="30" font-size="13" font-weight="700" fill="#ffd94d">Đừng hòng thoát!</text></svg>',
+            { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#42588c"/><circle cx="196" cy="20" r="11" fill="#f7e08b"/><rect y="90" width="220" height="40" fill="#5d7fb8"/><rect x="52" y="80" width="90" height="9" rx="3" fill="#8a6a42"/><line x1="60" y1="89" x2="66" y2="89" stroke="#6f5230" stroke-width="9"/><g><rect x="76" y="44" width="26" height="30" rx="8" fill="#1f7a6d"/><ellipse cx="89" cy="64" rx="11" ry="9" fill="#f7c489"/><circle cx="89" cy="38" r="13" fill="#f7c489"/><circle cx="89" cy="24" r="3.4" fill="#2b2b2b"/><path d="M81 40 Q89 46 97 40" stroke="#402a18" stroke-width="1.8" fill="none"/><line x1="104" y1="52" x2="122" y2="76" stroke="#7d5433" stroke-width="3.4"/><rect x="80" y="74" width="8" height="12" fill="#b03a2e"/><rect x="92" y="74" width="8" height="12" fill="#b03a2e"/></g><g><circle cx="128" cy="70" r="9" fill="#f9edbe"/><circle cx="121" cy="63" r="3.6" fill="#b01e14"/><circle cx="135" cy="63" r="3.6" fill="#b01e14"/><ellipse cx="128" cy="81" rx="10" ry="7" fill="#e8402c"/></g><text x="16" y="30" font-size="13" font-weight="700" fill="#ffd94d">Đừng hòng thoát!</text></svg>',
               text: "Ông Địa nhảy lên bè tre, chèo theo ánh trăng: Đừng hòng thoát!" }
           ]
         },
@@ -3454,18 +3459,18 @@
               text: "Cuối sông là đền thiêng trên mây ngàn, nơi Niên Thú giấu trống hội sau cổng lớn." },
             { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#3c4c7d"/><rect y="104" width="220" height="26" fill="#57637a"/><rect x="158" y="66" width="40" height="26" rx="5" fill="#b03a2e"/><ellipse cx="178" cy="66" rx="20" ry="5" fill="#f5e6c8"/><g fill="#e8a13a"><circle cx="66" cy="40" r="8"/><circle cx="84" cy="32" r="8"/><circle cx="102" cy="40" r="8"/><circle cx="60" cy="58" r="8"/><circle cx="108" cy="58" r="8"/><circle cx="68" cy="76" r="7"/><circle cx="100" cy="76" r="7"/></g><circle cx="84" cy="54" r="19" fill="#c4453c"/><polygon points="72,40 64,26 78,34" fill="#f7e08b"/><polygon points="96,40 104,26 90,34" fill="#f7e08b"/><circle cx="77" cy="52" r="3" fill="#fff"/><circle cx="91" cy="52" r="3" fill="#fff"/><circle cx="77" cy="52" r="1.5" fill="#1c2b33"/><circle cx="91" cy="52" r="1.5" fill="#1c2b33"/><ellipse cx="84" cy="62" rx="7" ry="4.6" fill="#e8a37c"/><path d="M78 64 L81 70 L84 64 L87 70 L90 64" stroke="#fff" stroke-width="1.8" fill="none"/></svg>',
               text: "Niên Thú đứng chắn trước đền, gầm vang cả đỉnh núi, quyết không trả trống." },
-            { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#4a5f9e"/><rect y="102" width="220" height="28" fill="#8b9cc4"/><polygon points="0,102 50,54 100,102" fill="#6f7b8f"/><g><rect x="70" y="54" width="28" height="32" rx="8" fill="#1f7a6d"/><ellipse cx="84" cy="76" rx="12" ry="10" fill="#f7c489"/><circle cx="84" cy="48" r="14" fill="#f7c489"/><circle cx="84" cy="33" r="3.6" fill="#2b2b2b"/><path d="M75 50 Q84 57 93 50" stroke="#402a18" stroke-width="1.8" fill="none"/><rect x="100" y="56" width="16" height="7" rx="2" fill="#d64541"/><rect x="106" y="56" width="3" height="7" fill="#f2b134"/><circle cx="122" cy="52" r="2.4" fill="#ffd94d"/><circle cx="128" cy="46" r="1.7" fill="#ff8c42"/><rect x="74" y="86" width="8" height="14" fill="#b03a2e"/><rect x="86" y="86" width="8" height="14" fill="#b03a2e"/></g><g><circle cx="146" cy="88" r="10" fill="#f9edbe"/><circle cx="138" cy="80" r="4" fill="#e8833a"/><circle cx="154" cy="80" r="4" fill="#e8833a"/><ellipse cx="146" cy="100" rx="11" ry="8" fill="#f7e3ae"/></g><text x="18" y="28" font-size="13" font-weight="700" fill="#ffd94d">Trận cuối đây!</text></svg>',
+            { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#4a5f9e"/><rect y="102" width="220" height="28" fill="#8b9cc4"/><polygon points="0,102 50,54 100,102" fill="#6f7b8f"/><g><rect x="70" y="54" width="28" height="32" rx="8" fill="#1f7a6d"/><ellipse cx="84" cy="76" rx="12" ry="10" fill="#f7c489"/><circle cx="84" cy="48" r="14" fill="#f7c489"/><circle cx="84" cy="33" r="3.6" fill="#2b2b2b"/><path d="M75 50 Q84 57 93 50" stroke="#402a18" stroke-width="1.8" fill="none"/><rect x="100" y="56" width="16" height="7" rx="2" fill="#d64541"/><rect x="106" y="56" width="3" height="7" fill="#f2b134"/><circle cx="122" cy="52" r="2.4" fill="#ffd94d"/><circle cx="128" cy="46" r="1.7" fill="#ff8c42"/><rect x="74" y="86" width="8" height="14" fill="#b03a2e"/><rect x="86" y="86" width="8" height="14" fill="#b03a2e"/></g><g><circle cx="146" cy="88" r="10" fill="#f9edbe"/><circle cx="138" cy="80" r="4" fill="#b01e14"/><circle cx="154" cy="80" r="4" fill="#b01e14"/><ellipse cx="146" cy="100" rx="11" ry="8" fill="#e8402c"/></g><text x="18" y="28" font-size="13" font-weight="700" fill="#ffd94d">Trận cuối đây!</text></svg>',
               text: "Ông Địa thắp sẵn pháo, nắm chặt quạt: Trận cuối đây. Lấy lại trống cho làng mở hội!" }
           ]
         },
         "end": {
           title: "Đoạn kết",
           panels: [
-            { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#f7c98b"/><rect y="102" width="220" height="28" fill="#a8d8a0"/><rect x="160" y="56" width="50" height="46" fill="#f5e6c8"/><polygon points="154,58 185,36 216,58" fill="#b03a2e"/><rect x="180" y="78" width="11" height="24" fill="#7d5433"/><g><rect x="52" y="58" width="26" height="30" rx="8" fill="#1f7a6d"/><ellipse cx="65" cy="78" rx="11" ry="9" fill="#f7c489"/><circle cx="65" cy="52" r="13" fill="#f7c489"/><circle cx="65" cy="38" r="3.4" fill="#2b2b2b"/><path d="M57 54 Q65 60 73 54" stroke="#402a18" stroke-width="1.8" fill="none"/><rect x="80" y="48" width="30" height="21" rx="4" fill="#b03a2e"/><ellipse cx="95" cy="48" rx="15" ry="4" fill="#f5e6c8"/><rect x="56" y="88" width="8" height="13" fill="#b03a2e"/><rect x="68" y="88" width="8" height="13" fill="#b03a2e"/></g><g><circle cx="128" cy="90" r="9" fill="#f9edbe"/><circle cx="121" cy="83" r="3.6" fill="#e8833a"/><circle cx="135" cy="83" r="3.6" fill="#e8833a"/><ellipse cx="128" cy="101" rx="10" ry="7" fill="#f7e3ae"/></g></svg>',
+            { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#f7c98b"/><rect y="102" width="220" height="28" fill="#a8d8a0"/><rect x="160" y="56" width="50" height="46" fill="#f5e6c8"/><polygon points="154,58 185,36 216,58" fill="#b03a2e"/><rect x="180" y="78" width="11" height="24" fill="#7d5433"/><g><rect x="52" y="58" width="26" height="30" rx="8" fill="#1f7a6d"/><ellipse cx="65" cy="78" rx="11" ry="9" fill="#f7c489"/><circle cx="65" cy="52" r="13" fill="#f7c489"/><circle cx="65" cy="38" r="3.4" fill="#2b2b2b"/><path d="M57 54 Q65 60 73 54" stroke="#402a18" stroke-width="1.8" fill="none"/><rect x="80" y="48" width="30" height="21" rx="4" fill="#b03a2e"/><ellipse cx="95" cy="48" rx="15" ry="4" fill="#f5e6c8"/><rect x="56" y="88" width="8" height="13" fill="#b03a2e"/><rect x="68" y="88" width="8" height="13" fill="#b03a2e"/></g><g><circle cx="128" cy="90" r="9" fill="#f9edbe"/><circle cx="121" cy="83" r="3.6" fill="#b01e14"/><circle cx="135" cy="83" r="3.6" fill="#b01e14"/><ellipse cx="128" cy="101" rx="10" ry="7" fill="#e8402c"/></g></svg>',
               text: "Ông Địa mang trống hội về tới sân đình khi trời vừa tối." },
             { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#22304a"/><g stroke="#ffd94d" stroke-width="2"><line x1="40" y1="30" x2="40" y2="16"/><line x1="40" y1="30" x2="28" y2="22"/><line x1="40" y1="30" x2="52" y2="22"/><line x1="40" y1="30" x2="30" y2="40"/><line x1="40" y1="30" x2="50" y2="40"/></g><g stroke="#7ed491" stroke-width="2"><line x1="180" y1="24" x2="180" y2="12"/><line x1="180" y1="24" x2="169" y2="17"/><line x1="180" y1="24" x2="191" y2="17"/><line x1="180" y1="24" x2="170" y2="33"/><line x1="180" y1="24" x2="190" y2="33"/></g><rect y="104" width="220" height="26" fill="#31435f"/><rect x="88" y="76" width="44" height="30" rx="5" fill="#b03a2e"/><ellipse cx="110" cy="76" rx="22" ry="6" fill="#f5e6c8"/><g fill="#e8a13a"><circle cx="36" cy="66" r="6"/><circle cx="50" cy="60" r="6"/><circle cx="64" cy="66" r="6"/><circle cx="34" cy="78" r="6"/><circle cx="66" cy="78" r="6"/></g><circle cx="50" cy="72" r="13" fill="#c4453c"/><circle cx="44" cy="70" r="2.4" fill="#fff"/><circle cx="56" cy="70" r="2.4" fill="#fff"/><ellipse cx="50" cy="78" rx="5.6" ry="3.6" fill="#e8a37c"/><ellipse cx="50" cy="94" rx="15" ry="10" fill="#b03a2e"/><g><circle cx="168" cy="66" r="12" fill="#f7c489"/><rect x="156" y="72" width="24" height="26" rx="7" fill="#1f7a6d"/><ellipse cx="168" cy="86" rx="10" ry="8" fill="#f7c489"/><polygon points="182,74 194,64 192,80" fill="#e3cf8e"/></g></svg>',
               text: "Trống vang lên thùng thình, lân múa, pháo hoa nổ sáng cả bầu trời." },
-            { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#ffe9ec"/><rect y="102" width="220" height="28" fill="#a8d8a0"/><rect x="10" y="58" width="46" height="44" fill="#f5e6c8"/><polygon points="6,60 33,40 60,60" fill="#b03a2e"/><rect x="166" y="58" width="46" height="44" fill="#f5e6c8"/><polygon points="162,60 189,40 216,60" fill="#b03a2e"/><rect x="26" y="34" width="24" height="58" fill="#b03a2e"/><text x="38" y="52" font-size="11" font-weight="700" fill="#ffd94d" text-anchor="middle">X</text><text x="38" y="68" font-size="11" font-weight="700" fill="#ffd94d" text-anchor="middle">U</text><text x="38" y="84" font-size="11" font-weight="700" fill="#ffd94d" text-anchor="middle">Â</text><rect x="172" y="34" width="24" height="58" fill="#b03a2e"/><text x="184" y="52" font-size="11" font-weight="700" fill="#ffd94d" text-anchor="middle">T</text><text x="184" y="68" font-size="11" font-weight="700" fill="#ffd94d" text-anchor="middle">Ế</text><text x="184" y="84" font-size="11" font-weight="700" fill="#ffd94d" text-anchor="middle">T</text><rect x="92" y="80" width="36" height="24" rx="5" fill="#b03a2e"/><ellipse cx="110" cy="80" rx="18" ry="5" fill="#f5e6c8"/><g><circle cx="76" cy="72" r="11" fill="#f7c489"/><rect x="65" y="78" width="22" height="24" rx="6" fill="#1f7a6d"/><ellipse cx="76" cy="92" rx="9" ry="7" fill="#f7c489"/></g><g><circle cx="146" cy="76" r="10" fill="#f9edbe"/><circle cx="138" cy="68" r="4" fill="#e8833a"/><circle cx="154" cy="68" r="4" fill="#e8833a"/><ellipse cx="146" cy="90" rx="12" ry="9" fill="#b03a2e"/></g><rect x="30" y="14" width="5" height="5" fill="#ffd94d"/><rect x="70" y="8" width="5" height="5" fill="#e2574c"/><rect x="150" y="12" width="5" height="5" fill="#7ed491"/><rect x="196" y="18" width="5" height="5" fill="#f2b134"/></svg>',
+            { art: '<svg viewBox="0 0 220 130"><rect width="220" height="130" fill="#ffe9ec"/><rect y="102" width="220" height="28" fill="#a8d8a0"/><rect x="10" y="58" width="46" height="44" fill="#f5e6c8"/><polygon points="6,60 33,40 60,60" fill="#b03a2e"/><rect x="166" y="58" width="46" height="44" fill="#f5e6c8"/><polygon points="162,60 189,40 216,60" fill="#b03a2e"/><rect x="26" y="34" width="24" height="58" fill="#b03a2e"/><text x="38" y="52" font-size="11" font-weight="700" fill="#ffd94d" text-anchor="middle">X</text><text x="38" y="68" font-size="11" font-weight="700" fill="#ffd94d" text-anchor="middle">U</text><text x="38" y="84" font-size="11" font-weight="700" fill="#ffd94d" text-anchor="middle">Â</text><rect x="172" y="34" width="24" height="58" fill="#b03a2e"/><text x="184" y="52" font-size="11" font-weight="700" fill="#ffd94d" text-anchor="middle">T</text><text x="184" y="68" font-size="11" font-weight="700" fill="#ffd94d" text-anchor="middle">Ế</text><text x="184" y="84" font-size="11" font-weight="700" fill="#ffd94d" text-anchor="middle">T</text><rect x="92" y="80" width="36" height="24" rx="5" fill="#b03a2e"/><ellipse cx="110" cy="80" rx="18" ry="5" fill="#f5e6c8"/><g><circle cx="76" cy="72" r="11" fill="#f7c489"/><rect x="65" y="78" width="22" height="24" rx="6" fill="#1f7a6d"/><ellipse cx="76" cy="92" rx="9" ry="7" fill="#f7c489"/></g><g><circle cx="146" cy="76" r="10" fill="#f9edbe"/><circle cx="138" cy="68" r="4" fill="#b01e14"/><circle cx="154" cy="68" r="4" fill="#b01e14"/><ellipse cx="146" cy="90" rx="12" ry="9" fill="#b03a2e"/></g><rect x="30" y="14" width="5" height="5" fill="#ffd94d"/><rect x="70" y="8" width="5" height="5" fill="#e2574c"/><rect x="150" y="12" width="5" height="5" fill="#7ed491"/><rect x="196" y="18" width="5" height="5" fill="#f2b134"/></svg>',
               text: "Cả làng mở hội trở lại. Ông Địa cười híp mắt, lân con thì ăn no lì xì." }
           ]
         }
@@ -3650,8 +3655,15 @@
             hint.textContent = c.needText;
             btn.appendChild(hint);
           }
-          btn.disabled = !un;
           btn.addEventListener("click", function () {
+            if (!costumeUnlocked(c)) {
+              // locked: shake + highlight the requirement instead of
+              // silently doing nothing (a disabled button gives no feedback)
+              btn.classList.remove("shake");
+              void btn.offsetWidth;
+              btn.classList.add("shake");
+              return;
+            }
             state.costume = c.id;
             ensureAudio();
             renderCostumeRow();
