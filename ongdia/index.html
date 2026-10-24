@@ -93,7 +93,7 @@
         display: inline-block;
       }
       .stat .skull { color: var(--danger); font-size: 16px; line-height: 1; }
-      .hud button, .overlay button, .touch-btn {
+      .hud button, .overlay button {
         font: inherit;
         cursor: pointer;
         border: 1px solid var(--line);
@@ -223,43 +223,151 @@
       .overlay p.comic-cap { margin: 7px 2px 2px; font-size: 13.5px; line-height: 1.5; color: #4a3826; max-width: none; }
       .comic-panel.reading { border-color: #e8833a; box-shadow: 0 0 0 3px rgba(232, 131, 58, 0.45), 0 8px 20px rgba(64, 42, 24, 0.25); }
 
-      /* ---------- Touch controls ---------- */
-      .touch-controls {
+      /* ---------- Handheld control deck (touch devices) ---------- */
+      /* The stage becomes a handheld console on touch devices: screen on
+         top, a plastic deck below it with a D-pad on the left, a START
+         style pill in the middle and round action buttons on the right. */
+      .deck { display: none; }
+      @media (pointer: coarse) {
+        .deck {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+          background: linear-gradient(180deg, #33454f 0%, #24333c 55%, #1d2a31 100%);
+          border-top: 3px solid rgba(0, 0, 0, 0.4);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -6px 14px rgba(0, 0, 0, 0.35);
+          touch-action: none;
+          user-select: none;
+          -webkit-user-select: none;
+          -webkit-touch-callout: none;
+        }
+      }
+      .stage.hide-touch .deck { display: none !important; }
+
+      /* D-pad cross plate: up = jump, left/right = move (same as arrow keys) */
+      .dpad { position: relative; width: 138px; height: 138px; flex-shrink: 0; }
+      .dpad::before, .dpad::after {
+        content: "";
         position: absolute;
-        left: 0; right: 0; bottom: 0;
-        display: none;
-        justify-content: space-between;
-        padding: 0 14px calc(12px + env(safe-area-inset-bottom));
+        background: linear-gradient(180deg, #39434a, #232a2f);
+        border: 1px solid rgba(0, 0, 0, 0.55);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 3px 6px rgba(0, 0, 0, 0.4);
+      }
+      .dpad::before { left: 46px; top: 0; width: 46px; height: 138px; border-radius: 10px; }
+      .dpad::after { left: 0; top: 46px; width: 138px; height: 46px; border-radius: 10px; }
+      .dpad-btn {
+        position: absolute;
+        width: 46px; height: 46px;
+        background: transparent;
+        border: none;
+        color: #dfe9ee;
+        font-size: 19px;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        touch-action: none;
+        z-index: 1;
+        border-radius: 10px;
+      }
+      .dpad-btn:active { background: rgba(232, 131, 58, 0.55); color: #fff; }
+      .dpad-up { left: 46px; top: 0; }
+      .dpad-left { left: 0; top: 46px; }
+      .dpad-right { right: 0; top: 46px; }
+      .dpad-hub {
+        position: absolute;
+        left: 61px; top: 61px;
+        width: 16px; height: 16px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 38% 34%, #4a565e, #20262b 70%);
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.12);
+        z-index: 1;
         pointer-events: none;
       }
-      .touch-controls .cluster { display: flex; gap: 10px; pointer-events: auto; }
-      .touch-btn {
-        width: 60px; height: 60px;
+
+      /* center pill, like a handheld START button: floats in the free
+         space above the middle of the deck so the D-pad and the action
+         cluster keep the full row width on narrow phones */
+      .deck-pill {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 2;
+        font: inherit;
+        font-size: 11.5px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        color: #cfe0e9;
+        background: linear-gradient(180deg, #3c4a52, #28363e);
+        border: 1px solid rgba(0, 0, 0, 0.5);
+        border-radius: 999px;
+        padding: 8px 13px;
+        box-shadow: 0 3px 0 rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        cursor: pointer;
+        touch-action: manipulation;
+        white-space: nowrap;
+      }
+      .deck-pill:active { transform: translate(-50%, 2px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.45); }
+
+      /* round action buttons in a diagonal handheld cluster */
+      .action-cluster { position: relative; width: 172px; height: 128px; flex-shrink: 0; }
+      .abtn {
+        position: absolute;
         border-radius: 50%;
-        font-size: 24px;
-        background: rgba(20, 34, 42, 0.45);
-        border-color: rgba(255,255,255,0.35);
+        font: inherit;
+        font-weight: 800;
         color: #fff;
         display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
         touch-action: none;
+        border: 2px solid rgba(0, 0, 0, 0.35);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
       }
-      .touch-btn:active { background: rgba(232, 131, 58, 0.75); }
-      @media (pointer: coarse) {
-        .touch-controls { display: flex; padding: 0 12px calc(10px + env(safe-area-inset-bottom)); }
-        .touch-controls .cluster { gap: 8px; align-items: flex-end; }
-        /* bigger targets for thumbs; jump is the most-used button */
-        .touch-btn { width: 62px; height: 62px; }
-        #tJump { width: 72px; height: 72px; font-size: 30px; }
-        #tFire, #tCracker { width: 54px; height: 54px; }
+      .abtn-jump {
+        right: 0; bottom: 0;
+        width: 70px; height: 70px;
+        font-size: 15px; letter-spacing: 0.03em;
+        background: radial-gradient(circle at 34% 30%, #f0685e, #c93a30 62%, #a02c23);
+        box-shadow: 0 5px 0 #6e1d16, 0 8px 14px rgba(0, 0, 0, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.35);
       }
+      .abtn-jump:active { transform: translateY(2px); filter: brightness(1.12); box-shadow: 0 2px 0 #6e1d16, 0 5px 10px rgba(0, 0, 0, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.35); }
+      .abtn-fire {
+        left: 4px; bottom: 12px;
+        width: 58px; height: 58px;
+        font-size: 13.5px; letter-spacing: 0.03em;
+        background: radial-gradient(circle at 34% 30%, #ffd94d, #e8a91c 62%, #c07f0d);
+        color: #5c3a05;
+        text-shadow: none;
+        box-shadow: 0 5px 0 #7d5206, 0 8px 14px rgba(0, 0, 0, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.4);
+      }
+      .abtn-fire:active { transform: translateY(2px); filter: brightness(1.08); box-shadow: 0 2px 0 #7d5206, 0 5px 10px rgba(0, 0, 0, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.4); }
+      .abtn-cracker {
+        top: 0; right: 40px;
+        width: 48px; height: 48px;
+        font-size: 11.5px; letter-spacing: 0.04em;
+        background: radial-gradient(circle at 34% 30%, #f6a35c, #e8712a 62%, #c2541a);
+        box-shadow: 0 4px 0 #7e3a0e, 0 7px 12px rgba(0, 0, 0, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.35);
+      }
+      .abtn-cracker:active { transform: translateY(2px); filter: brightness(1.1); box-shadow: 0 2px 0 #7e3a0e, 0 4px 8px rgba(0, 0, 0, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.35); }
+
       @media (pointer: coarse) and (max-width: 380px) {
-        .touch-controls { padding: 0 10px calc(8px + env(safe-area-inset-bottom)); }
-        .touch-controls .cluster { gap: 6px; }
-        .touch-btn { width: 54px; height: 54px; font-size: 20px; }
-        #tJump { width: 62px; height: 62px; font-size: 26px; }
-        #tFire, #tCracker { width: 48px; height: 48px; }
+        .deck { padding: 10px 10px calc(10px + env(safe-area-inset-bottom)); }
+        .dpad { width: 114px; height: 114px; }
+        .dpad::before { left: 38px; width: 38px; height: 114px; }
+        .dpad::after { top: 38px; width: 114px; height: 38px; }
+        .dpad-btn { width: 38px; height: 38px; font-size: 16px; }
+        .dpad-up { left: 38px; }
+        .dpad-left { top: 38px; }
+        .dpad-right { top: 38px; }
+        .dpad-hub { left: 50px; top: 50px; width: 14px; height: 14px; }
+        .action-cluster { width: 148px; height: 112px; }
+        .abtn-jump { width: 62px; height: 62px; font-size: 13.5px; }
+        .abtn-fire { width: 52px; height: 52px; font-size: 12.5px; }
+        .abtn-cracker { width: 43px; height: 43px; font-size: 10.5px; right: 34px; }
+        .deck-pill { font-size: 10.5px; padding: 7px 10px; }
       }
-      .stage.hide-touch .touch-controls { display: none !important; }
 
       .help {
         width: 100%;
@@ -286,8 +394,12 @@
         .hud .stat { font-size: 13.5px; }
         .hud button { padding: 8px 10px; font-size: 13px; min-height: 38px; }
         body { padding: 10px 8px 16px; gap: 10px; }
-        .help .desktop-only { display: none; }
-        .help { font-size: 12.5px; }
+        /* no instruction text under the stage on mobile */
+        .help { display: none; }
+      }
+      @media (pointer: coarse) {
+        /* touch devices get the handheld deck instead of the help text */
+        .help { display: none; }
       }
     </style>
   </head>
@@ -347,15 +459,18 @@
         </div>
       </div>
 
-      <div class="touch-controls" id="touchControls">
-        <div class="cluster">
-          <button class="touch-btn" id="tLeft" type="button" aria-label="Đi sang trái">&#8592;</button>
-          <button class="touch-btn" id="tRight" type="button" aria-label="Đi sang phải">&#8594;</button>
+      <div class="deck" id="touchControls">
+        <div class="dpad" role="group" aria-label="Phím điều hướng">
+          <button class="dpad-btn dpad-up" id="tJumpPad" type="button" aria-label="Nhảy">&#9650;</button>
+          <button class="dpad-btn dpad-left" id="tLeft" type="button" aria-label="Đi sang trái">&#9664;</button>
+          <span class="dpad-hub" aria-hidden="true"></span>
+          <button class="dpad-btn dpad-right" id="tRight" type="button" aria-label="Đi sang phải">&#9654;</button>
         </div>
-        <div class="cluster">
-          <button class="touch-btn" id="tCracker" type="button" aria-label="Ném pháo" style="font-size:13px; font-weight:800; letter-spacing:0.04em;">PHÁO</button>
-          <button class="touch-btn" id="tFire" type="button" aria-label="Bắn" style="font-size:13px; font-weight:800; letter-spacing:0.04em;">BẮN</button>
-          <button class="touch-btn" id="tJump" type="button" aria-label="Nhảy">&#8593;</button>
+        <button class="deck-pill" id="tPause" type="button" aria-label="Tạm dừng hoặc chơi tiếp">&#10073;&#10073;&nbsp; TẠM DỪNG</button>
+        <div class="action-cluster">
+          <button class="abtn abtn-cracker" id="tCracker" type="button" aria-label="Ném pháo">PHÁO</button>
+          <button class="abtn abtn-fire" id="tFire" type="button" aria-label="Bắn">BẮN</button>
+          <button class="abtn abtn-jump" id="tJump" type="button" aria-label="Nhảy">NHẢY</button>
         </div>
       </div>
     </div>
@@ -1295,6 +1410,15 @@
       bindTouch("tCracker",
         function () { crackerPressed = true; },
         function () {});
+      /* the D-pad's up arm is a second jump button, same as the A button */
+      bindTouch("tJumpPad",
+        function () { if (!keys.jumpHeld) jumpPressed = true; keys.jumpHeld = true; },
+        function () { keys.jumpHeld = false; });
+      /* deck START pill: same pause toggle as the P key */
+      document.getElementById("tPause").addEventListener("click", function () {
+        if (state.mode === "playing") { state.mode = "paused"; showMenu(); }
+        else if (state.mode === "paused") { state.mode = "playing"; hideOverlays(); }
+      });
 
       /* ============================================================
          Physics helpers
