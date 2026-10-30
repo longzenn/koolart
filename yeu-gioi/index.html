@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>YÊU GIỚI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Coiny&family=Mali:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>html,body{touch-action:none;background:#0d1b14;height:100%;margin:0;font-family:Mali,cursive,sans-serif;overflow:hidden}#game{justify-content:center;align-items:center;width:100%;height:100%;display:flex}canvas{image-rendering:pixelated;image-rendering:crisp-edges}#pad{pointer-events:none;-webkit-user-select:none;user-select:none;display:none;position:fixed;inset:auto 0 8px}@media (hover:none) and (pointer:coarse){#pad{display:block}}#pad button{pointer-events:auto;color:#fff;background:#ffffff38;border:2px solid #fff6;border-radius:50%;width:54px;height:54px;font:700 18px sans-serif;position:absolute}#dpad{width:170px;height:170px;position:absolute;bottom:0;left:10px}#dpad .u{top:0;left:58px}#dpad .d{top:112px;left:58px}#dpad .l{top:56px;left:2px}#dpad .r{top:56px;left:114px}#abtn{width:150px;height:120px;position:absolute;bottom:0;right:10px}#abtn .a{top:40px;right:4px}#abtn .b{top:70px;right:78px}#abtn .m{width:44px;height:44px;font-size:13px;top:-30px;right:40px}</style>
+  <script type="module" crossorigin src="./assets/index-DO25suYZ.js"></script>
+</head>
+<body>
+  <div id="game"></div>
+  <div id="pad">
+    <div id="dpad">
+      <button class="u" data-k="up">▲</button><button class="d" data-k="down">▼</button>
+      <button class="l" data-k="left">◀</button><button class="r" data-k="right">▶</button>
+    </div>
+    <div id="abtn">
+      <button class="a" data-k="ok">A</button><button class="b" data-k="back">B</button><button class="m" data-k="menu">≡</button>
+    </div>
+  </div>
+</body>
+</html>
