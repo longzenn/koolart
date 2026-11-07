@@ -1770,6 +1770,7 @@
         if (group.userData.swing) animatables.push({ obj:group, kind:'swing', phase:Math.random()*2, base:0 });
         if (group.userData.flags) animatables.push({ obj:group.userData.flags, kind:'flags', phase:0, base:0 });
         if (group.userData.hammock) animatables.push({ obj:group, kind:'hammock', phase:0, base:slot.rotY || 0 });
+        if (itemId === 'xichdu' || itemId === 'cautruot') attachRide(slot, itemId);
         placedCount++; updateCount();
         if (!silent){
           AudioSys.pop();
@@ -1795,6 +1796,7 @@
         if (!slot.group){ slot.occupiedBy = null; return; }
         var name = itemById(slot.occupiedBy).name;
         detachLanternsAndGlass(slot.group);
+        detachRide(slot);
         for (var i=animatables.length-1;i>=0;i--)
           if (animatables[i].obj === slot.group || (slot.group.userData.flags && animatables[i].obj === slot.group.userData.flags))
             animatables.splice(i,1);
@@ -1841,7 +1843,9 @@
           return;
         }
         placeItem(slot, realItem);
-        setHint('Đẹp lắm! Bé chọn món tiếp theo, hoặc kéo để xoay ngắm nhà cây nhé.');
+        if (realItem === 'xichdu') setHint('Xong! Về chế độ Chơi, chạm vào xích đu để bé đu nhé!');
+        else if (realItem === 'cautruot') setHint('Xong! Về chế độ Chơi, chạm vào cầu trượt để bé trượt nhé!');
+        else setHint('Đẹp lắm! Bé chọn món tiếp theo, hoặc kéo để xoay ngắm nhà cây nhé.');
       }
 
       /* ================= CAMERA: xoay, zoom, chạm ================= */
@@ -2001,15 +2005,17 @@
           ['hoa4','chauhoa'], ['hoa1','chauhoa'], ['hoa2','chauhoa'],
           ['coday1','coday'], ['nhachim1','nhachim'], ['vong1','vong']
         ];
-        var delay = 0, placedAny = false;
+        var delay = 0, placedAny = false, ridePlaced = false;
         plan.forEach(function(pair){
           var slot = slotById(pair[0]);
           if (!slot || slot.occupiedBy) return;
           var itemId = pair[1];
+          if (itemId === 'xichdu' || itemId === 'cautruot') ridePlaced = true;
           setTimeout(function(){ if (!slot.occupiedBy) placeItem(slot, itemId); }, delay);
           delay += 240; placedAny = true;
         });
-        if (placedAny) setHint('Phép màu xây nhà xong rồi! Bé kéo xoay để ngắm, và tự tay thêm món mình thích nhé.');
+        if (placedAny && ridePlaced) setHint('Phép màu xây nhà xong rồi! Về chế độ Chơi, chạm vào xích đu hoặc cầu trượt để bé chơi nhé.');
+        else if (placedAny) setHint('Phép màu xây nhà xong rồi! Bé kéo xoay để ngắm, và tự tay thêm món mình thích nhé.');
         else setHint('Nhà đã đầy đồ rồi! Bé chạm vào món nào không thích để gỡ ra nhé.');
       });
 
@@ -2140,7 +2146,7 @@
         worldGroup.add(girlG);
       })();
 
-      var gState = { move:null, walkPhase:0, celebrateT:0, eatT:0, sit:false, sleeping:false, blinkT:2.6, faceTarget:0.6, baseY:0, onDeck:false };
+      var gState = { move:null, play:null, walkPhase:0, celebrateT:0, eatT:0, sit:false, sleeping:false, blinkT:2.6, faceTarget:0.6, baseY:0, onDeck:false };
       function celebrate(){ gState.celebrateT = 1.15; AudioSys.chime(); }
 
       /* ---------- Đi tự do & leo thang: hàng đợi các chặng (legs) ----------
@@ -2357,9 +2363,204 @@
       }
       function refreshInteractMarkers(){
         interactMarkers.forEach(function(m){
-          var rel = m.kind === 'tent' || missionActive(m.kind);
+          var rel = m.kind === 'tent' || m.kind === 'swing' || m.kind === 'slide' || missionActive(m.kind);
           m.g.visible = gameMode === 'play' && rel && (!m.availFn || m.availFn());
         });
+      }
+
+      /* ---------- XÍCH ĐU & CẦU TRƯỢT: CHƠI THẬT ----------
+         Chạm ở chế độ Chơi: bé đi tới, ngồi lên ghế xích đu và đu cùng nhịp
+         với hoạt ảnh swing sẵn có của nhóm đồ, hoặc leo thang lên sàn rồi
+         trượt theo đúng đường máng xuống cỏ. Trong lúc chơi, gState.play
+         khóa mọi lệnh chạm khác (xem playTap và girlTick). Vùng chạm là
+         proxy riêng bám vật thật: một cầu ở ghế xích đu (đi theo nhóm khi
+         đu) và ba cầu dọc thân máng trượt; chấm lấp lánh cũng bám theo vật. */
+      var SWING_STAND = { x:3.1, z:2.95 };
+      var SLIDE_END = { x:4.35, z:4.35 };
+      var SLIDE_A = 0.75, SLIDE_L = 4.6;
+      var SIT_DROP = 0.47; /* độ hạ gốc nhân vật khi ngồi: gấu đầm chạm mặt ghế/máng */
+      function slideLocalPoint(l, lift){
+        var cy = -l * Math.sin(SLIDE_A), cz = -l * Math.cos(SLIDE_A);
+        return new THREE.Vector3(0, cy + Math.cos(SLIDE_A) * lift, cz - Math.sin(SLIDE_A) * lift);
+      }
+      function detachRide(slot){
+        if (slot.rideProxies){
+          if (typeof playTargets !== 'undefined'){
+            slot.rideProxies.forEach(function(px){
+              var pi = playTargets.indexOf(px); if (pi >= 0) playTargets.splice(pi, 1);
+              if (px.parent) px.parent.remove(px);
+            });
+          }
+          slot.rideProxies = null;
+        }
+        if (slot.rideMarker){
+          if (typeof interactMarkers !== 'undefined'){
+            for (var i=interactMarkers.length-1;i>=0;i--)
+              if (interactMarkers[i].g === slot.rideMarker) interactMarkers.splice(i, 1);
+          }
+          if (slot.rideMarker.parent) slot.rideMarker.parent.remove(slot.rideMarker);
+          slot.rideMarker = null;
+        }
+        slot.rideAnchor = null;
+      }
+      function attachRide(slot, itemId){
+        if (typeof playTargets === 'undefined' || typeof interactMarkers === 'undefined' || !slot.group) return;
+        detachRide(slot);
+        slot.rideProxies = [];
+        if (itemId === 'xichdu'){
+          var sp = makeProxy(0, -2.0, 0, 0.95, slot.group);
+          sp.userData.onTap = function(){ startSwingRide(); };
+          sp.userData.available = function(){ var s = slotById('xichdu1'); return !!(s && s.occupiedBy); };
+          slot.rideProxies.push(sp);
+          slot.rideMarker = makeMarker(slot.group, 0, -1.28, 0, 'swing', function(){ var s = slotById('xichdu1'); return !!(s && s.occupiedBy); });
+        } else if (itemId === 'cautruot'){
+          [0.7, 2.3, 3.9].forEach(function(l){
+            var cp = slideLocalPoint(l, 0.25);
+            var pp = makeProxy(cp.x, cp.y, cp.z, 0.8, slot.group);
+            pp.userData.onTap = function(){ startSlideRide(); };
+            pp.userData.available = function(){ var s = slotById('cautruot1'); return !!(s && s.occupiedBy); };
+            slot.rideProxies.push(pp);
+          });
+          var mp = slideLocalPoint(2.3, 0.85);
+          slot.rideMarker = makeMarker(slot.group, mp.x, mp.y, mp.z, 'slide', function(){ var s = slotById('cautruot1'); return !!(s && s.occupiedBy); });
+        }
+        try{ refreshInteractMarkers(); }catch(e){}
+      }
+      function rideEnergyBlocked(){
+        gState.sit = true;
+        setHint('Bé hết năng lượng rồi, ngáp dài rồi nè. Chạm vào lều ngủ (hoặc bấm nút Ngủ) để bé ngủ một giấc nhé!');
+        AudioSys.removeSnd();
+      }
+      function finishRide(hintText){
+        gState.play = null; gState.sit = false;
+        gainFun(25); celebrate();
+        setHint(hintText);
+        updateHUD();
+      }
+      function abortRide(){
+        gState.play = null; gState.sit = false;
+        girlG.position.y = 0; gState.baseY = 0; gState.onDeck = false; girlG.rotation.x = 0;
+      }
+      function startSwingRide(){
+        if (gState.play || gState.sleeping || gameMode !== 'play') return;
+        var slot = slotById('xichdu1');
+        if (!slot || !slot.occupiedBy || !slot.group) return;
+        startJob(fixedDest(SWING_STAND.x, SWING_STAND.z), function(){ beginSwingRide(); }, 'choi');
+      }
+      function beginSwingRide(){
+        var slot = slotById('xichdu1');
+        if (!slot || !slot.group) return;
+        if (!slot.rideAnchor){
+          slot.rideAnchor = new THREE.Object3D();
+          slot.rideAnchor.position.set(0, -1.95, 0); /* mặt ghế xích đu */
+          slot.group.add(slot.rideAnchor);
+        }
+        gState.play = { kind:'swing', phase:'mount', t:0, dur:0.6, from:girlG.position.clone(), tilt:0, armPose:null };
+        gState.faceTarget = 0;
+        AudioSys.pop();
+      }
+      function startSlideRide(){
+        if (gState.play || gState.sleeping || gameMode !== 'play') return;
+        var slot = slotById('cautruot1');
+        if (!slot || !slot.occupiedBy || !slot.group) return;
+        if (needs.energy <= 0.5){ rideEnergyBlocked(); return; }
+        AudioSys.ensure();
+        gState.sit = false; hideDestMarker();
+        var approach = { x:1.56, z:1.56 }; /* điểm đứng trên sàn ngay sau đầu máng */
+        var legs;
+        if (gState.onDeck){
+          legs = deckLegsTo({ x:girlG.position.x, z:girlG.position.z }, approach);
+        } else {
+          var cur = { x:girlG.position.x, z:girlG.position.z };
+          legs = groundLegsTo(cur, CLIMB_FOOT, true);
+          legs.push(preciseWalk(CLIMB_FOOT.x, CLIMB_FOOT.z));
+          legs.push(climbUpLeg());
+          legs.push(preciseWalk(DECK_ENTRY.x, DECK_ENTRY.z));
+          legs = legs.concat(deckLegsTo(DECK_ENTRY, approach));
+        }
+        gState.move = { legs:legs, actFn:function(){ beginSlideRide(); }, kind:'choi' };
+      }
+      function beginSlideRide(){
+        var slot = slotById('cautruot1');
+        if (!slot || !slot.group) return;
+        slot.group.updateWorldMatrix(true, false);
+        var tw = slot.group.localToWorld(slideLocalPoint(0.3, 0.10));
+        gState.play = { kind:'slide', phase:'sitin', t:0, dur:0.45, from:girlG.position.clone(),
+          sitW:{ x:tw.x, y:tw.y - SIT_DROP, z:tw.z }, tilt:0, armPose:null };
+        gState.sit = true;
+        gState.faceTarget = Math.PI / 4;
+        AudioSys.pop();
+      }
+      var __rideV = new THREE.Vector3();
+      function updateRide(dt){
+        var play = gState.play, pos = girlG.position;
+        if (!play) return;
+        play.t += dt;
+        if (play.kind === 'swing'){
+          var ss = slotById('xichdu1');
+          if (!ss || !ss.group || !ss.rideAnchor){ abortRide(); return; }
+          ss.rideAnchor.getWorldPosition(__rideV);
+          var sx = __rideV.x, sy = __rideV.y - SIT_DROP, sz = __rideV.z;
+          gState.faceTarget = 0;
+          if (play.phase === 'mount'){
+            var k = Math.min(1, play.t / play.dur), e = k*k*(3-2*k);
+            pos.x = play.from.x + (sx - play.from.x) * e;
+            pos.z = play.from.z + (sz - play.from.z) * e;
+            pos.y = play.from.y + (sy - play.from.y) * e + Math.sin(k * Math.PI) * 0.35;
+            if (k >= 1){ play.phase = 'swing'; play.t = 0; play.dur = 4.8; gState.sit = true; play.armPose = 'grip'; }
+          } else if (play.phase === 'swing'){
+            pos.set(sx, sy, sz);
+            play.tilt = ss.group.rotation.x * 0.85; /* ngả theo nhịp đu của nhóm xích đu */
+            if (play.t >= play.dur){ play.phase = 'dismount'; play.t = 0; play.dur = 0.6; play.from = pos.clone(); play.armPose = null; play.tilt = 0; }
+          } else if (play.phase === 'dismount'){
+            var k2 = Math.min(1, play.t / play.dur), e2 = k2*k2*(3-2*k2);
+            pos.x = play.from.x + (SWING_STAND.x - play.from.x) * e2;
+            pos.z = play.from.z + (SWING_STAND.z - play.from.z) * e2;
+            pos.y = play.from.y + (0 - play.from.y) * e2 + Math.sin(k2 * Math.PI) * 0.3;
+            if (k2 >= 1){
+              pos.set(SWING_STAND.x, 0, SWING_STAND.z);
+              gState.baseY = 0; gState.onDeck = false;
+              finishRide('Đu xích đu mát quá, bé vui hẳn lên! Thanh Vui đầy thêm rồi.');
+            }
+          }
+          return;
+        }
+        if (play.kind === 'slide'){
+          var ls = slotById('cautruot1');
+          if (!ls || !ls.group){ abortRide(); return; }
+          gState.faceTarget = Math.PI / 4;
+          if (play.phase === 'sitin'){
+            var k3 = Math.min(1, play.t / play.dur), e3 = k3*k3*(3-2*k3);
+            pos.x = play.from.x + (play.sitW.x - play.from.x) * e3;
+            pos.y = play.from.y + (play.sitW.y - play.from.y) * e3;
+            pos.z = play.from.z + (play.sitW.z - play.from.z) * e3;
+            if (k3 >= 1){
+              play.phase = 'slide'; play.t = 0; play.dur = 1.15; play.armPose = 'up';
+              if (AudioSys.ctx){ var wt = AudioSys.ctx.currentTime; AudioSys.tone(520, wt, 0.55, 'sine', 0.07, 1500); }
+            }
+          } else if (play.phase === 'slide'){
+            var sp2 = Math.min(1, play.t / play.dur);
+            var s = Math.pow(sp2, 1.35); /* tăng tốc dần cho có đà "vèo" mà không giật */
+            var l = 0.3 + s * (SLIDE_L - 0.3);
+            ls.group.updateWorldMatrix(true, false);
+            var wp = ls.group.localToWorld(slideLocalPoint(l, 0.10));
+            var tx = wp.x, ty = wp.y - SIT_DROP, tz = wp.z;
+            if (s > 0.78){ /* cuối máng: hòa dần sang tư thế đứng trên cỏ ở chân trượt */
+              var bk = (s - 0.78) / 0.22; bk = bk*bk*(3-2*bk);
+              tx += (SLIDE_END.x - tx) * bk; ty += (0 - ty) * bk; tz += (SLIDE_END.z - tz) * bk;
+            }
+            pos.set(tx, ty, tz);
+            if (sp2 >= 1){
+              pos.set(SLIDE_END.x, 0, SLIDE_END.z);
+              gState.baseY = 0; gState.onDeck = false; gState.sit = false;
+              play.phase = 'land'; play.t = 0; play.dur = 0.35; play.armPose = null;
+            }
+          } else if (play.phase === 'land'){
+            if (play.t >= play.dur) finishRide('Trượt cầu trượt vèo một cái, thích quá! Thanh Vui tăng vọt.');
+          }
+          return;
+        }
+        gState.play = null;
       }
 
       /* Cây táo nhỏ */
@@ -2804,6 +3005,7 @@
       /* ---------- Chạm trong chế độ Chơi ---------- */
       function playTap(){
         AudioSys.ensure();
+        if (gState.play) return; /* đang đu/trượt: khóa mọi lệnh chạm cho tới khi chơi xong */
         var hits = raycaster.intersectObjects(playTargets, false);
         for (var i=0;i<hits.length;i++){
           var u = hits[i].object.userData;
@@ -2813,22 +3015,8 @@
         if (sh.length){
           var slot = slotById(sh[0].object.userData.slotId);
           if (slot && slot.occupiedBy){
-            if (slot.id === 'xichdu1'){
-              startJob(fixedDest(3.1, 2.75), function(){
-                gainFun(25); celebrate();
-                setHint('Đu xích đu mát quá, bé vui hẳn lên! Thanh Vui đầy thêm rồi.');
-                updateHUD();
-              }, 'choi');
-              return;
-            }
-            if (slot.id === 'cautruot1'){
-              startJob(fixedDest(4.35, 4.35), function(){
-                gainFun(25); celebrate();
-                setHint('Trượt cầu trượt vèo một cái, thích quá! Thanh Vui tăng vọt.');
-                updateHUD();
-              }, 'choi');
-              return;
-            }
+            if (slot.id === 'xichdu1'){ startSwingRide(); return; }
+            if (slot.id === 'cautruot1'){ startSlideRide(); return; }
             if (slot.id === 'vong1'){
               startJob(fixedDest(-2.1, 2.8), function(){ goSleep(); }, 'sleep');
               return;
@@ -3009,7 +3197,9 @@
             AudioSys.chime(); refreshToolLocks(); updateHUD(); renderShop();
             try{ if (typeof saveGameNow === 'function') saveGameNow(); }catch(e){}
             toast('Đã mở khóa ' + it.name + '! Vào chế độ Xây để đặt lên cây nhé.');
-            setHint('Mở khóa ' + it.name + ' rồi! Bấm nút Xây nhà ở trên, chọn ' + it.name + ' ở khay và chạm chấm sáng trên cây nhé.');
+            if (it.id === 'xichdu') setHint('Mở khóa Xích đu rồi! Bấm nút Xây nhà, chọn Xích đu ở khay và chạm chấm sáng trên cây để treo. Đặt xong về chế độ Chơi, chạm vào xích đu là bé ngồi đu thật nhé!');
+            else if (it.id === 'cautruot') setHint('Mở khóa Cầu trượt rồi! Bấm nút Xây nhà, chọn Cầu trượt ở khay và chạm chấm sáng trên cây để gắn. Đặt xong về chế độ Chơi, chạm vào cầu trượt là bé leo lên trượt thật nhé!');
+            else setHint('Mở khóa ' + it.name + ' rồi! Bấm nút Xây nhà ở trên, chọn ' + it.name + ' ở khay và chạm chấm sáng trên cây nhé.');
           });
         });
       }
@@ -3052,6 +3242,7 @@
       /* ---------- Ngủ & Ngày mới ---------- */
       function goSleep(){
         if (gState.sleeping) return;
+        gState.play = null; girlG.rotation.x = 0; /* đang đu/trượt mà đi ngủ thì hủy lượt chơi, tránh kẹt giữa không trung */
         gState.sleeping = true; gState.move = null; hideDestMarker();
         var fade = document.getElementById('sleepFade');
         fade.classList.add('on');
@@ -3090,6 +3281,10 @@
         document.getElementById('titleSub').textContent = m === 'play'
           ? 'Chạm vật lấp lánh để Bánh Mì làm nhiệm vụ'
           : 'Chọn một món đồ, chạm vào chấm sáng trên cây';
+        if (gState.play){ /* đổi chế độ giữa lúc đang đu/trượt: hạ bé xuống đất cho gọn */
+          gState.play = null; gState.sit = false;
+          girlG.position.y = 0; gState.baseY = 0; gState.onDeck = false; girlG.rotation.x = 0;
+        }
         gState.move = null; hideDestMarker();
         refreshMarkers(); refreshInteractMarkers();
         setHint(m === 'play'
@@ -3139,7 +3334,9 @@
         var t = girlClock.elapsedTime;
         var pos = girlG.position;
         var moving = false, climbingNow = false;
-        if (gState.move && !gState.sleeping){
+        var playing = !!gState.play;
+        if (playing && !gState.sleeping){ updateRide(dt); }
+        else if (gState.move && !gState.sleeping){
           var leg = gState.move.legs[0];
           if (!leg){
             var mvDone = gState.move; gState.move = null; hideDestMarker();
@@ -3177,8 +3374,11 @@
             }
           }
         }
+        playing = !!gState.play; /* updateRide có thể vừa kết thúc lượt chơi ngay trong tick này: làm mới cờ để các đoạn tạo dáng phía dưới không đọc gState.play đã thành null */
         if (destMarker.visible) destMarker.scale.setScalar(1 + Math.sin(t * 6) * 0.16);
-        girlG.rotation.x += ((climbingNow ? 0.06 : 0) - girlG.rotation.x) * Math.min(1, dt * 10); /* leo thì thân ngả nhẹ ra ngoài theo đường leo đã dịch ra: chân gần bậc, tay vẫn với tới thanh thang (sải tay ~0,40), người không còn áp dính vào mặt thang */
+        var tiltTarget = climbingNow ? 0.06 : 0; /* leo thì thân ngả nhẹ ra ngoài theo đường leo đã dịch ra */
+        if (playing && typeof gState.play.tilt === 'number') tiltTarget = gState.play.tilt; /* đu xích đu: thân ngả theo nhịp đu */
+        girlG.rotation.x += (tiltTarget - girlG.rotation.x) * Math.min(1, dt * 10);
         /* xoay mặt theo hướng đi */
         var diff = gState.faceTarget - girlG.rotation.y;
         while (diff > Math.PI) diff -= Math.PI * 2;
@@ -3194,7 +3394,7 @@
           var cp = 1 - Math.max(0, gState.celebrateT) / 1.15;
           targetY = gState.baseY + Math.sin(cp * Math.PI) * 0.5;
         }
-        if (!climbingNow) pos.y += (targetY - pos.y) * Math.min(1, dt * 14);
+        if (!climbingNow && !playing) pos.y += (targetY - pos.y) * Math.min(1, dt * 14); /* lúc đu/trượt, y do updateRide điều khiển trực tiếp */
         /* tay chân */
         var sw = moving ? Math.sin(gState.walkPhase) * 0.62 : 0;
         var armSwing = moving ? Math.sin(gState.walkPhase) * 0.5 : Math.sin(t * 2) * 0.06;
@@ -3210,11 +3410,15 @@
         girl.footR.rotation.x += (kneeR - girl.footR.rotation.x) * Math.min(1, dt * 16);
         var aL = -armSwing, aR = armSwing;
         if (gState.celebrateT > 0){ aL = -0.4; aR = 0.4; }
+        if (playing && gState.play.armPose === 'grip'){ aL = -0.6; aR = -0.6; } /* đu: hai tay đưa ra trước bám dây */
+        if (playing && gState.play.armPose === 'up'){ aL = -0.35; aR = -0.35; } /* trượt: tay giơ lên (góc z ở dưới giơ hẳn lên trời) */
         girl.armL.rotation.x += (aL - girl.armL.rotation.x) * Math.min(1, dt * 14);
         girl.armR.rotation.x += (aR - girl.armR.rotation.x) * Math.min(1, dt * 14);
         var zL = -0.32, zR = 0.32; /* dang vừa ra ngoài: dấu ngược phía vai, khớp cầu ở đúng trục vai che mối nối nên mọi trạng thái (đứng, đi, ngồi) tay đều liền vào thân mà bàn tay vẫn hở đầm ~0,115 */
         if (gState.celebrateT > 0){ zL = -2.5; zR = 2.5; } /* giơ tay ăn mừng vẫn hướng ra ngoài, không bắt chéo vào trong */
         if (climbingNow){ zL = -0.3; zR = 0.3; }
+        if (playing && gState.play.armPose === 'grip'){ zL = -0.5; zR = 0.5; } /* tay dang tới hai sợi dây xích đu ở ±0,42 */
+        if (playing && gState.play.armPose === 'up'){ zL = -2.4; zR = 2.4; } /* trượt: giơ hai tay lên trời */
         girl.armL.rotation.z += (zL - girl.armL.rotation.z) * Math.min(1, dt * 12);
         girl.armR.rotation.z += (zR - girl.armR.rotation.z) * Math.min(1, dt * 12);
         /* leo thang: tay chân so le bám thang, hai tay giơ cao về phía trước */
@@ -4747,6 +4951,13 @@
         freeMove:function(x, z, surface){ startFreeMove(x, z, surface || 'ground'); },
         get onDeck(){ return gState.onDeck; },
         get girlMoving(){ return !!gState.move; },
+        get playState(){ return gState.play ? { kind:gState.play.kind, phase:gState.play.phase } : null; },
+        rideSwingNow:function(){ startSwingRide(); },
+        rideSlideNow:function(){ startSlideRide(); },
+        project:function(x, y, z){
+          var v = new THREE.Vector3(x, y, z).project(camera);
+          return { x:(v.x + 1) / 2 * window.innerWidth, y:(1 - v.y) / 2 * window.innerHeight, z:v.z };
+        },
         debugArms:function(){
           girlG.updateMatrixWorld(true);
           var hl = new THREE.Vector3(), hr = new THREE.Vector3(), sl = new THREE.Vector3();
