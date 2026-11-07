@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <meta name="color-scheme" content="light" />
     <link rel="icon" href="data:," />
-    <title>Xây Nhà Cây 3D</title>
+    <title>Khu vườn nhỏ của Bánh Mì</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -344,6 +344,405 @@
         .big-btn{ padding:11px 15px; font-size:15px; }
         .overlay{ align-items:flex-end; }
       }
+      /* ---------- Gói mở rộng: vườn rau, tủ đồ, album, nhật ký, bạn hàng xóm ---------- */
+      .album-grid{ display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:10px; }
+      .album-grid figure{ margin:0; }
+      .album-grid img{ width:100%; display:block; border-radius:13px; border:2px solid var(--panel-line); background:#dcefe2; }
+      .album-grid figcaption{ font-size:12px; font-weight:700; color:var(--ink-soft); text-align:center; margin-top:4px; }
+      .diary-line{
+        font-size:17.5px; font-weight:600; line-height:1.45; color:var(--ink);
+        background:#fff; border:2px solid #f0e7d2; border-radius:14px;
+        padding:10px 13px; margin-top:8px; display:flex; gap:9px; align-items:flex-start;
+      }
+      .diary-line .d-ic{ font-size:19px; line-height:1.3; flex:0 0 auto; }
+      .diary-btns{ display:flex; gap:9px; margin-top:16px; }
+      .diary-btns .buy-btn{ flex:1; justify-content:center; padding:13px 10px; font-size:16px; }
+      .diary-btns .buy-btn.ghost{ background:#fff; color:var(--ink-soft); border:2px solid var(--panel-line); box-shadow:none; }
+      .pet-name-input{
+        width:100%; font-family:"Baloo 2",cursive; font-weight:700; font-size:19px;
+        border:2.5px solid var(--panel-line); border-radius:14px; padding:11px 14px;
+        color:var(--ink); background:#fff; margin-top:10px; outline:none;
+      }
+      .pet-name-input:focus{ border-color:var(--green); }
+      .heart-txt{ color:#ff5a8a; font-weight:800; }
+      #petNameLabel{
+        position:fixed; z-index:25; pointer-events:none; display:none;
+        transform:translate(-50%,-115%);
+        background:var(--panel); border:2px solid var(--panel-line);
+        border-radius:999px; padding:5px 13px; box-shadow:var(--shadow);
+        font-family:"Baloo 2",cursive; font-weight:800; font-size:15.5px; color:var(--ink);
+        white-space:nowrap;
+      }
+      .buy-btn.sell{ background:#ff9f43; box-shadow:0 3px 7px rgba(226,112,58,.3); }
+      .buy-btn.wear{ background:#7ec8e3; color:#14425e; box-shadow:0 3px 7px rgba(90,167,199,.3); }
+      .seed-note{ font-size:12.5px; color:var(--ink-soft); font-weight:600; margin-top:2px; }
+
+      /* ================================================================
+         TỐI ƯU MOBILE (chỉ tầng giao diện, không đụng logic game)
+         - Chặn overscroll / pull-to-refresh, dùng 100dvh chống nhảy
+           bố cục vì thanh địa chỉ Safari, vùng chạm tối thiểu 44px.
+         - Nút phụ gom vào nút "Thêm" (bảng .more-panel) ở màn nhỏ.
+         - Panel thành sheet gần toàn màn hình, tiêu đề ghim trên.
+         ================================================================ */
+      html, body{ overscroll-behavior:none; }
+      @supports (height:100dvh){
+        html, body{ height:100dvh; }
+        .sheet{ max-height:84dvh; }
+        .overlay{ height:100dvh; }
+      }
+      button{ touch-action:manipulation; }
+      .more-panel{ display:contents; }
+      .more-btn{ display:none; }
+      .sheet .close-x{ width:44px; height:44px; }
+      .buy-btn{ min-height:44px; }
+      .big-btn{ min-height:52px; }
+      .tools{ scroll-snap-type:x proximity; scroll-padding:0 10px; }
+      .tool{ scroll-snap-align:start; }
+      .sheet{ overscroll-behavior:contain; }
+      .tools, .sheet, .missions, .more-panel{ -webkit-overflow-scrolling:touch; }
+
+      /* ---------- Màn vừa & máy tính bảng dọc (tới 900px) ---------- */
+      @media (max-width:900px){
+        .topbar{
+          flex-wrap:nowrap; align-items:flex-start;
+          padding:calc(8px + env(safe-area-inset-top)) 8px 0;
+        }
+        .title-chip{ padding:6px 11px 6px 8px; min-width:0; }
+        .title-chip .tree-badge{ width:32px; height:32px; border-radius:10px; }
+        .title-chip h1{ font-size:17px; white-space:nowrap; }
+        .title-chip p{ display:none; }
+        .mode-switch{ flex:0 0 auto; }
+        .mode-switch button{ min-height:48px; padding:8px 15px; font-size:15.5px; }
+        .actions{ gap:7px; flex:0 0 auto; }
+        .round-btn{ width:48px; height:48px; }
+        .round-btn svg{ width:22px; height:22px; }
+        .more-btn{ display:flex; }
+        .more-panel{ display:none; }
+        .topbar.more-open .more-panel{
+          display:grid; position:absolute; z-index:30;
+          top:calc(100% + 8px); right:8px;
+          grid-template-columns:repeat(3, 60px); gap:9px;
+          background:var(--panel); border:2px solid var(--panel-line);
+          border-radius:20px; padding:10px; box-shadow:var(--shadow);
+          pointer-events:auto;
+        }
+        .topbar.more-open .more-panel .round-btn{ width:60px; height:58px; border-radius:18px; }
+        .topbar.more-open .more-panel .round-btn svg{ width:25px; height:25px; }
+        .topbar.more-open .more-panel .round-btn .lbl{ font-size:9.5px; }
+        .stats{ top:calc(68px + env(safe-area-inset-top)); }
+        .missions{ top:calc(68px + env(safe-area-inset-top)); }
+        .toast{ top:calc(70px + env(safe-area-inset-top)); }
+      }
+
+      /* ---------- Điện thoại dọc (tới 700px) ---------- */
+      @media (max-width:700px){
+        :root{ --toolbar-h:126px; }
+        .topbar{ flex-wrap:wrap; row-gap:7px; }
+        .title-chip{ flex:1 1 auto; }
+        .title-chip h1{ font-size:16.5px; }
+        .mode-switch{ order:3; width:100%; }
+        .mode-switch button{ flex:1; justify-content:center; min-height:48px; }
+        .stats{
+          top:calc(124px + env(safe-area-inset-top));
+          left:8px; width:140px; padding:8px 10px 9px; border-radius:16px;
+        }
+        .coin-row{ gap:6px; margin-bottom:6px; }
+        .coin-ic{ width:27px; height:27px; font-size:10.5px; }
+        .coin-row b{ font-size:20px; }
+        .coin-row .day-tag{ font-size:11px; padding:3px 8px; }
+        .stat-row{ gap:6px; margin-top:5px; }
+        .stat-row svg{ width:17px; height:17px; }
+        .stat-row .bar{ height:10px; }
+        .stat-row span{ display:none; }
+        .missions{
+          top:calc(124px + env(safe-area-inset-top));
+          right:8px; width:min(192px, calc(100vw - 164px));
+          padding:8px 9px; border-radius:16px;
+        }
+        .missions h2{ font-size:14.5px; margin-bottom:3px; }
+        .mission{ gap:6px; padding:5px 6px; margin-top:5px; border-radius:11px; }
+        .mission .m-ic, .mission .m-ic svg{ width:27px; height:27px; }
+        .mission .m-tx b{ font-size:12.5px; }
+        .mission .m-tx small{ display:none; }
+        .mission .m-prog{ font-size:13px; padding:2px 6px; }
+        /* Thanh chơi: lưới 4 ô đều nhau, icon trên chữ dưới, không tràn ngang */
+        .playbar{
+          display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;
+          padding:0 8px; bottom:calc(8px + env(safe-area-inset-bottom));
+        }
+        .big-btn{
+          flex-direction:column; gap:2px; justify-content:center;
+          min-height:62px; min-width:0; padding:7px 2px 6px;
+          font-size:13.5px; border-radius:20px; white-space:nowrap;
+        }
+        .big-btn svg{ width:22px; height:22px; }
+        .big-btn .badge{ top:-6px; right:4px; }
+        body.mode-play .hint-wrap{ bottom:calc(84px + env(safe-area-inset-bottom)); padding:0 10px; }
+        .hint{ font-size:13px; padding:8px 13px; }
+        .toast{
+          top:auto; bottom:calc(156px + env(safe-area-inset-bottom));
+          font-size:13.5px; padding:9px 16px; max-width:94vw;
+          white-space:normal; text-align:center;
+        }
+        body.mode-build .toast{ bottom:calc(var(--toolbar-h) + 64px); }
+        .count-chip{ left:8px; bottom:calc(var(--toolbar-h) + 58px); font-size:12.5px; padding:5px 11px; }
+        .toolbar{ padding:16px 6px calc(8px + env(safe-area-inset-bottom)); }
+        .tools{ gap:8px; padding:4px 2px 6px; }
+        .tool{ width:76px; min-height:90px; border-radius:17px; }
+        .tool svg{ width:38px; height:38px; }
+        .tool span{ font-size:11.5px; }
+      }
+
+      /* ---------- Điện thoại nhỏ (tới 400px) ---------- */
+      @media (max-width:400px){
+        .title-chip h1{ font-size:15.5px; }
+        .title-chip .tree-badge{ width:29px; height:29px; }
+        .stats{ width:130px; padding:7px 8px 8px; }
+        .missions{ width:calc(100vw - 154px); }
+        .mission .m-tx b{ font-size:12px; }
+        .big-btn{ font-size:12.5px; }
+        .topbar.more-open .more-panel{ grid-template-columns:repeat(3, 58px); }
+      }
+
+      /* ---------- Sheet gần toàn màn hình trên mobile ---------- */
+      @media (max-width:760px){
+        .overlay{ align-items:flex-end; }
+        .sheet{
+          width:100%; max-width:none; height:100dvh; max-height:100dvh;
+          border-radius:0; padding:0 14px calc(14px + env(safe-area-inset-bottom));
+        }
+        .sheet h2{
+          position:sticky; top:0; z-index:5; background:var(--panel);
+          margin:0 -14px; padding:calc(12px + env(safe-area-inset-top)) 14px 10px;
+          font-size:20px; box-shadow:0 8px 12px -10px rgba(47,70,50,.45);
+        }
+        .sheet .close-x{ width:48px; height:48px; font-size:19px; }
+        .sheet .sub{ font-size:13.5px; margin-top:10px; line-height:1.4; }
+        .sheet h3{ font-size:17px; margin:18px 0 8px; }
+        .shop-row{ min-height:66px; padding:10px; gap:10px; border-radius:16px; }
+        .shop-row .s-tx b{ font-size:15px; }
+        .shop-row .s-tx small{ font-size:13px; line-height:1.35; }
+        .buy-btn{ min-height:48px; padding:10px 15px; font-size:15px; }
+        .diary-btns .buy-btn{ min-height:52px; }
+        .diary-line{ font-size:17.5px; }
+        .sheet .empty-note{ font-size:13.5px; line-height:1.45; }
+        .album-grid{ gap:8px; }
+        .album-grid figcaption{ font-size:12.5px; }
+      }
+      @media (min-width:761px) and (max-width:900px){
+        .sheet{ max-height:88dvh; }
+      }
+
+      /* ---------- Điện thoại ngang: HUD thành dải mỏng ---------- */
+      @media (max-height:500px) and (orientation:landscape){
+        .topbar{
+          flex-wrap:nowrap; row-gap:0;
+          padding:calc(6px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) 0 calc(8px + env(safe-area-inset-left));
+        }
+        .title-chip{ flex:0 1 auto; }
+        .mode-switch{ order:0; width:auto; }
+        .mode-switch button{ flex:0 0 auto; min-height:48px; padding:7px 14px; }
+        .stats{
+          top:calc(62px + env(safe-area-inset-top)); left:calc(8px + env(safe-area-inset-left));
+          width:auto; display:flex; align-items:center; gap:12px;
+          padding:6px 12px; border-radius:14px;
+        }
+        .coin-row{ margin:0; }
+        .coin-row b{ font-size:19px; }
+        .stat-row{ margin:0; }
+        .stat-row .bar{ flex:none; width:46px; height:9px; }
+        .stat-row span{ display:none; }
+        .missions{
+          top:calc(62px + env(safe-area-inset-top)); right:calc(8px + env(safe-area-inset-right));
+          width:auto; max-width:44vw; padding:6px 8px; border-radius:14px;
+        }
+        .missions h2{ font-size:13px; margin:0 0 4px; }
+        .missions h2 svg{ width:16px; height:16px; }
+        #missionList{ display:flex; gap:6px; overflow-x:auto; overflow-y:hidden; scroll-snap-type:x proximity; padding-bottom:2px; }
+        .mission{ margin:0; min-width:172px; scroll-snap-align:start; padding:5px 7px; }
+        .mission .m-ic, .mission .m-ic svg{ width:26px; height:26px; }
+        .mission .m-tx b{ font-size:12.5px; }
+        .mission .m-tx small{ display:none; }
+        .mission .m-prog{ font-size:13px; padding:2px 6px; }
+        .playbar{
+          display:flex; gap:8px;
+          padding:0 calc(10px + env(safe-area-inset-right)) 0 calc(10px + env(safe-area-inset-left));
+          bottom:calc(6px + env(safe-area-inset-bottom));
+        }
+        .big-btn{
+          flex-direction:row; min-height:48px; min-width:0;
+          padding:8px 15px; font-size:14.5px; border-radius:999px;
+        }
+        .big-btn svg{ width:21px; height:21px; }
+        body.mode-play .hint-wrap{ bottom:calc(62px + env(safe-area-inset-bottom)); }
+        .hint{ font-size:12.5px; padding:6px 12px; max-width:72vw; }
+        .toast{ top:calc(140px + env(safe-area-inset-top)); bottom:auto; font-size:13.5px; }
+        :root{ --toolbar-h:102px; }
+        .toolbar{ padding-top:12px; }
+        .tool{ width:70px; min-height:74px; }
+        .tool svg{ width:33px; height:33px; }
+        .count-chip{ bottom:calc(var(--toolbar-h) + 52px); }
+        .sheet{ height:100dvh; max-height:100dvh; }
+        .sheet h2{ position:sticky; top:0; z-index:5; background:var(--panel); padding:4px 0 8px; }
+        .sheet .close-x{ width:48px; height:48px; }
+        .shop-row{ min-height:60px; }
+        .buy-btn{ min-height:48px; }
+      }
+
+      /* ================================================================
+         THU GỌN HUD ĐIỆN THOẠI (theo ảnh chụp iPhone 390x844)
+         - Panel nhiệm vụ gấp gọn thành chip một hàng, chạm mới xổ.
+         - Panel trạng thái nén thành một dải ngang mỏng một hàng.
+         - Pill Chơi/Xây và nút tròn thấp hơn (vẫn đủ 44px vùng chạm).
+         - Bong bóng gợi ý nhỏ hơn, tối đa 2 dòng, tự ẩn sau 5 giây.
+         - Thanh Balo/Cửa hàng/Ngủ/Album cao 58px.
+         Chỉ áp dụng tối đa 640px và máy ngang thấp; desktop và máy
+         tính bảng giữ nguyên toàn bộ bố cục phía trên.
+         ================================================================ */
+      .mission-toggle{ display:none; }
+      .hint{ pointer-events:auto; cursor:pointer; }
+      .hint-wrap{ transition:opacity .3s ease, visibility .3s; }
+      .hint-wrap.hint-hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+      .hint-wrap.hint-hidden .hint{ transform:translateY(8px); }
+      @keyframes missionPulse{
+        0%,100%{ box-shadow:var(--shadow); }
+        50%{ box-shadow:0 0 0 4px rgba(31,158,70,.5), 0 6px 18px rgba(47,70,50,.28); }
+      }
+      .missions.just-done .mission-toggle{ animation:missionPulse .7s ease-in-out 4; border-color:var(--green); }
+      .missions.just-done{ border-color:var(--green); }
+      @media (prefers-reduced-motion: reduce){
+        .missions.just-done .mission-toggle{ animation:none; }
+        .hint-wrap{ transition:none; }
+      }
+
+      @media (max-width:640px){
+        /* Thanh tiêu đề + hàng Chơi/Xây thấp hơn một bậc */
+        .topbar{ padding:calc(6px + env(safe-area-inset-top)) 8px 0; row-gap:5px; column-gap:6px; }
+        .title-chip{ padding:3px 9px 3px 5px; border-radius:14px; gap:6px; }
+        .title-chip .tree-badge{ width:26px; height:26px; border-radius:8px; }
+        .title-chip .tree-badge svg{ width:22px; height:22px; }
+        .title-chip h1{ font-size:15px; white-space:normal; line-height:1.12; }
+        .actions{ gap:6px; }
+        .round-btn{ width:44px; height:44px; }
+        .round-btn svg{ width:20px; height:20px; }
+        .round-btn .lbl{ font-size:8px; }
+        .mode-switch{ padding:3px; gap:3px; }
+        .mode-switch button{ min-height:42px; padding:5px 12px; font-size:15.5px; gap:5px; }
+        .mode-switch button svg{ width:18px; height:18px; }
+
+        /* Panel trạng thái: một dải ngang mỏng, tất cả trên một hàng */
+        .stats{
+          top:calc(110px + env(safe-area-inset-top));
+          left:8px; right:8px; width:auto;
+          display:flex; align-items:center; gap:9px;
+          padding:5px 10px; border-radius:999px;
+        }
+        .coin-row{ margin:0; gap:5px; flex:0 0 auto; }
+        .coin-ic{ width:22px; height:22px; font-size:9.5px; border-width:1.5px; }
+        .coin-row b{ font-size:17px; }
+        .coin-row .day-tag{ font-size:10.5px; padding:2px 7px; margin-left:2px; }
+        .stat-row{ margin:0; gap:4px; flex:1 1 0; min-width:0; }
+        .stat-row svg{ width:15px; height:15px; }
+        .stat-row .bar{ height:7px; }
+        .stat-row span{ display:none; }
+
+        /* Panel nhiệm vụ: mặc định là chip gấp gọn một hàng */
+        .missions{
+          top:calc(152px + env(safe-area-inset-top));
+          right:8px; left:auto; width:auto; max-width:calc(100vw - 16px);
+          padding:0; border-radius:999px; background:transparent; border:none; box-shadow:none;
+        }
+        .missions .mission-full-title{ display:none; }
+        .mission-toggle{
+          display:flex; align-items:center; gap:6px;
+          min-height:36px; padding:6px 12px;
+          background:rgba(255,253,246,.96); border:2px solid var(--panel-line);
+          border-radius:999px; box-shadow:var(--shadow); cursor:pointer;
+          font-family:"Baloo 2",cursive; font-weight:800; font-size:13.5px; color:var(--ink);
+        }
+        .mission-toggle .mt-count{
+          background:#e9f9ee; color:var(--green-dark); border-radius:99px;
+          padding:1px 8px; font-size:12.5px; line-height:1.35;
+        }
+        .mission-toggle .mt-arrow{ font-size:11px; color:var(--ink-soft); transition:transform .2s; }
+        .missions.collapsed #missionList{ display:none; }
+        .missions:not(.collapsed){
+          background:rgba(255,253,246,.97); border:2px solid var(--panel-line);
+          border-radius:16px; box-shadow:var(--shadow); padding:6px;
+          width:min(300px, calc(100vw - 16px));
+        }
+        .missions:not(.collapsed) .mission-toggle{
+          box-shadow:none; border:none; background:transparent;
+          padding:2px 6px 4px; min-height:32px; width:100%;
+        }
+        .missions:not(.collapsed) .mt-arrow{ transform:rotate(180deg); }
+        .missions:not(.collapsed) #missionList{ display:block; }
+        .mission{ gap:6px; padding:4px 6px; margin-top:4px; border-radius:10px; }
+        .mission .m-ic, .mission .m-ic svg{ width:24px; height:24px; }
+        .mission .m-tx b{ font-size:12px; }
+        .mission .m-tx small{ display:none; }
+        .mission .m-prog{ font-size:12.5px; padding:2px 6px; border-radius:7px; }
+
+        /* Bong bóng gợi ý: chữ nhỏ hơn một bậc, tối đa 2 dòng */
+        body.mode-play .hint-wrap{ bottom:calc(72px + env(safe-area-inset-bottom)); }
+        .hint-wrap{ padding:0 10px; }
+        .hint{
+          font-size:12.5px; line-height:1.3; padding:7px 12px; border-radius:16px;
+          max-width:94vw;
+          display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+        }
+
+        /* Thanh dưới Balo/Cửa hàng/Ngủ/Album: cao 58px, lưới 4 ô giữ nguyên */
+        .playbar{ gap:7px; padding:0 8px; bottom:calc(6px + env(safe-area-inset-bottom)); }
+        .big-btn{ min-height:58px; height:58px; padding:5px 2px 4px; font-size:12.5px; border-radius:18px; gap:1px; }
+        .big-btn svg{ width:20px; height:20px; }
+        .toast{ bottom:calc(140px + env(safe-area-inset-bottom)); }
+      }
+      @media (max-width:400px){
+        .stats{ gap:7px; padding:5px 8px; }
+        .coin-row b{ font-size:16px; }
+      }
+
+      /* Điện thoại ngang: giữ dải mỏng, nhiệm vụ cũng là chip gấp gọn */
+      @media (max-height:500px) and (orientation:landscape){
+        .round-btn{ width:44px; height:44px; }
+        .mode-switch button{ min-height:44px; padding:5px 12px; }
+        .stats{ top:calc(58px + env(safe-area-inset-top)); }
+        .missions{
+          top:calc(58px + env(safe-area-inset-top)); right:calc(8px + env(safe-area-inset-right));
+          left:auto; width:auto; max-width:46vw;
+          padding:0; border-radius:999px; background:transparent; border:none; box-shadow:none;
+        }
+        .missions .mission-full-title{ display:none; }
+        .mission-toggle{
+          display:flex; align-items:center; gap:6px;
+          min-height:36px; padding:6px 12px;
+          background:rgba(255,253,246,.96); border:2px solid var(--panel-line);
+          border-radius:999px; box-shadow:var(--shadow); cursor:pointer;
+          font-family:"Baloo 2",cursive; font-weight:800; font-size:13.5px; color:var(--ink);
+        }
+        .mission-toggle .mt-count{
+          background:#e9f9ee; color:var(--green-dark); border-radius:99px;
+          padding:1px 8px; font-size:12.5px; line-height:1.35;
+        }
+        .mission-toggle .mt-arrow{ font-size:11px; color:var(--ink-soft); transition:transform .2s; }
+        .missions.collapsed #missionList{ display:none; }
+        .missions:not(.collapsed){
+          background:rgba(255,253,246,.97); border:2px solid var(--panel-line);
+          border-radius:16px; box-shadow:var(--shadow); padding:6px; width:290px; max-width:46vw;
+        }
+        .missions:not(.collapsed) .mission-toggle{
+          box-shadow:none; border:none; background:transparent;
+          padding:2px 6px 4px; min-height:32px; width:100%;
+        }
+        .missions:not(.collapsed) .mt-arrow{ transform:rotate(180deg); }
+        .missions:not(.collapsed) #missionList{ display:block; overflow:visible; }
+        .missions:not(.collapsed) .mission{ min-width:0; margin-top:4px; }
+        .hint{
+          font-size:12px; padding:6px 11px; border-radius:14px;
+          display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+        }
+      }
     </style>
   </head>
   <body class="mode-play">
@@ -355,7 +754,7 @@
           <svg viewBox="0 0 48 48" width="30" height="30"><path d="M24 4 L38 20 H31 L40 32 H8 L17 20 H10 Z" fill="#1f9e46"/><rect x="21.5" y="32" width="5" height="9" rx="2" fill="#8a5a3b"/><path d="M14 41 h20" stroke="#8a5a3b" stroke-width="3" stroke-linecap="round"/></svg>
         </div>
         <div>
-          <h1>Xây Nhà Cây</h1>
+          <h1>Khu vườn nhỏ của Bánh Mì</h1>
           <p id="titleSub">Chạm vật lấp lánh để Bánh Mì làm nhiệm vụ</p>
         </div>
       </div>
@@ -368,13 +767,18 @@
         </button>
       </div>
       <div class="actions">
-        <button class="round-btn" id="btnMagic" aria-label="Xây giúp bé một ngôi nhà ngẫu nhiên">
-          <svg viewBox="0 0 48 48"><path d="M30 6 l2.2 5.8 L38 14 l-5.8 2.2 L30 22 l-2.2 -5.8 L22 14 l5.8 -2.2 Z" fill="#ffb340"/><path d="M13 26 l6 6 M33 30 l-14 14 c-1.5 1.5 -4 .5 -4 -1.5 c0 -1 .4 -1.8 1 -2.4 L30 28.5" stroke="#8a5a3b" stroke-width="3.4" fill="none" stroke-linecap="round"/><circle cx="40" cy="30" r="3" fill="#ff4b38"/><circle cx="10" cy="12" r="2.6" fill="#1f9e46"/></svg>
-          <span class="lbl">Tự xây</span>
-        </button>
         <button class="round-btn" id="btnMode" aria-label="Đổi thời gian trong ngày">
           <svg id="modeIcon" viewBox="0 0 48 48"><circle cx="24" cy="24" r="9" fill="#ffb340"/><g stroke="#ffb340" stroke-width="3.4" stroke-linecap="round"><path d="M24 6 v5"/><path d="M24 37 v5"/><path d="M6 24 h5"/><path d="M37 24 h5"/><path d="M11 11 l3.5 3.5"/><path d="M33.5 33.5 L37 37"/><path d="M37 11 l-3.5 3.5"/><path d="M14.5 33.5 L11 37"/></g></svg>
           <span class="lbl" id="modeLabel">Ban ngày</span>
+        </button>
+        <button class="round-btn more-btn" id="btnMore" aria-label="Hiện thêm các nút phụ" aria-expanded="false" aria-controls="morePanel">
+          <svg viewBox="0 0 48 48"><circle cx="9" cy="24" r="4.6" fill="#35875a"/><circle cx="24" cy="24" r="4.6" fill="#35875a"/><circle cx="39" cy="24" r="4.6" fill="#35875a"/></svg>
+          <span class="lbl">Thêm</span>
+        </button>
+        <div class="more-panel" id="morePanel" aria-label="Các nút phụ">
+        <button class="round-btn" id="btnMagic" aria-label="Xây giúp bé một ngôi nhà ngẫu nhiên">
+          <svg viewBox="0 0 48 48"><path d="M30 6 l2.2 5.8 L38 14 l-5.8 2.2 L30 22 l-2.2 -5.8 L22 14 l5.8 -2.2 Z" fill="#ffb340"/><path d="M13 26 l6 6 M33 30 l-14 14 c-1.5 1.5 -4 .5 -4 -1.5 c0 -1 .4 -1.8 1 -2.4 L30 28.5" stroke="#8a5a3b" stroke-width="3.4" fill="none" stroke-linecap="round"/><circle cx="40" cy="30" r="3" fill="#ff4b38"/><circle cx="10" cy="12" r="2.6" fill="#1f9e46"/></svg>
+          <span class="lbl">Tự xây</span>
         </button>
         <button class="round-btn" id="btnPhoto" aria-label="Chụp ảnh ngôi nhà cây và tải về">
           <svg viewBox="0 0 48 48"><rect x="6" y="14" width="36" height="26" rx="6" fill="#7ec8e3"/><rect x="17" y="9" width="14" height="7" rx="3" fill="#5aa7c7"/><circle cx="24" cy="27" r="7.5" fill="#fffdf6"/><circle cx="24" cy="27" r="4" fill="#35875a"/><circle cx="37" cy="19" r="2" fill="#fffdf6"/></svg>
@@ -392,6 +796,7 @@
           <svg viewBox="0 0 48 48"><path d="M24 6 L27 15 L36 15 L29 21 L31.5 30 L24 24.8 L16.5 30 L19 21 L12 15 L21 15 Z" fill="#ffb340" stroke="#e8930c" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 38 C16 42 32 42 38 38" fill="none" stroke="#35875a" stroke-width="3.2" stroke-linecap="round"/></svg>
           <span class="lbl">Chơi lại</span>
         </button>
+        </div>
       </div>
     </div>
 
@@ -420,8 +825,14 @@
       </div>
     </div>
 
-    <div class="missions" id="missionPanel" aria-label="Nhiệm vụ hôm nay">
-      <h2><svg viewBox="0 0 48 48" width="20" height="20"><path d="M10 6 h28 v36 l-7 -5 l-7 5 l-7 -5 l-7 5 Z" fill="#ff4b38"/><path d="M17 16 h14 M17 23 h14" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/></svg>Nhiệm vụ hôm nay</h2>
+    <div class="missions collapsed" id="missionPanel" aria-label="Nhiệm vụ hôm nay">
+      <button class="mission-toggle" id="missionToggle" type="button" aria-expanded="false" aria-controls="missionList" aria-label="Mở danh sách nhiệm vụ hôm nay">
+        <svg viewBox="0 0 48 48" width="17" height="17" aria-hidden="true"><path d="M10 6 h28 v36 l-7 -5 l-7 5 l-7 -5 l-7 5 Z" fill="#ff4b38"/><path d="M17 16 h14 M17 23 h14" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/></svg>
+        <span class="mt-label">Nhiệm vụ</span>
+        <span class="mt-count" id="missionSummary">0/3</span>
+        <span class="mt-arrow" aria-hidden="true">▾</span>
+      </button>
+      <h2 class="mission-full-title"><svg viewBox="0 0 48 48" width="20" height="20"><path d="M10 6 h28 v36 l-7 -5 l-7 5 l-7 -5 l-7 5 Z" fill="#ff4b38"/><path d="M17 16 h14 M17 23 h14" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/></svg>Nhiệm vụ hôm nay</h2>
       <div id="missionList"></div>
     </div>
 
@@ -438,6 +849,10 @@
         <svg viewBox="0 0 48 48"><path d="M32 6 a18 18 0 1 0 10 27 A20 20 0 0 1 32 6 Z" fill="#8ea6e8"/></svg>
         Ngủ
       </button>
+      <button class="big-btn" id="btnAlbum" aria-label="Mở album ảnh của bé">
+        <svg viewBox="0 0 48 48"><rect x="6" y="10" width="36" height="28" rx="5" fill="#c39bff"/><rect x="11" y="15" width="26" height="18" rx="3" fill="#fffdf6"/><circle cx="19" cy="21" r="2.6" fill="#ffb340"/><path d="M13 33 L22 25 L28 29 L32 26 L35 33 Z" fill="#1f9e46"/></svg>
+        Album
+      </button>
     </div>
 
     <div class="overlay" id="shopOverlay" role="dialog" aria-label="Cửa hàng">
@@ -450,6 +865,12 @@
         <div id="shopUps"></div>
         <h3>Thú cưng</h3>
         <div id="shopPets"></div>
+        <h3>Thú cưng của bé</h3>
+        <div id="shopMyPets"></div>
+        <h3>Tủ đồ của bé</h3>
+        <div id="shopWardrobe"></div>
+        <h3>Sơn nhà &amp; tầng ngắm sao</h3>
+        <div id="shopPaint"></div>
       </div>
     </div>
 
@@ -460,6 +881,55 @@
         <div id="baloList"></div>
       </div>
     </div>
+
+    <div class="overlay" id="seedOverlay" role="dialog" aria-label="Chọn hạt giống">
+      <div class="sheet">
+        <h2><svg viewBox="0 0 48 48" width="26" height="26"><path d="M24 42 c0 -10 0 -16 0 -22" stroke="#1f9e46" stroke-width="3.4" stroke-linecap="round"/><path d="M24 22 C24 14 18 9 10 9 c0 8 6 13 14 13 Z" fill="#1f9e46"/><path d="M24 18 c0 -8 6 -13 14 -13 c0 8 -6 13 -14 13 Z" fill="#57c84b"/></svg>Chọn hạt giống<button class="close-x" data-close="seedOverlay" aria-label="Đóng bảng hạt giống">✕</button></h2>
+        <p class="sub">Bé đi tới ô đất và gieo hạt. Tưới mỗi ngày, ngủ qua đêm là cây lớn thêm một nấc nhé!</p>
+        <div id="seedList"></div>
+      </div>
+    </div>
+
+    <div class="overlay" id="albumOverlay" role="dialog" aria-label="Album ảnh">
+      <div class="sheet">
+        <h2><svg viewBox="0 0 48 48" width="26" height="26"><rect x="6" y="10" width="36" height="28" rx="5" fill="#c39bff"/><rect x="11" y="15" width="26" height="18" rx="3" fill="#fffdf6"/><circle cx="19" cy="21" r="2.6" fill="#ffb340"/><path d="M13 33 L22 25 L28 29 L32 26 L35 33 Z" fill="#1f9e46"/></svg>Album của bé<button class="close-x" data-close="albumOverlay" aria-label="Đóng album">✕</button></h2>
+        <p class="sub">Bấm nút Chụp ảnh là ảnh được lưu vào đây, giữ 4 tấm mới nhất. Tấm mới nhất được treo trong khung ảnh trên vách nhà cây.</p>
+        <div id="albumGrid"></div>
+      </div>
+    </div>
+
+    <div class="overlay" id="diaryOverlay" role="dialog" aria-label="Nhật ký cuối ngày">
+      <div class="sheet">
+        <h2><svg viewBox="0 0 48 48" width="26" height="26"><path d="M10 5 h24 a4 4 0 0 1 4 4 v34 l-7 -5 l-7 5 l-7 -5 l-7 5 Z" fill="#ff9ecb"/><path d="M17 15 h14 M17 22 h14 M17 29 h9" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg><span id="diaryTitle">Nhật ký ngày 1</span></h2>
+        <p class="sub">Đọc cùng bé trước giờ ngủ nhé.</p>
+        <div id="diaryLines"></div>
+        <div class="diary-btns">
+          <button class="buy-btn ghost" id="btnDiaryCancel">Chơi tiếp</button>
+          <button class="buy-btn" id="btnDiarySleep">Ngủ thôi</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="petNameOverlay" role="dialog" aria-label="Đặt tên cho thú cưng">
+      <div class="sheet">
+        <h2><svg viewBox="0 0 48 48" width="26" height="26"><circle cx="24" cy="26" r="15" fill="#ff9ec4"/><circle cx="13" cy="13" r="5" fill="#ff9ec4"/><circle cx="24" cy="9" r="5.4" fill="#ff9ec4"/><circle cx="35" cy="13" r="5" fill="#ff9ec4"/></svg><span id="petNameTitle">Đặt tên cho bé thú</span></h2>
+        <p class="sub">Tên sẽ hiện trên đầu bé thú khi bé chạm vào. Vuốt ve đủ 5 lần, bé thú thân thiết sẽ đi theo bé khắp vườn!</p>
+        <input class="pet-name-input" id="petNameInput" maxlength="14" autocomplete="off" />
+        <div class="diary-btns">
+          <button class="buy-btn ghost" data-close="petNameOverlay">Để sau</button>
+          <button class="buy-btn" id="btnPetNameSave">Lưu tên</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="friendOverlay" role="dialog" aria-label="Bạn hàng xóm">
+      <div class="sheet">
+        <h2><svg viewBox="0 0 48 48" width="26" height="26"><circle cx="17" cy="17" r="8" fill="#ffd9bd"/><circle cx="31" cy="17" r="8" fill="#ffcf9e"/><path d="M6 42 c0 -8 5 -12 11 -12 s11 4 11 12 Z" fill="#079bd8"/><path d="M20 42 c0 -8 5 -12 11 -12 s11 4 11 12 Z" fill="#ffb340"/></svg>Bạn hàng xóm ghé chơi<button class="close-x" data-close="friendOverlay" aria-label="Đóng bảng bạn hàng xóm">✕</button></h2>
+        <div id="friendBody"></div>
+      </div>
+    </div>
+
+    <div id="petNameLabel"></div>
 
     <div id="sleepFade"><span>Đang ngủ... chúc bé ngủ ngon</span></div>
 
@@ -1202,9 +1672,18 @@
       var toastEl = document.getElementById('toast');
       var countEl = document.getElementById('placedCount');
       var toastTimer = null;
+      /* Bong bóng gợi ý: hiện thoáng qua rồi tự ẩn sau 5 giây, chạm vào là ẩn ngay */
+      var hintWrap = hintEl.parentNode;
+      var hintTimer = null;
+      function hideHint(){ hintWrap.classList.add('hint-hidden'); }
+      function armHintTimer(){ clearTimeout(hintTimer); hintTimer = setTimeout(hideHint, 5000); }
+      function showHint(){ hintWrap.classList.remove('hint-hidden'); armHintTimer(); }
+      hintEl.addEventListener('click', function(){ clearTimeout(hintTimer); hideHint(); });
+      armHintTimer();
       function setHint(t){
         hintEl.textContent = t;
         hintEl.classList.remove('bump'); void hintEl.offsetWidth; hintEl.classList.add('bump');
+        showHint();
       }
       function toast(t){
         toastEl.textContent = t; toastEl.classList.add('show');
@@ -1500,6 +1979,7 @@
         markerGroup.visible = false;
         renderer.render(scene, camera);
         var url = renderer.domElement.toDataURL('image/png');
+        if (window.__albumAdd){ try{ window.__albumAdd(url); }catch(e){} }
         markerGroup.visible = true;
         var flash = document.getElementById('flash');
         flash.classList.remove('go'); void flash.offsetWidth; flash.classList.add('go');
@@ -2408,6 +2888,9 @@
             '<div class="m-tx"><b>' + m.name + '</b><small>Thưởng ' + m.reward + ' xu</small></div>' +
             '<div class="m-prog">' + (m.done ? 'Xong!' : m.prog + '/' + m.goal) + '</div></div>';
         }).join('');
+        var doneN = 0; for (var di=0; di<missions.length; di++) if (missions[di].done) doneN++;
+        var sumEl = document.getElementById('missionSummary');
+        if (sumEl) sumEl.textContent = doneN + '/' + missions.length;
       }
       function addProgress(id){
         for (var i=0;i<missions.length;i++){
@@ -2416,6 +2899,8 @@
           m.prog++;
           if (m.prog >= m.goal){
             m.done = true;
+            var mp = document.getElementById('missionPanel');
+            if (mp){ mp.classList.remove('just-done'); void mp.offsetWidth; mp.classList.add('just-done'); setTimeout(function(){ mp.classList.remove('just-done'); }, 2800); }
             coins += m.reward;
             flyCoins(); AudioSys.coin(); celebrate();
             toast('Hoàn thành nhiệm vụ ' + m.name + '! +' + m.reward + ' xu');
@@ -2772,6 +3257,1300 @@
       }
 
       /* ============================================================
+         MỞ RỘNG 4 GÓI: vườn rau & nhịp ngày · thú cưng có việc ·
+         tủ đồ, sơn nhà, album · bạn hàng xóm, ngày hội, nhật ký.
+         Module này nằm TRƯỚC phần tự lưu và phần khởi động bên dưới,
+         nên nông sản kịp đăng ký vào FOODS/Balo, và các hàm bọc
+         (renderShop, goSleep, rollMissions...) kịp có hiệu lực khi
+         game nạp bản lưu. Trạng thái mới đi qua trường "extra" của
+         bản lưu: bản lưu cũ không có trường này vẫn nạp bình thường.
+         ============================================================ */
+
+      /* ---- Nông sản & trứng: đăng ký vào FOODS để dùng chung Balo ---- */
+      FOODS.push(
+        { id:'carot', name:'Cà rốt', price:0, hunger:18, fun:0, sell:8, noShop:true, desc:'Cà rốt nhà trồng, Đói +18', icon:'<svg viewBox="0 0 48 48"><path d="M14 20 C22 22 30 30 34 40 c1 3 -2 5 -5 4 C19 40 12 30 14 20 Z" fill="#ff8c1a"/><path d="M15 19 C13 13 15 8 19 5 c2 4 1 9 -1 12 M18 18 c-4 -3 -9 -3 -12 0 c3 3 8 4 12 0 M17 17 c1 -5 5 -8 9 -8 c0 5 -3 8 -7 9" stroke="#1f9e46" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>' },
+        { id:'dau', name:'Dâu tây', price:0, hunger:15, fun:4, sell:12, noShop:true, desc:'Dâu vườn nhà, Đói +15, Vui +4', icon:'<svg viewBox="0 0 48 48"><path d="M24 44 C14 36 10 27 12 19 c1 -5 6 -8 12 -8 s11 3 12 8 c2 8 -2 17 -12 25 Z" fill="#e8301c"/><path d="M24 11 c-2 -4 -6 -6 -10 -5 c1 4 5 6 10 5 c2 -4 6 -6 10 -5 c-1 4 -5 6 -10 5 Z" fill="#1f9e46"/><circle cx="19" cy="22" r="1.3" fill="#ffd9d4"/><circle cx="28" cy="26" r="1.3" fill="#ffd9d4"/><circle cx="22" cy="32" r="1.3" fill="#ffd9d4"/></svg>' },
+        { id:'bingu', name:'Bí ngô', price:0, hunger:40, fun:0, sell:18, noShop:true, desc:'Bí ngô to tròn, Đói +40', icon:'<svg viewBox="0 0 48 48"><ellipse cx="24" cy="28" rx="16" ry="13" fill="#ff8c1a"/><path d="M16 17 c-3 7 -3 15 0 22 M32 17 c3 7 3 15 0 22" stroke="#e2703a" stroke-width="2.4" fill="none"/><path d="M24 15 c0 -4 2 -6 5 -7" stroke="#05762a" stroke-width="3.4" fill="none" stroke-linecap="round"/></svg>' },
+        { id:'trung', name:'Trứng gà', price:0, hunger:20, fun:0, noShop:true, desc:'Trứng gà mái đẻ, Đói +20', icon:'<svg viewBox="0 0 48 48"><ellipse cx="24" cy="27" rx="13" ry="16" fill="#fff6e8" stroke="#e8d9bd" stroke-width="2"/><circle cx="24" cy="30" r="6.5" fill="#ffb340"/></svg>' }
+      );
+      ['carot','dau','bingu','trung'].forEach(function(k){ if (typeof backpack[k] !== 'number') backpack[k] = 0; });
+
+      /* ---- Ba nhiệm vụ mới cho bể nhiệm vụ ngày ---- */
+      MISSION_POOL.push(
+        { id:'tuoirau', name:'Tưới rau trong vườn', goal:2, reward:12, icon:'<svg viewBox="0 0 48 48"><path d="M10 30 h20 l-2 10 a3 3 0 0 1 -3 2.4 h-10 a3 3 0 0 1 -3 -2.4 Z" fill="#7ec8e3"/><path d="M30 30 l8 -8" stroke="#5aa7c7" stroke-width="3.6" stroke-linecap="round"/><path d="M38 14 c2.6 3.6 2.6 6.4 0 8.6 c-2.6 -2.2 -2.6 -5 0 -8.6 Z" fill="#63cff5"/><path d="M20 22 v-6 M14 18 l3 -4 M26 18 l-3 -4" stroke="#1f9e46" stroke-width="2.6" stroke-linecap="round"/></svg>' },
+        { id:'thuhoach', name:'Thu hoạch rau quả', goal:2, reward:14, icon:'<svg viewBox="0 0 48 48"><path d="M8 22 h32 l-3.4 16 a4 4 0 0 1 -4 3.2 H15.4 a4 4 0 0 1 -4 -3.2 Z" fill="#d98f27"/><path d="M16 22 c0 -6 3 -10 8 -10 s8 4 8 10" fill="none" stroke="#a8681c" stroke-width="3.2"/><circle cx="19" cy="16" r="5" fill="#ff5a4e"/><circle cx="29" cy="15" r="5.4" fill="#ff8c1a"/><path d="M29 10 c0 -3 2 -5 4 -6" stroke="#1f9e46" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>' },
+        { id:'domdom', name:'Bắt đom đóm bỏ lọ', goal:3, reward:15, icon:'<svg viewBox="0 0 48 48"><path d="M18 14 h12 l1.6 24 a3 3 0 0 1 -3 3.2 H19.4 a3 3 0 0 1 -3 -3.2 Z" fill="#d8f1ff" opacity="0.85"/><rect x="16" y="8" width="16" height="6" rx="2.6" fill="#c22418"/><circle cx="24" cy="28" r="4.6" fill="#ffe066"/><circle cx="19" cy="35" r="2.6" fill="#ffe066"/><circle cx="29" cy="36" r="2.2" fill="#fff3a0"/><path d="M8 10 l1.8 3.4 L13 15 l-3.2 1.6 L8 20 l-1.8 -3.4 L3 15 l3.2 -1.6 Z" fill="#ffd93b"/></svg>' }
+      );
+
+      /* ---- Trạng thái mở rộng dùng chung cho 4 gói ---- */
+      var ext = {
+        jar: 0,
+        seedInv: { carot:0, dau:0, bingu:0 },
+        petData: {},
+        wardrobeOwned: { vayhong:true },
+        outfit: { dress:'vayhong', bow:'hong', head:null, glass:false },
+        paint: { wall:'go', roof:'do' },
+        paintOwned: {},
+        telescope: false,
+        album: [],
+        daysSinceFriend: 0,
+        friendToday: false,
+        stats: null
+      };
+      function freshStats(){ return { missionsDone:0, coinsEarned:0, purchases:[], petsPetted:0, harvests:0, fireflies:0, eggs:0, waters:0, friendPlayed:false }; }
+      ext.stats = freshStats();
+      var dayStartAt = Date.now();
+
+      /* ================= GÓI 1: VƯỜN RAU ================= */
+      var CROPS = {
+        carot:{ name:'Cà rốt', seed:3, days:2, food:'carot' },
+        dau:{ name:'Dâu tây', seed:5, days:2, food:'dau' },
+        bingu:{ name:'Bí ngô', seed:6, days:3, food:'bingu' }
+      };
+      function seedIcon(id){
+        if (id === 'carot') return '<svg viewBox="0 0 48 48"><path d="M14 20 C22 22 30 30 34 40 c1 3 -2 5 -5 4 C19 40 12 30 14 20 Z" fill="#ff8c1a"/><path d="M15 19 C13 13 15 8 19 5 c2 4 1 9 -1 12 M18 18 c-4 -3 -9 -3 -12 0 c3 3 8 4 12 0" stroke="#1f9e46" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>';
+        if (id === 'dau') return '<svg viewBox="0 0 48 48"><path d="M24 44 C14 36 10 27 12 19 c1 -5 6 -8 12 -8 s11 3 12 8 c2 8 -2 17 -12 25 Z" fill="#e8301c"/><path d="M24 11 c-2 -4 -6 -6 -10 -5 c1 4 5 6 10 5 c2 -4 6 -6 10 -5 c-1 4 -5 6 -10 5 Z" fill="#1f9e46"/></svg>';
+        return '<svg viewBox="0 0 48 48"><ellipse cx="24" cy="28" rx="16" ry="13" fill="#ff8c1a"/><path d="M24 15 c0 -4 2 -6 5 -7" stroke="#05762a" stroke-width="3.4" fill="none" stroke-linecap="round"/></svg>';
+      }
+      var plots = [];
+      var pendingPlot = null;
+      function cropVisStage(p){
+        if (!p.crop) return -1;
+        var c = CROPS[p.crop];
+        if (p.stage >= c.days) return 3;
+        if (p.stage <= 0) return 0;
+        return (p.stage / c.days <= 0.5) ? 1 : 2;
+      }
+      function buildCropVisual(p){
+        while (p.cropG.children.length) p.cropG.remove(p.cropG.children[0]);
+        var vs = cropVisStage(p);
+        if (vs < 0) return;
+        var g = p.cropG, i, bx;
+        if (vs === 0){
+          for (i=0;i<3;i++) ball(0.045, 0xffe89a, -0.22 + i*0.22, 0.17, (i%2 ? 0.12 : -0.1), g);
+          return;
+        }
+        if (vs === 1){
+          for (i=0;i<3;i++){
+            bx = -0.22 + i*0.22;
+            cyl(0.02, 0.02, 0.16, 0x1f9e46, bx, 0.22, (i%2 ? 0.1 : -0.08), g, 5);
+            var lf = ball(0.075, 0x57c84b, bx, 0.32, (i%2 ? 0.1 : -0.08), g); lf.scale.y = 0.6;
+          }
+          return;
+        }
+        for (i=0;i<3;i++){
+          bx = -0.24 + i*0.24;
+          cyl(0.025, 0.03, 0.3, 0x05762a, bx, 0.3, 0, g, 5);
+          var bush = ball(vs === 3 ? 0.17 : 0.15, i%2 ? 0x009e35 : 0x05762a, bx, 0.5, 0, g); bush.scale.y = 0.8;
+        }
+        if (vs === 3){
+          if (p.crop === 'carot'){
+            for (i=0;i<3;i++){ var cn = cone(0.07, 0.26, 0xff8c1a, -0.24 + i*0.24, 0.22, 0, g, 7); cn.rotation.x = Math.PI; }
+          } else if (p.crop === 'dau'){
+            [[-0.24,0.44,0.1],[0,0.57,-0.08],[0.24,0.44,0.08],[-0.1,0.4,-0.12],[0.12,0.42,0.12]].forEach(function(q){ ball(0.07, 0xe8301c, q[0], q[1], q[2], g); });
+          } else {
+            var pk = ball(0.3, 0xff8c1a, 0.44, 0.3, 0.27, g); pk.scale.y = 0.85;
+            cyl(0.03, 0.04, 0.1, 0x05762a, 0.44, 0.6, 0.27, g, 5);
+          }
+        }
+      }
+      function refreshPlot(p){
+        p.soilMat.color.setHex(p.watered ? 0x4a2c14 : 0x6f4525);
+        buildCropVisual(p);
+      }
+      (function buildGardenPlots(){
+        var xs = [6.3, 7.2, 8.1], zs = [-2.3, -1.1];
+        zs.forEach(function(z){ xs.forEach(function(x){
+          var g = new THREE.Group(); g.position.set(x, 0, z); worldGroup.add(g);
+          var soilMat = new THREE.MeshStandardMaterial({ color:0x6f4525, roughness:1, flatShading:true });
+          var soil = new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.2, 0.98), soilMat);
+          soil.position.y = 0.1; soil.castShadow = true; soil.receiveShadow = true; g.add(soil);
+          box(1.06, 0.1, 0.08, 0xa35f14, 0, 0.12, 0.51, g); box(1.06, 0.1, 0.08, 0xa35f14, 0, 0.12, -0.51, g);
+          box(0.08, 0.1, 1.06, 0xa35f14, 0.51, 0.12, 0, g); box(0.08, 0.1, 1.06, 0xa35f14, -0.51, 0.12, 0, g);
+          var cropG = new THREE.Group(); g.add(cropG);
+          var p = { g:g, x:x, z:z, soilMat:soilMat, cropG:cropG, crop:null, stage:0, watered:false };
+          var px = makeProxy(x, 0.45, z, 0.72, scene);
+          px.userData.available = function(){ return true; };
+          px.userData.onTap = function(){ onPlotTap(p); };
+          makeMarker(g, 0, 1.05, 0, 'tuoirau', function(){ return !!p.crop && !p.watered && cropVisStage(p) < 3; });
+          makeMarker(g, 0, 1.05, 0, 'thuhoach', function(){ return cropVisStage(p) === 3; });
+          plots.push(p);
+        }); });
+      })();
+      function plotDest(p){ var r = Math.hypot(p.x, p.z) || 1; return { x: p.x - p.x/r*0.85, z: p.z - p.z/r*0.85 }; }
+      function onPlotTap(p){
+        AudioSys.ensure();
+        if (!p.crop){
+          pendingPlot = p; renderSeedList();
+          document.getElementById('seedOverlay').classList.add('open');
+          AudioSys.click();
+          return;
+        }
+        var d = plotDest(p);
+        if (cropVisStage(p) === 3){
+          startJob(fixedDest(d.x, d.z), function(){
+            if (cropVisStage(p) !== 3) return;
+            var food = CROPS[p.crop].food;
+            backpack[food]++;
+            p.crop = null; p.stage = 0; p.watered = false; refreshPlot(p);
+            burst(new THREE.Vector3(p.x, 0.8, p.z));
+            AudioSys.pop(); addProgress('thuhoach'); ext.stats.harvests++;
+            updateHUD(); refreshInteractMarkers();
+            try{ saveGameNow(); }catch(e){}
+            setHint('Thu hoạch được 1 ' + foodById(food).name + ', bỏ vào Balo rồi! Mở Balo để cho bé ăn hoặc bán lấy xu nhé.');
+          }, 'thuhoach');
+          return;
+        }
+        if (p.watered){
+          startJob(fixedDest(d.x, d.z), function(){ setHint('Ô này hôm nay tưới rồi, đất còn ẩm lắm. Mai tưới tiếp là cây lớn thêm một nấc!'); }, 'tuoirau');
+          return;
+        }
+        startJob(fixedDest(d.x, d.z), function(){
+          if (!p.crop || p.watered) return;
+          p.watered = true; refreshPlot(p);
+          spawnWaterDrops(p.x, p.z);
+          AudioSys.splash(); spendEnergy(1);
+          addProgress('tuoirau'); ext.stats.waters++;
+          updateHUD(); refreshInteractMarkers();
+          try{ saveGameNow(); }catch(e){}
+          setHint('Tưới rau xong! Tối nay bé ngủ một giấc là cây lớn thêm một nấc.');
+        }, 'tuoirau');
+      }
+      function renderSeedList(){
+        document.getElementById('seedList').innerHTML = Object.keys(CROPS).map(function(id){
+          var c = CROPS[id], free = ext.seedInv[id];
+          return '<div class="shop-row"><div class="s-ic">' + seedIcon(id) + '</div><div class="s-tx"><b>Hạt ' + c.name + '</b><small>' + c.days + ' ngày là chín · ' + (free > 0 ? 'Có sẵn ' + free + ' hạt được tặng' : 'Giá ' + c.seed + ' xu') + '</small></div>' +
+            '<button class="buy-btn" data-seed="' + id + '"' + (free <= 0 && coins < c.seed ? ' disabled' : '') + '>' + (free > 0 ? 'Gieo miễn phí' : 'Gieo ' + c.seed + ' xu') + '</button></div>';
+        }).join('');
+        document.querySelectorAll('#seedList [data-seed]').forEach(function(btn){
+          btn.addEventListener('click', function(){
+            var id = btn.dataset.seed, c = CROPS[id];
+            if (!pendingPlot || pendingPlot.crop) return;
+            if (needs.energy <= 0.5){ toast('Bé hết năng lượng rồi, cho bé ngủ một giấc đã nhé!'); return; }
+            if (ext.seedInv[id] > 0) ext.seedInv[id]--;
+            else if (coins >= c.seed) coins -= c.seed;
+            else return;
+            document.getElementById('seedOverlay').classList.remove('open');
+            var p = pendingPlot; pendingPlot = null;
+            var d = plotDest(p);
+            startJob(fixedDest(d.x, d.z), function(){
+              if (p.crop) return;
+              p.crop = id; p.stage = 0; p.watered = false; refreshPlot(p);
+              burst(new THREE.Vector3(p.x, 0.5, p.z));
+              AudioSys.pop(); updateHUD(); refreshInteractMarkers();
+              try{ saveGameNow(); }catch(e){}
+              setHint('Đã gieo hạt ' + c.name + '! Nhớ tưới mỗi ngày, ngủ qua đêm là cây lớn thêm một nấc.');
+            }, 'gieo');
+            updateHUD();
+          });
+        });
+      }
+      /* Tia nước khi tưới rau */
+      var droplets = [];
+      function spawnWaterDrops(x, z){
+        for (var i=0;i<14;i++){
+          var m = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 5), new THREE.MeshBasicMaterial({ color:0x63cff5, transparent:true, opacity:0.95 }));
+          m.position.set(x + (Math.random()-0.5)*0.7, 1.5 + Math.random()*0.4, z + (Math.random()-0.5)*0.7);
+          worldGroup.add(m);
+          droplets.push({ m:m, life:0 });
+        }
+      }
+      /* Ngủ qua đêm: ô nào đã tưới thì lớn thêm 1 nấc */
+      function growCropsOvernight(){
+        plots.forEach(function(p){
+          if (p.crop && p.watered) p.stage = Math.min(CROPS[p.crop].days, p.stage + 1);
+          p.watered = false;
+          refreshPlot(p);
+        });
+      }
+
+      /* ---- Đom đóm ban đêm & lọ đom đóm cạnh cửa nhà ---- */
+      var fireflies = [];
+      (function buildFireflies(){
+        for (var i=0;i<8;i++){
+          var g = new THREE.Group();
+          var core = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), new THREE.MeshBasicMaterial({ color:0xfff3a0 }));
+          var halo = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), new THREE.MeshBasicMaterial({ color:0xffe066, transparent:true, opacity:0.4, depthWrite:false }));
+          g.add(core); g.add(halo); g.visible = false; worldGroup.add(g);
+          var ff = { g:g, caught:false, seed:i*1.37 + 0.6, cx:Math.cos(i/8*Math.PI*2)*(3.6 + (i%3)*1.2), cz:Math.sin(i/8*Math.PI*2)*(3.6 + (i%3)*1.2) };
+          var px = makeProxy(0, 0, 0, 0.85, g);
+          px.userData.available = function(){ return modeIdx === 2 && !ff.caught; };
+          (function(f){
+            px.userData.onTap = function(){
+              startJob(function(){ return { x:f.g.position.x, z:f.g.position.z }; }, function(){
+                if (f.caught || modeIdx !== 2) return;
+                f.caught = true; f.g.visible = false;
+                ext.jar++; updateJar();
+                burst(f.g.position.clone());
+                AudioSys.chime(); gainFun(3);
+                addProgress('domdom'); ext.stats.fireflies++;
+                updateHUD();
+                try{ saveGameNow(); }catch(e){}
+                setHint('Bắt được 1 đom đóm bỏ vào lọ! Lọ cạnh cửa nhà đang có ' + ext.jar + ' con, sáng lung linh.');
+              }, 'domdom');
+            };
+          })(ff);
+          fireflies.push(ff);
+        }
+      })();
+      var jarLight = null, jarCores = [];
+      (function buildJar(){
+        var g = new THREE.Group(); g.position.set(0.62, DECK_TOP, 1.02); worldGroup.add(g);
+        var glass = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.14, 0.3, 10), new THREE.MeshStandardMaterial({ color:0xcfe8ff, transparent:true, opacity:0.35, roughness:0.15 }));
+        glass.position.y = 0.15; g.add(glass);
+        cyl(0.17, 0.17, 0.05, 0xc22418, 0, 0.33, 0, g, 10);
+        for (var i=0;i<5;i++){
+          var c = new THREE.Mesh(new THREE.SphereGeometry(0.045, 7, 6), new THREE.MeshBasicMaterial({ color:0xffe89a }));
+          c.position.set(Math.cos(i*2.4)*0.07, 0.08 + (i%3)*0.08, Math.sin(i*2.4)*0.07);
+          c.visible = false; g.add(c); jarCores.push(c);
+        }
+        jarLight = new THREE.PointLight(0xffdf8a, 0, 4.5, 2); jarLight.position.y = 0.2; g.add(jarLight);
+      })();
+      function updateJar(){
+        var n = Math.min(5, ext.jar);
+        jarCores.forEach(function(c, i){ c.visible = i < n; });
+        if (jarLight) jarLight.intensity = n * (modeIdx === 2 ? 0.5 : 0.18);
+      }
+      /* ================= GÓI 2: THÚ CƯNG CÓ VIỆC LÀM ================= */
+      function pd(kind){
+        if (!ext.petData[kind]) ext.petData[kind] = { hearts:0, name:petById(kind).name, follow:false };
+        return ext.petData[kind];
+      }
+      function petByKind(kind){ for (var i=0;i<pets.length;i++) if (pets[i].kind === kind) return pets[i]; return null; }
+
+      /* Nhãn tên nổi trên đầu thú khi chạm vào */
+      var nameLabelEl = document.getElementById('petNameLabel');
+      var labelPet = null, labelUntil = 0;
+      function showPetLabel(pet){
+        labelPet = pet; labelUntil = Date.now() + 2800;
+        var d = pd(pet.kind);
+        nameLabelEl.textContent = d.name + (d.follow ? ' · bạn thân của bé' : '');
+      }
+
+      /* Panel đặt tên thú */
+      var pendingNameKind = null;
+      function openPetName(kind){
+        pendingNameKind = kind;
+        document.getElementById('petNameTitle').textContent = 'Đặt tên cho ' + petById(kind).name;
+        var inp = document.getElementById('petNameInput');
+        inp.value = pd(kind).name;
+        document.getElementById('petNameOverlay').classList.add('open');
+        setTimeout(function(){ try{ inp.focus(); inp.select(); }catch(e){} }, 60);
+      }
+      document.getElementById('btnPetNameSave').addEventListener('click', function(){
+        if (!pendingNameKind) return;
+        var v = document.getElementById('petNameInput').value.trim();
+        if (v) pd(pendingNameKind).name = v.slice(0, 14);
+        document.getElementById('petNameOverlay').classList.remove('open');
+        var pet = petByKind(pendingNameKind);
+        if (pet) showPetLabel(pet);
+        AudioSys.ensure(); AudioSys.chime();
+        try{ saveGameNow(); }catch(e){}
+        toast('Từ nay bé thú tên là ' + pd(pendingNameKind).name + '!');
+        pendingNameKind = null;
+      });
+
+      /* Mua thú xong thì mời đặt tên ngay */
+      var __buyPet0 = buyPet;
+      buyPet = function(id){
+        var ok = __buyPet0(id);
+        if (ok) setTimeout(function(){ openPetName(id); }, 400);
+        return ok;
+      };
+
+      /* Bọc updatePets: đếm lần vuốt (happyT nhảy lên) để cộng tim thân thiết,
+         cho thú thân thiết đi theo bé, và cho thỏ tự tìm cà rốt chín gặm chơi.
+         Các lần happyT do hệ thống tự set (mèo vồ bướm, corgi đào) được đánh
+         dấu __noCount để không tính nhầm là bé vuốt. */
+      var __prevHappy = {};
+      var rabbitCoolUntil = 0;
+      var __updatePets0 = updatePets;
+      updatePets = function(dt, t){
+        __updatePets0(dt, t);
+        pets.forEach(function(p){
+          var prev = __prevHappy[p.kind] || 0;
+          if (p.happyT > prev + 0.25){
+            var skip = p.__noCountAt && (Date.now() - p.__noCountAt < 1600);
+            if (!skip){
+              var d = pd(p.kind);
+              d.hearts++; ext.stats.petsPetted++;
+              showPetLabel(p);
+              if (d.hearts >= 5 && !d.follow){
+                d.follow = true;
+                toast(d.name + ' thân thiết với bé rồi! Từ nay ' + d.name + ' sẽ đi theo bé khắp vườn.');
+              }
+              try{ saveGameNow(); }catch(e){}
+            }
+          }
+          __prevHappy[p.kind] = p.happyT;
+          var dd = ext.petData[p.kind];
+          if (dd && dd.follow && !gState.sleeping && !gState.onDeck){
+            var distG = Math.hypot(girlG.position.x - p.g.position.x, girlG.position.z - p.g.position.z);
+            if (distG > 1.7){ p.target = { x:girlG.position.x, z:girlG.position.z }; p.state = 'walk'; }
+            else if (distG < 0.85 && p.state === 'walk'){ p.state = 'wait'; p.waitT = 0.5; p.target = null; }
+          }
+        });
+        if (Date.now() > rabbitCoolUntil){
+          rabbitCoolUntil = Date.now() + 25000;
+          var tho = null;
+          pets.forEach(function(p){ if ((p.kind === 'thotrang' || p.kind === 'thonau') && !(ext.petData[p.kind] && ext.petData[p.kind].follow)) tho = p; });
+          if (tho){
+            var ripe = null;
+            plots.forEach(function(pl){ if (pl.crop === 'carot' && cropVisStage(pl) === 3) ripe = pl; });
+            if (ripe){
+              tho.target = { x:ripe.x, z:ripe.z }; tho.state = 'walk';
+              var thoRef = tho, ripeRef = ripe;
+              setTimeout(function(){
+                if (thoRef.g && Math.hypot(thoRef.g.position.x - ripeRef.x, thoRef.g.position.z - ripeRef.z) < 1.3)
+                  spawnHearts(thoRef.g.position.clone());
+              }, 4000);
+            }
+          }
+        }
+      };
+
+      /* Gà mái đẻ trứng mỗi sáng */
+      var eggObj = null;
+      function spawnEgg(){
+        if (eggObj || !ownedPets.gamai) return;
+        var hen = petByKind('gamai'); if (!hen) return;
+        var g = new THREE.Group();
+        var ex = hen.g.position.x + 0.55, ez = hen.g.position.z + 0.3;
+        g.position.set(ex, 0, ez); worldGroup.add(g);
+        var shell = ball(0.11, 0xfff6e8, 0, 0.14, 0, g); shell.scale.y = 1.25;
+        var nest = ball(0.17, 0x05762a, 0, 0.03, 0, g); nest.scale.y = 0.4;
+        var px = makeProxy(0, 0.25, 0, 0.62, g);
+        px.userData.available = function(){ return !!eggObj; };
+        px.userData.onTap = function(){
+          startJob(function(){ return { x:g.position.x, z:g.position.z }; }, function(){
+            if (!eggObj) return;
+            worldGroup.remove(g);
+            var pi = playTargets.indexOf(px); if (pi >= 0) playTargets.splice(pi, 1);
+            eggObj = null;
+            backpack.trung++; ext.stats.eggs++;
+            burst(new THREE.Vector3(g.position.x, 0.5, g.position.z));
+            AudioSys.pop(); updateHUD();
+            try{ saveGameNow(); }catch(e){}
+            setHint('Nhặt được 1 quả trứng gà, bỏ vào Balo rồi! Mở Balo cho bé ăn nhé.');
+          }, 'trung');
+        };
+        eggObj = { g:g };
+      }
+
+      /* Corgi đào trúng ụ đất lấp lánh: xu hoặc hạt giống miễn phí */
+      var digSpot = null, digTimers = [];
+      function scheduleDigs(){
+        digTimers = [Date.now() + (35 + Math.random()*30)*1000, Date.now() + (115 + Math.random()*50)*1000];
+      }
+      function spawnDigSpot(){
+        if (digSpot || !ownedPets.corgi) return;
+        var a = Math.random()*Math.PI*2, r = 3.6 + Math.random()*4.6;
+        var x = Math.cos(a)*r, z = Math.sin(a)*r;
+        var g = new THREE.Group(); g.position.set(x, 0, z); worldGroup.add(g);
+        var mound = ball(0.3, 0x8a5a3b, 0, 0.02, 0, g); mound.scale.y = 0.45;
+        var starMat2 = new THREE.MeshBasicMaterial({ color:0xffe066 });
+        var star = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), starMat2); star.position.y = 0.42; g.add(star);
+        var px = makeProxy(0, 0.3, 0, 0.72, g);
+        px.userData.available = function(){ return !!digSpot; };
+        px.userData.onTap = function(){
+          startJob(fixedDest(x, z), function(){
+            if (!digSpot) return;
+            var corgi = petByKind('corgi');
+            if (corgi){ corgi.__noCountAt = Date.now(); corgi.target = { x:x, z:z }; corgi.state = 'walk'; corgi.happyT = 1.0; }
+            worldGroup.remove(g);
+            var pi = playTargets.indexOf(px); if (pi >= 0) playTargets.splice(pi, 1);
+            digSpot = null;
+            burst(new THREE.Vector3(x, 0.5, z));
+            if (Math.random() < 0.68){
+              var amt = 3 + Math.floor(Math.random()*6);
+              coins += amt; flyCoins(); AudioSys.coin();
+              toast('Corgi đào được ' + amt + ' xu chôn dưới đất!');
+              setHint('Corgi giỏi quá, đào trúng xu! Mai corgi lại đào tiếp, bé để ý ụ đất lấp lánh nhé.');
+            } else {
+              var ids = Object.keys(CROPS); var sid = ids[Math.floor(Math.random()*ids.length)];
+              ext.seedInv[sid]++;
+              toast('Corgi đào được 1 hạt ' + CROPS[sid].name + ' miễn phí!');
+              setHint('Được tặng hạt ' + CROPS[sid].name + ' rồi! Chạm ô đất trống trong vườn rau để gieo nhé.');
+            }
+            updateHUD();
+            try{ saveGameNow(); }catch(e){}
+          }, 'dao');
+        };
+        digSpot = { g:g, star:star };
+        setHint('Có một ụ đất lấp lánh trong vườn, chắc corgi vừa đào trúng gì đó. Chạm vào xem nào!');
+      }
+
+      /* ================= GÓI 3: TỦ ĐỒ ================= */
+      function dressIcon(hex){
+        var c = '#' + ('000000' + hex.toString(16)).slice(-6);
+        return '<svg viewBox="0 0 48 48"><path d="M19 6 h10 l3 8 7 16 a3 3 0 0 1 -3 4 H12 a3 3 0 0 1 -3 -4 l7 -16 Z" fill="' + c + '"/><circle cx="24" cy="24" r="2.6" fill="#ffd166"/></svg>';
+      }
+      var WARDROBE = [
+        { id:'nodo', name:'Nơ đỏ', price:12, type:'bow', icon:'<svg viewBox="0 0 48 48"><path d="M24 24 L8 12 C6 20 6 28 8 36 Z" fill="#e8301c"/><path d="M24 24 L40 12 C42 20 42 28 40 36 Z" fill="#e8301c"/><circle cx="24" cy="24" r="5" fill="#c22418"/></svg>' },
+        { id:'nonrom', name:'Nón rơm', price:15, type:'head', icon:'<svg viewBox="0 0 48 48"><ellipse cx="24" cy="28" rx="19" ry="6" fill="#f2c078"/><path d="M13 27 a11 9 0 0 1 22 0 Z" fill="#f2c078"/><path d="M13 26 h22" stroke="#e85d50" stroke-width="3.6"/></svg>' },
+        { id:'mulen', name:'Mũ len hồng', price:18, type:'head', icon:'<svg viewBox="0 0 48 48"><path d="M10 30 a14 13 0 0 1 28 0 Z" fill="#ff9ecb"/><rect x="8" y="29" width="32" height="7" rx="3.4" fill="#ff6b9d"/><circle cx="24" cy="13" r="5" fill="#fff"/></svg>' },
+        { id:'kinhmat', name:'Kính mát', price:20, type:'glass', icon:'<svg viewBox="0 0 48 48"><rect x="5" y="18" width="16" height="13" rx="4" fill="#2b2b3a"/><rect x="27" y="18" width="16" height="13" rx="4" fill="#2b2b3a"/><path d="M21 22 h6 M5 20 L2 14 M43 20 l3 -6" stroke="#2b2b3a" stroke-width="3" fill="none" stroke-linecap="round"/></svg>' },
+        { id:'vayvang', name:'Váy vàng', price:25, type:'dress', icon:dressIcon(0xffc21f) },
+        { id:'vayxanh', name:'Váy xanh biển', price:30, type:'dress', icon:dressIcon(0x079bd8) },
+        { id:'vaytim', name:'Váy tím công chúa', price:45, type:'dress', icon:dressIcon(0xa06bff) }
+      ];
+      var DRESS_COLORS = { vayhong:{ m:0xf73d96, a:0xf71d84 }, vayvang:{ m:0xffc21f, a:0xf59b3c }, vayxanh:{ m:0x079bd8, a:0x258ab8 }, vaytim:{ m:0xa06bff, a:0x8a4fe8 } };
+      function wardrobeById(id){ for (var i=0;i<WARDROBE.length;i++) if (WARDROBE[i].id===id) return WARDROBE[i]; return null; }
+
+      /* Nhận diện vật liệu váy/nơ của bé để thay màu độc lập (vật liệu gốc là
+         cache dùng chung nên phải gán vật liệu riêng cho từng mesh của bé) */
+      var dressMat = null, accentMat = null, bowMat = null;
+      var strawHat = null, beanie = null, glassesG = null;
+      (function dressUpInit(){
+        girlG.traverse(function(o){
+          if (!o.isMesh || !o.material || !o.material.color) return;
+          var hex = o.material.color.getHex();
+          if (hex === 0xf73d96 && o.geometry && o.geometry.type === 'CylinderGeometry'){
+            if (!dressMat) dressMat = new THREE.MeshStandardMaterial({ color:0xf73d96, roughness:0.9, flatShading:true });
+            o.material = dressMat;
+          } else if (hex === 0xf71d84){
+            var inHead = false, anc = o.parent;
+            while (anc){ if (anc === girl.head){ inHead = true; break; } anc = anc.parent; }
+            if (inHead && o.geometry && o.geometry.type === 'ConeGeometry'){
+              if (!bowMat) bowMat = new THREE.MeshStandardMaterial({ color:0xf71d84, roughness:0.9, flatShading:true });
+              o.material = bowMat;
+            } else {
+              if (!accentMat) accentMat = new THREE.MeshStandardMaterial({ color:0xf71d84, roughness:0.9, flatShading:true });
+              o.material = accentMat;
+            }
+          }
+        });
+        strawHat = new THREE.Group(); strawHat.position.set(0, 0.335, 0); strawHat.rotation.x = 0.06; girl.head.add(strawHat);
+        cyl(0.37, 0.37, 0.035, 0xf2c078, 0, 0, 0, strawHat, 14);
+        cyl(0.16, 0.19, 0.15, 0xf2c078, 0, 0.08, 0, strawHat, 12);
+        cyl(0.195, 0.195, 0.05, 0xe85d50, 0, 0.03, 0, strawHat, 12);
+        strawHat.visible = false;
+        beanie = new THREE.Group(); beanie.position.set(0, 0.05, 0); girl.head.add(beanie);
+        var cap = new THREE.Mesh(new THREE.SphereGeometry(0.315, 12, 8, 0, Math.PI*2, 0, Math.PI*0.55), mat(0xff9ecb));
+        cap.position.y = 0.04; cap.castShadow = true; beanie.add(cap);
+        cyl(0.315, 0.315, 0.07, 0xff6b9d, 0, 0.05, 0, beanie, 14);
+        ball(0.075, 0xffffff, 0, 0.36, 0, beanie);
+        beanie.visible = false;
+        glassesG = new THREE.Group(); girl.head.add(glassesG);
+        box(0.15, 0.11, 0.03, 0x2b2b3a, -0.115, 0.03, 0.335, glassesG);
+        box(0.15, 0.11, 0.03, 0x2b2b3a, 0.115, 0.03, 0.335, glassesG);
+        box(0.08, 0.025, 0.03, 0x2b2b3a, 0, 0.05, 0.335, glassesG);
+        glassesG.visible = false;
+      })();
+      function applyOutfit(){
+        var dc = DRESS_COLORS[ext.outfit.dress] || DRESS_COLORS.vayhong;
+        if (dressMat) dressMat.color.setHex(dc.m);
+        if (accentMat) accentMat.color.setHex(dc.a);
+        if (bowMat) bowMat.color.setHex(ext.outfit.bow === 'do' ? 0xe8301c : 0xf71d84);
+        if (strawHat) strawHat.visible = ext.outfit.head === 'nonrom';
+        if (beanie) beanie.visible = ext.outfit.head === 'mulen';
+        if (glassesG) glassesG.visible = !!ext.outfit.glass;
+      }
+      function wearItem(id){
+        var it = wardrobeById(id); if (!it) return;
+        if (it.type === 'dress') ext.outfit.dress = id;
+        else if (it.type === 'bow') ext.outfit.bow = 'do';
+        else if (it.type === 'head') ext.outfit.head = (ext.outfit.head === id) ? null : id;
+        else if (it.type === 'glass') ext.outfit.glass = !ext.outfit.glass;
+        applyOutfit();
+        AudioSys.ensure(); AudioSys.chime();
+        try{ saveGameNow(); }catch(e){}
+      }
+
+      /* ---- Sơn nhà: gán vật liệu riêng cho các mesh tường cabin ---- */
+      var wallMeshes = [];
+      (function collectWalls(){
+        scene.updateMatrixWorld(true);
+        var wp = new THREE.Vector3();
+        scene.traverse(function(o){
+          if (!o.isMesh || !o.geometry || o.geometry.type !== 'BoxGeometry' || !o.material || !o.material.color) return;
+          var hex = o.material.color.getHex();
+          if (hex !== 0xd07a12 && hex !== 0xc0660a) return;
+          o.getWorldPosition(wp);
+          if (wp.x > -2.35 && wp.x < 0.35 && wp.y > DECK_Y - 0.2 && wp.y < DECK_Y + 2.3 && wp.z > -1.65 && wp.z < 0.65){
+            o.material = o.material.clone();
+            wallMeshes.push({ mesh:o, orig:hex });
+          }
+        });
+      })();
+      var roofMeshes = null;
+      function applyRoofPaint(){
+        var s = slotById('mai1');
+        if (!s || !s.group) return;
+        if (!roofMeshes || roofMeshes.group !== s.group){
+          roofMeshes = { group:s.group, main:[], base:[] };
+          s.group.traverse(function(o){
+            if (!o.isMesh || !o.material || !o.material.color) return;
+            if (o.geometry && o.geometry.type === 'ExtrudeGeometry'){ o.material = o.material.clone(); roofMeshes.main.push(o); }
+            else if (o.material.color.getHex() === 0xc22418){ o.material = o.material.clone(); roofMeshes.base.push(o); }
+          });
+        }
+        var cols = { do:[0xe8301c, 0xc22418], xanh:[0x079bd8, 0x0576a8], tim:[0x9b5cf6, 0x7c3fd4] }[ext.paint.roof] || [0xe8301c, 0xc22418];
+        roofMeshes.main.forEach(function(m){ m.material.color.setHex(cols[0]); });
+        roofMeshes.base.forEach(function(m){ m.material.color.setHex(cols[1]); });
+      }
+      function applyPaint(){
+        wallMeshes.forEach(function(w){
+          w.mesh.material.color.setHex(ext.paint.wall === 'kem' ? (w.orig === 0xd07a12 ? 0xf3e3c3 : 0xe8d2a6) : w.orig);
+        });
+        applyRoofPaint();
+      }
+      var __placeItem0 = placeItem;
+      placeItem = function(slot, itemId, silent){
+        __placeItem0(slot, itemId, silent);
+        if (itemId === 'mai') applyRoofPaint();
+      };
+
+      /* ---- Tầng ngắm sao: kính thiên văn & sao băng ---- */
+      var telescopeG = null;
+      (function buildTelescope(){
+        telescopeG = new THREE.Group(); telescopeG.position.set(1.78, DECK_TOP, -1.02); telescopeG.rotation.y = -0.7; worldGroup.add(telescopeG);
+        for (var i=0;i<3;i++){
+          var a = i/3*Math.PI*2;
+          var leg = cyl(0.03, 0.03, 0.85, 0x63300f, Math.cos(a)*0.16, 0.4, Math.sin(a)*0.16, telescopeG, 6);
+          leg.rotation.set(Math.sin(a)*0.35, 0, -Math.cos(a)*0.35);
+        }
+        var tube = cyl(0.09, 0.11, 0.85, 0x7ec8e3, 0, 0.95, 0, telescopeG, 10); tube.rotation.x = 0.7;
+        var eye = cyl(0.115, 0.115, 0.1, 0x2b6ea8, 0, 1.14, 0.29, telescopeG, 10); eye.rotation.x = 0.7;
+        ball(0.05, 0xffc21f, 0, 0.76, -0.3, telescopeG);
+        telescopeG.visible = false;
+      })();
+      var shoot = null, nextShootAt = 0;
+      function spawnShootingStar(){
+        if (shoot || !ext.telescope || modeIdx !== 2) return;
+        var g = new THREE.Group();
+        var core = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 6), new THREE.MeshBasicMaterial({ color:0xffffff }));
+        var trail = new THREE.Mesh(new THREE.ConeGeometry(0.09, 1.6, 6), new THREE.MeshBasicMaterial({ color:0xbfe8f7, transparent:true, opacity:0.7 }));
+        trail.rotation.z = Math.PI/2 - 0.29; trail.position.set(0.78, 0.24, 0);
+        g.add(trail); g.add(core);
+        g.position.set(-16, 11 + Math.random()*3, -10 - Math.random()*4);
+        worldGroup.add(g);
+        var px = makeProxy(0, 0, 0, 1.7, g);
+        px.userData.available = function(){ return !!shoot && modeIdx === 2; };
+        px.userData.onTap = function(){
+          if (!shoot) return;
+          coins += 3; flyCoins(); AudioSys.coin();
+          burst(g.position.clone());
+          toast('Chạm trúng sao băng! +3 xu');
+          setHint('Sao băng mang may mắn tới, bé được 3 xu rồi!');
+          endShootingStar();
+          updateHUD();
+          try{ saveGameNow(); }catch(e){}
+        };
+        shoot = { g:g, px:px, vx:7.5, vy:-2.2, life:0 };
+      }
+      function endShootingStar(){
+        if (!shoot) return;
+        worldGroup.remove(shoot.g);
+        var pi = playTargets.indexOf(shoot.px); if (pi >= 0) playTargets.splice(pi, 1);
+        shoot = null;
+        nextShootAt = Date.now() + 16000 + Math.random()*18000;
+      }
+
+      /* ---- Album ảnh & khung ảnh treo trên vách nhà ---- */
+      var framePlane = null, frameTex = null;
+      (function buildPhotoFrame(){
+        var g = new THREE.Group(); g.position.set(-1.02, DECK_Y + 1.76, 0.53); worldGroup.add(g);
+        box(0.7, 0.5, 0.04, 0x63300f, 0, 0, 0, g);
+        frameTex = new THREE.CanvasTexture(document.createElement('canvas'));
+        framePlane = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.4), new THREE.MeshBasicMaterial({ color:0xfffdf6 }));
+        framePlane.position.z = 0.03; g.add(framePlane);
+      })();
+      function refreshPhotoFrame(){
+        if (!framePlane) return;
+        if (!ext.album.length){
+          framePlane.material.map = null; framePlane.material.color.setHex(0xfffdf6); framePlane.material.needsUpdate = true;
+          return;
+        }
+        var img = new Image();
+        img.onload = function(){
+          var cv = frameTex.image;
+          cv.width = img.width; cv.height = img.height;
+          cv.getContext('2d').drawImage(img, 0, 0);
+          frameTex.needsUpdate = true;
+          framePlane.material.map = frameTex; framePlane.material.color.setHex(0xffffff); framePlane.material.needsUpdate = true;
+        };
+        img.src = ext.album[0];
+      }
+      window.__albumAdd = function(pngUrl){
+        var img = new Image();
+        img.onload = function(){
+          try{
+            var w = 320, h = Math.max(1, Math.round(320 * img.height / img.width));
+            var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+            cv.getContext('2d').drawImage(img, 0, 0, w, h);
+            ext.album.unshift(cv.toDataURL('image/jpeg', 0.72));
+            ext.album = ext.album.slice(0, 4);
+            refreshPhotoFrame();
+            try{ saveGameNow(); }catch(e){}
+            toast('Ảnh mới đã lưu vào Album và treo lên vách nhà!');
+          }catch(e){}
+        };
+        img.src = pngUrl;
+      };
+      function renderAlbum(){
+        var el = document.getElementById('albumGrid');
+        if (!ext.album.length){
+          el.innerHTML = '<div class="empty-note">Chưa có tấm ảnh nào. Bấm nút Chụp ảnh ở góc trên để chụp ngôi nhà cây nhé!</div>';
+          return;
+        }
+        el.innerHTML = '<div class="album-grid">' + ext.album.map(function(u, i){
+          return '<figure><img src="' + u + '" alt="Ảnh nhà cây của bé"><figcaption>' + (i === 0 ? 'Mới nhất · đang treo trên vách nhà' : 'Ảnh ' + (i+1)) + '</figcaption></figure>';
+        }).join('') + '</div>';
+      }
+      document.getElementById('btnAlbum').addEventListener('click', function(){
+        AudioSys.ensure(); AudioSys.click();
+        renderAlbum();
+        document.getElementById('albumOverlay').classList.add('open');
+      });
+      /* ================= GÓI 4: BẠN HÀNG XÓM ================= */
+      var friend = null;
+      function buildFriend(){
+        var g = new THREE.Group();
+        var SHIRT = 0x079bd8, PANTS = 0x5b7263, SKIN2 = 0xffcf9e, CAP = 0xe8301c;
+        var f = {};
+        f.legL = limb(0.06, 0.44, PANTS, -0.105, 0.52, 0, g);
+        f.legR = limb(0.06, 0.44, PANTS, 0.105, 0.52, 0, g);
+        box(0.13, 0.08, 0.22, 0x2b2b3a, 0, -0.47, 0.04, f.legL);
+        box(0.13, 0.08, 0.22, 0x2b2b3a, 0, -0.47, 0.04, f.legR);
+        cyl(0.17, 0.2, 0.55, SHIRT, 0, 0.82, 0, g, 10);
+        f.armL = limb(0.052, 0.38, SKIN2, -0.26, 1.06, 0, g, SHIRT);
+        f.armR = limb(0.052, 0.38, SKIN2, 0.26, 1.06, 0, g, SHIRT);
+        ball(0.1, SHIRT, 0, 0, 0, f.armL); ball(0.1, SHIRT, 0, 0, 0, f.armR);
+        f.armL.rotation.z = -0.3; f.armR.rotation.z = 0.3;
+        var head = new THREE.Group(); head.position.set(0, 1.3, 0); g.add(head); f.head = head;
+        ball(0.30, SKIN2, 0, 0, 0.02, head);
+        var hairTop = ball(0.305, 0x4c2c14, 0, 0.06, -0.03, head); hairTop.scale.y = 0.72;
+        cyl(0.22, 0.23, 0.07, CAP, 0, 0.19, 0, head, 12);
+        box(0.3, 0.04, 0.18, CAP, 0, 0.17, 0.27, head);
+        ball(0.035, 0x3a2a22, -0.1, 0.02, 0.28, head); ball(0.035, 0x3a2a22, 0.1, 0.02, 0.28, head);
+        var bl = ball(0.05, 0xffa4b8, -0.18, -0.06, 0.24, head); bl.scale.z = 0.35;
+        var br = ball(0.05, 0xffa4b8, 0.18, -0.06, 0.24, head); br.scale.z = 0.35;
+        g.scale.setScalar(0.92);
+        return { g:g, f:f };
+      }
+      function spawnFriend(){
+        if (friend) return;
+        var b = buildFriend();
+        b.g.position.set(9.6, 0, 7.6);
+        b.g.rotation.y = Math.atan2(2.4 - 9.6, 3.4 - 7.6);
+        worldGroup.add(b.g);
+        friend = { g:b.g, f:b.f, state:'enter', target:{ x:2.4, z:3.4 }, phase:0, waveT:2, bounceT:0, invited:false, leaveAt:Date.now() + 180000, px:null };
+        ext.friendToday = true;
+        var px = makeProxy(0, 0.8, 0, 0.85, b.g);
+        px.userData.available = function(){ return !!friend; };
+        px.userData.onTap = function(){ openFriendPanel(); };
+        friend.px = px;
+        toast('Bạn hàng xóm tới chơi!');
+        setHint('A, bạn hàng xóm ghé chơi kìa! Chạm vào bạn để hai bé chơi chung nhé.');
+      }
+      function removeFriend(){
+        if (!friend) return;
+        worldGroup.remove(friend.g);
+        var pi = playTargets.indexOf(friend.px); if (pi >= 0) playTargets.splice(pi, 1);
+        friend = null;
+        document.getElementById('friendOverlay').classList.remove('open');
+      }
+      function friendLeave(){ if (friend && friend.state !== 'leave'){ friend.state = 'leave'; friend.target = { x:9.6, z:7.6 }; } }
+      var notesFx = [];
+      function spawnNotes(pos){
+        for (var i=0;i<3;i++){
+          var g = new THREE.Group();
+          var nm = new THREE.MeshBasicMaterial({ color:0xa06bff });
+          var dot = new THREE.Mesh(new THREE.SphereGeometry(0.05, 7, 6), nm); dot.position.set(-0.04, 0, 0); dot.scale.set(1, 0.8, 1);
+          var stem = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.17, 0.025), nm); stem.position.set(0.03, 0.08, 0);
+          g.add(dot); g.add(stem);
+          g.position.set(pos.x + (i-1)*0.32, pos.y + 1.55 + i*0.22, pos.z + (i%2 ? 0.12 : -0.1));
+          worldGroup.add(g);
+          notesFx.push({ g:g, t:0 });
+        }
+      }
+      function openFriendPanel(){
+        if (!friend) return;
+        var body = document.getElementById('friendBody');
+        body.innerHTML = '<p class="sub">Bạn hàng xóm đang ở trong vườn. Hai bé chơi chung cho vui, hoặc mời bạn một món trong Balo: bạn ăn xong sẽ tặng lại quà cảm ơn!</p>' +
+          '<div class="shop-row"><div class="s-tx"><b>Chơi cùng nhau</b><small>Ra chỗ xích đu, cầu trượt hoặc nhảy múa cùng nhau</small></div><button class="buy-btn" id="friendPlayBtn">Chơi</button></div>' +
+          '<h3>Mời bạn ăn</h3><div id="friendFoods"></div>';
+        document.getElementById('friendOverlay').classList.add('open');
+        document.getElementById('friendPlayBtn').addEventListener('click', function(){
+          document.getElementById('friendOverlay').classList.remove('open');
+          playWithFriend();
+        });
+        renderFriendFoods();
+      }
+      function renderFriendFoods(){
+        var el = document.getElementById('friendFoods'); if (!el) return;
+        var rows = FOODS.filter(function(f){ return backpack[f.id] > 0; });
+        el.innerHTML = rows.length ? rows.map(function(f){
+          return '<div class="shop-row"><div class="s-ic">' + f.icon + '</div><div class="s-tx"><b>' + f.name + ' × ' + backpack[f.id] + '</b><small>' + f.desc + '</small></div>' +
+            '<button class="buy-btn" data-gift="' + f.id + '"' + (friend && friend.invited ? ' disabled' : '') + '>Mời bạn</button></div>';
+        }).join('') : '<div class="empty-note">Balo đang trống, chưa có gì mời bạn. Hái táo trên cây hoặc ghé Cửa hàng mua đồ ăn nhé!</div>';
+        el.querySelectorAll('[data-gift]').forEach(function(btn){
+          btn.addEventListener('click', function(){
+            var f = foodById(btn.dataset.gift);
+            if (!f || backpack[f.id] <= 0 || !friend || friend.invited) return;
+            backpack[f.id]--;
+            friend.invited = true; friend.bounceT = 2.2;
+            spawnHearts(friend.g.position.clone());
+            AudioSys.eatSnd(); updateHUD();
+            document.getElementById('friendOverlay').classList.remove('open');
+            setTimeout(giveFriendGift, 900);
+            try{ saveGameNow(); }catch(e){}
+          });
+        });
+      }
+      function giveFriendGift(){
+        var r = Math.random();
+        if (r < 0.4){
+          var ids = Object.keys(CROPS); var sid = ids[Math.floor(Math.random()*ids.length)];
+          ext.seedInv[sid]++;
+          toast('Bạn tặng lại 1 hạt ' + CROPS[sid].name + ' cảm ơn bé!');
+          setHint('Bạn tặng hạt ' + CROPS[sid].name + '! Chạm ô đất trống trong vườn rau để gieo miễn phí nhé.');
+        } else if (r < 0.75){
+          var amt = 5 + Math.floor(Math.random()*6);
+          coins += amt; flyCoins(); AudioSys.coin();
+          toast('Bạn tặng lại ' + amt + ' xu cảm ơn bé!');
+          updateHUD();
+        } else {
+          var fg = new THREE.Group();
+          fg.position.set(0.4 + Math.random()*0.8, 0, 4.6 + Math.random()*1.4);
+          worldGroup.add(fg);
+          cyl(0.025, 0.025, 0.4, 0x05762a, 0, 0.2, 0, fg, 5);
+          ball(0.13, 0xff2e7e, 0, 0.48, 0, fg); ball(0.06, 0xfff3b0, 0, 0.52, 0, fg);
+          toast('Bạn tặng bé một bông hoa trang trí trồng bên lối đi!');
+        }
+        try{ saveGameNow(); }catch(e){}
+      }
+      function playWithFriend(){
+        if (!friend) return;
+        ext.stats.friendPlayed = true;
+        var swing = slotById('xichdu1'), slide = slotById('cautruot1');
+        if (swing && swing.occupiedBy){ friend.target = { x:3.1, z:2.55 }; friend.state = 'goto'; }
+        else if (slide && slide.occupiedBy){ friend.target = { x:4.5, z:4.5 }; friend.state = 'goto'; }
+        else { friend.target = { x:girlG.position.x + 1.15, z:girlG.position.z + 0.4 }; friend.state = 'goto'; }
+        startJob(function(){ return { x:friend.g.position.x, z:friend.g.position.z }; }, function(){
+          celebrate(); gainFun(10);
+          if (friend){ friend.bounceT = 2.6; spawnNotes(friend.g.position.clone()); }
+          spawnNotes(girlG.position.clone());
+          AudioSys.chime(); updateHUD();
+          setHint('Hai bé chơi chung vui quá! Thanh Vui tăng thêm rồi.');
+        }, 'choi');
+      }
+      function updateFriend(dt, t){
+        if (!friend) return;
+        var f = friend, g = f.g, pos = g.position;
+        if (f.bounceT > 0){
+          f.bounceT -= dt;
+          pos.y = Math.abs(Math.sin((2.6 - Math.max(0, f.bounceT)) * 9)) * 0.14 * Math.min(1, Math.max(0, f.bounceT));
+          if (f.bounceT <= 0) pos.y = 0;
+        }
+        var movingF = false;
+        if (f.target){
+          var dx = f.target.x - pos.x, dz = f.target.z - pos.z, dist = Math.hypot(dx, dz);
+          if (dist < 0.25){
+            if (f.state === 'leave'){ removeFriend(); return; }
+            f.state = 'idle'; f.target = null;
+          } else {
+            var want = Math.atan2(dx, dz);
+            var diff = want - g.rotation.y;
+            while (diff > Math.PI) diff -= Math.PI*2;
+            while (diff < -Math.PI) diff += Math.PI*2;
+            g.rotation.y += diff * Math.min(1, dt*8);
+            var step = Math.min(dist, 1.7*dt);
+            pos.x += Math.sin(g.rotation.y)*step; pos.z += Math.cos(g.rotation.y)*step;
+            f.phase += dt*10; movingF = true;
+          }
+        }
+        var swf = movingF ? Math.sin(f.phase)*0.55 : 0;
+        f.f.legL.rotation.x = swf; f.f.legR.rotation.x = -swf;
+        if (!movingF){
+          f.f.armL.rotation.x = Math.sin(t*2)*0.08;
+          f.waveT -= dt;
+          if (f.waveT < -1.1) f.waveT = 3.6;
+          if (f.waveT < 0){ f.f.armR.rotation.z = 2.3 + Math.sin(t*10)*0.35; f.f.armR.rotation.x = -0.4; }
+          else { f.f.armR.rotation.z = 0.3; f.f.armR.rotation.x = Math.sin(t*2 + 1)*0.08; }
+        } else {
+          f.f.armL.rotation.x = -swf*0.7; f.f.armR.rotation.x = swf*0.7; f.f.armR.rotation.z = 0.3;
+        }
+        if (Date.now() > f.leaveAt && f.state !== 'leave'){
+          friendLeave();
+          setHint('Bạn hàng xóm về nhà rồi. Mai bạn lại ghé chơi nhé!');
+        }
+      }
+
+      /* ---- Ngày hội vườn: ngày chia hết cho 7 ---- */
+      var festivalG = null;
+      (function buildFestivalFlags(){
+        festivalG = new THREE.Group(); worldGroup.add(festivalG);
+        [[2.8, 7.2, 0.9, 4.4, 1.4, -8.3], [-2.8, 7.4, 0.7, -4.2, 1.4, -8.3]].forEach(function(L){
+          var a = new THREE.Vector3(L[0], L[1], L[2]), b = new THREE.Vector3(L[3], L[4], L[5]);
+          var m1 = a.clone().lerp(b, 0.33); m1.y -= 0.7;
+          var m2 = a.clone().lerp(b, 0.66); m2.y -= 0.7;
+          var curve = new THREE.CatmullRomCurve3([a, m1, m2, b]);
+          festivalG.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 20, 0.022, 5), mat(0x5b7263)));
+          var cols = [0xe8301c, 0xffc21f, 0x05762a, 0x079bd8, 0xf73d96, 0xa06bff];
+          for (var i=1;i<=7;i++){
+            var p = curve.getPoint(i/8);
+            var shape = new THREE.Shape();
+            shape.moveTo(-0.16, 0); shape.lineTo(0.16, 0); shape.lineTo(0, -0.32); shape.closePath();
+            var fl = new THREE.Mesh(new THREE.ShapeGeometry(shape), mat(cols[i%6], { side:THREE.DoubleSide }));
+            fl.position.copy(p); fl.rotation.y = Math.atan2(b.x - a.x, b.z - a.z);
+            festivalG.add(fl);
+          }
+        });
+        festivalG.visible = false;
+      })();
+      function isFestival(){ return dayNum % 7 === 0; }
+      function refreshFestival(){ if (festivalG) festivalG.visible = isFestival(); }
+      var confetti = [];
+      function spawnConfetti(){
+        var cols = [0xe8301c, 0xffc21f, 0x05762a, 0x079bd8, 0xf73d96, 0xa06bff];
+        for (var i=0;i<50;i++){
+          var m = new THREE.Mesh(new THREE.PlaneGeometry(0.13, 0.09), new THREE.MeshBasicMaterial({ color:cols[i%6], side:THREE.DoubleSide, transparent:true }));
+          m.position.set((Math.random()-0.5)*11, 6 + Math.random()*4, (Math.random()-0.5)*11);
+          m.rotation.set(Math.random()*3, Math.random()*3, Math.random()*3);
+          worldGroup.add(m);
+          confetti.push({ m:m, vy:0.9 + Math.random()*0.7, t:0 });
+        }
+      }
+
+      /* ---- Nhật ký cuối ngày & vòng ngủ được bọc lại ---- */
+      function diaryLines(){
+        var s = ext.stats;
+        var doneCount = missions.filter(function(m){ return m.done; }).length;
+        var lines = [];
+        lines.push('Hôm nay là Ngày ' + dayNum + '. Bé Bánh Mì đã hoàn thành ' + doneCount + '/3 nhiệm vụ của ngày hôm nay.');
+        if (s.coinsEarned > 0) lines.push('Bé kiếm được ' + s.coinsEarned + ' xu, để dành mua đồ đẹp trong Cửa hàng.');
+        if (s.purchases.length) lines.push('Bé đã mua: ' + s.purchases.join(', ') + '.');
+        if (s.harvests > 0) lines.push('Bé thu hoạch được ' + s.harvests + ' món rau quả trong vườn rau.');
+        if (s.eggs > 0) lines.push('Bé nhặt được ' + s.eggs + ' quả trứng gà thơm ngon.');
+        if (s.fireflies > 0) lines.push('Ban đêm bé bắt được ' + s.fireflies + ' con đom đóm bỏ vào lọ phát sáng.');
+        if (s.petsPetted > 0) lines.push('Bé vuốt ve thú cưng ' + s.petsPetted + ' lần, bé thú nào cũng vui.');
+        if (ext.friendToday) lines.push('Bạn hàng xóm có ghé qua chơi cùng bé nữa.');
+        if (lines.length < 2) lines.push('Một ngày êm đềm trong khu vườn. Bé ngủ ngon để mai lại chơi tiếp nhé.');
+        return lines.slice(0, 5);
+      }
+      var diaryPending = false;
+      function showDiary(){
+        document.getElementById('diaryTitle').textContent = 'Nhật ký ngày ' + dayNum;
+        document.getElementById('diaryLines').innerHTML = diaryLines().map(function(tx){
+          return '<div class="diary-line"><span class="d-ic" style="color:var(--green)">●</span><span>' + tx + '</span></div>';
+        }).join('');
+        document.getElementById('diaryOverlay').classList.add('open');
+      }
+      document.getElementById('btnDiarySleep').addEventListener('click', function(){
+        document.getElementById('diaryOverlay').classList.remove('open');
+        goSleep();
+      });
+      document.getElementById('btnDiaryCancel').addEventListener('click', function(){
+        diaryPending = false;
+        document.getElementById('diaryOverlay').classList.remove('open');
+        AudioSys.ensure(); AudioSys.click();
+      });
+      var __goSleep0 = goSleep;
+      goSleep = function(){
+        if (gState.sleeping) return;
+        if (!diaryPending){ diaryPending = true; showDiary(); AudioSys.ensure(); AudioSys.click(); return; }
+        diaryPending = false;
+        growCropsOvernight();
+        if (isFestival()) spawnConfetti();
+        if (friend) friendLeave();
+        __goSleep0();
+        setTimeout(onNewDay, 1300);
+      };
+      function onNewDay(){
+        dayStartAt = Date.now();
+        ext.stats = freshStats();
+        ext.friendToday = false;
+        refreshFestival();
+        if (isFestival()){
+          missions.forEach(function(m){ m.reward = m.reward * 2; });
+          renderMissions();
+          toast('Hôm nay là Ngày hội vườn! Nhiệm vụ thưởng gấp đôi xu, có cờ hội và pháo giấy!');
+        }
+        fireflies.forEach(function(f){ f.caught = false; });
+        updateJar();
+        spawnEgg();
+        scheduleDigs();
+        if (friend) removeFriend();
+        if (Math.random() < 0.5 || ext.daysSinceFriend >= 2){
+          ext.daysSinceFriend = 0;
+          setTimeout(function(){ if (!friend) spawnFriend(); }, 2500);
+        } else ext.daysSinceFriend++;
+        try{ saveGameNow(); }catch(e){}
+      }
+
+      /* ---- Bọc nhiệm vụ: giao nhiệm vụ rau chỉ khi đang có cây trồng ---- */
+      var __roll0 = rollMissions;
+      rollMissions = function(){
+        __roll0();
+        var anyCrop = plots.some(function(p){ return !!p.crop; });
+        if (!anyCrop){
+          for (var i=0;i<missions.length;i++){
+            if (missions[i].id === 'tuoirau' || missions[i].id === 'thuhoach'){
+              var used = {}; missions.forEach(function(m){ used[m.id] = true; });
+              var cand = MISSION_POOL.filter(function(m){ return !used[m.id] && m.id !== 'tuoirau' && m.id !== 'thuhoach'; });
+              if (cand.length){
+                var c = cand[Math.floor(Math.random()*cand.length)];
+                missions[i] = { id:c.id, name:c.name, icon:c.icon, goal:c.goal, reward:c.reward, prog:0, done:false };
+              }
+            }
+          }
+          renderMissions();
+        }
+        refreshInteractMarkers();
+      };
+      var __addProgress0 = addProgress;
+      addProgress = function(id){
+        var before = missions.filter(function(m){ return m.done; }).length;
+        __addProgress0(id);
+        var after = missions.filter(function(m){ return m.done; }).length;
+        if (after > before) ext.stats.missionsDone += (after - before);
+      };
+
+      /* ---- Bọc Cửa hàng & Balo: tủ đồ, sơn nhà, thú của bé, bán nông sản ---- */
+      var __renderShop0 = renderShop;
+      renderShop = function(){
+        __renderShop0();
+        document.querySelectorAll('#shopFoods [data-food]').forEach(function(btn){
+          var f = foodById(btn.dataset.food);
+          if (f && f.noShop){ var row = btn.closest('.shop-row'); if (row) row.remove(); }
+        });
+        renderShopMore();
+      };
+      var __renderBalo0 = renderBalo;
+      renderBalo = function(){
+        __renderBalo0();
+        document.querySelectorAll('#baloList [data-eat]').forEach(function(btn){
+          var f = foodById(btn.dataset.eat);
+          if (!f || !f.sell) return;
+          var b = document.createElement('button');
+          b.className = 'buy-btn sell'; b.textContent = 'Bán ' + f.sell + ' xu';
+          b.addEventListener('click', function(){
+            if (backpack[f.id] <= 0) return;
+            backpack[f.id]--; coins += f.sell;
+            AudioSys.coin(); updateHUD(); renderBalo();
+            try{ saveGameNow(); }catch(e){}
+            toast('Đã bán 1 ' + f.name + ', được ' + f.sell + ' xu!');
+          });
+          btn.parentNode.appendChild(b);
+        });
+      };
+      function teleIconSvg(){ return '<svg viewBox="0 0 48 48"><path d="M14 34 L24 14 L34 34" stroke="#63300f" stroke-width="3.4" fill="none" stroke-linecap="round"/><rect x="17" y="8" width="15" height="8" rx="4" transform="rotate(-24 24 12)" fill="#7ec8e3"/><circle cx="34" cy="8" r="2.2" fill="#ffd93b"/><path d="M40 16 l1.4 2.8 L44 20 l-2.6 1.2 L40 24 l-1.4 -2.8 L36 20 l2.6 -1.2 Z" fill="#ffd93b"/></svg>'; }
+      function paintRow(kind, val, name, desc, price, icon){
+        var cur = kind === 'wall' ? ext.paint.wall : ext.paint.roof;
+        var ownedIt = !!ext.paintOwned[val];
+        var btn;
+        if (cur === val) btn = '<button class="buy-btn owned" disabled>Đang dùng</button>';
+        else if (ownedIt) btn = '<button class="buy-btn wear" data-paint="' + kind + ':' + val + '">Sơn lại</button>';
+        else btn = '<button class="buy-btn" data-paint="' + kind + ':' + val + '"' + (coins < price ? ' disabled' : '') + '>' + price + ' xu</button>';
+        return '<div class="shop-row"><div class="s-ic">' + icon + '</div><div class="s-tx"><b>' + name + '</b><small>' + desc + '</small></div>' + btn + '</div>';
+      }
+      function renderShopMore(){
+        var my = document.getElementById('shopMyPets');
+        var owned = PETS.filter(function(p){ return ownedPets[p.id]; });
+        my.innerHTML = owned.length ? owned.map(function(p){
+          var d = pd(p.id), hearts = '';
+          for (var i=0;i<5;i++) hearts += i < Math.min(5, d.hearts) ? '♥' : '♡';
+          return '<div class="shop-row"><div class="s-ic">' + p.icon + '</div><div class="s-tx"><b>' + d.name + '</b><small>' + p.name + ' · <span class="heart-txt">' + hearts + '</span>' + (d.follow ? ' · Đang đi theo bé' : ' · Vuốt ' + Math.max(0, 5 - d.hearts) + ' lần nữa là thân thiết') + '</small></div><button class="buy-btn wear" data-rename="' + p.id + '">Đổi tên</button></div>';
+        }).join('') : '<div class="empty-note">Chưa có bé thú nào. Mua một bé ở mục Thú cưng phía trên nhé!</div>';
+        my.querySelectorAll('[data-rename]').forEach(function(btn){
+          btn.addEventListener('click', function(){ openPetName(btn.dataset.rename); });
+        });
+        var w = document.getElementById('shopWardrobe');
+        var rows = ['<div class="shop-row"><div class="s-ic">' + dressIcon(0xf73d96) + '</div><div class="s-tx"><b>Váy hồng</b><small>Váy mặc định của bé, mặc lại miễn phí</small></div>' +
+          (ext.outfit.dress === 'vayhong' ? '<button class="buy-btn owned" disabled>Đang mặc</button>' : '<button class="buy-btn wear" data-wear-dress="vayhong">Mặc</button>') + '</div>'];
+        WARDROBE.forEach(function(it){
+          var ownedIt = !!ext.wardrobeOwned[it.id];
+          var wearing = (it.type === 'dress' && ext.outfit.dress === it.id) || (it.type === 'bow' && ext.outfit.bow === 'do') ||
+                        (it.type === 'head' && ext.outfit.head === it.id) || (it.type === 'glass' && ext.outfit.glass);
+          var btn;
+          if (!ownedIt) btn = '<button class="buy-btn" data-buy-ward="' + it.id + '"' + (coins < it.price ? ' disabled' : '') + '>' + it.price + ' xu</button>';
+          else if (wearing && (it.type === 'head' || it.type === 'glass')) btn = '<button class="buy-btn wear" data-wear="' + it.id + '">Cởi ra</button>';
+          else if (wearing) btn = '<button class="buy-btn owned" disabled>Đang mặc</button>';
+          else btn = '<button class="buy-btn wear" data-wear="' + it.id + '">Mặc</button>';
+          rows.push('<div class="shop-row"><div class="s-ic">' + it.icon + '</div><div class="s-tx"><b>' + it.name + '</b><small>' + (ownedIt ? 'Đã có trong tủ đồ' : 'Mua một lần, mặc mãi mãi') + '</small></div>' + btn + '</div>');
+        });
+        w.innerHTML = rows.join('');
+        w.querySelectorAll('[data-buy-ward]').forEach(function(btn){
+          btn.addEventListener('click', function(){
+            var it = wardrobeById(btn.dataset.buyWard);
+            if (!it || coins < it.price || ext.wardrobeOwned[it.id]) return;
+            coins -= it.price; ext.wardrobeOwned[it.id] = true;
+            wearItem(it.id);
+            updateHUD(); renderShop();
+            toast('Đã mua ' + it.name + ' và mặc cho bé rồi!');
+          });
+        });
+        w.querySelectorAll('[data-wear]').forEach(function(btn){
+          btn.addEventListener('click', function(){ wearItem(btn.dataset.wear); renderShop(); });
+        });
+        w.querySelectorAll('[data-wear-dress]').forEach(function(btn){
+          btn.addEventListener('click', function(){
+            ext.outfit.dress = 'vayhong'; applyOutfit();
+            AudioSys.ensure(); AudioSys.chime();
+            try{ saveGameNow(); }catch(e){}
+            renderShop();
+          });
+        });
+        var pn = document.getElementById('shopPaint');
+        var wallIcon = '<svg viewBox="0 0 48 48"><rect x="8" y="12" width="32" height="26" rx="3" fill="#f3e3c3" stroke="#d9c493" stroke-width="2"/><path d="M4 14 L24 4 L44 14 Z" fill="#e8301c"/></svg>';
+        var roofBlueIcon = '<svg viewBox="0 0 48 48"><rect x="12" y="20" width="24" height="20" fill="#d07a12"/><path d="M4 22 L24 6 L44 22 Z" fill="#079bd8"/></svg>';
+        var roofPurpleIcon = '<svg viewBox="0 0 48 48"><rect x="12" y="20" width="24" height="20" fill="#d07a12"/><path d="M4 22 L24 6 L44 22 Z" fill="#9b5cf6"/></svg>';
+        var teleBtn = ext.telescope
+          ? '<button class="buy-btn owned" disabled>Đã dựng</button>'
+          : '<button class="buy-btn" data-tele="1"' + (coins < 100 ? ' disabled' : '') + '>100 xu</button>';
+        pn.innerHTML =
+          paintRow('wall', 'kem', 'Tường kem', 'Sơn tường nhà cây thành màu kem ấm', 12, wallIcon) +
+          paintRow('roof', 'xanh', 'Mái xanh', 'Đổi màu mái nhà thành xanh biển', 15, roofBlueIcon) +
+          paintRow('roof', 'tim', 'Mái tím', 'Đổi màu mái nhà thành tím mơ màng', 15, roofPurpleIcon) +
+          '<div class="shop-row"><div class="s-ic">' + teleIconSvg() + '</div><div class="s-tx"><b>Tầng ngắm sao</b><small>' + (ext.telescope ? 'Kính thiên văn đã đặt trên sàn. Ban đêm thỉnh thoảng có sao băng, chạm kịp được 3 xu!' : 'Đặt kính thiên văn trên sàn nhà cây để ngắm sao băng ban đêm') + '</small></div>' + teleBtn + '</div>';
+        pn.querySelectorAll('[data-paint]').forEach(function(btn){
+          btn.addEventListener('click', function(){
+            var parts = btn.dataset.paint.split(':');
+            var kind = parts[0], val = parts[1];
+            var prices = { kem:12, xanh:15, tim:15 };
+            if (!ext.paintOwned[val]){
+              if (coins < prices[val]) return;
+              coins -= prices[val]; ext.paintOwned[val] = true;
+            }
+            if (kind === 'wall') ext.paint.wall = val; else ext.paint.roof = val;
+            applyPaint();
+            AudioSys.ensure(); AudioSys.chime();
+            updateHUD(); renderShop();
+            try{ saveGameNow(); }catch(e){}
+            toast('Đã sơn xong, nhà cây trông mới hẳn!');
+          });
+        });
+        var teleBtnEl = pn.querySelector('[data-tele]');
+        if (teleBtnEl) teleBtnEl.addEventListener('click', function(){
+          if (coins < 100 || ext.telescope) return;
+          coins -= 100; ext.telescope = true;
+          if (telescopeG){ telescopeG.visible = true; burst(telescopeG.position.clone().setY(DECK_TOP + 1)); }
+          nextShootAt = Date.now() + 6000;
+          AudioSys.chime(); updateHUD(); renderShop();
+          try{ saveGameNow(); }catch(e){}
+          toast('Đã dựng kính thiên văn trên sàn nhà cây!');
+          setHint('Tối nay đổi sang buổi Đêm, thỉnh thoảng có sao băng bay qua: chạm kịp vào sao băng được 3 xu nhé!');
+        });
+      }
+
+      /* ---- Thống kê ngày: đếm xu kiếm được & món đã mua bằng cách so sánh ---- */
+      var lastCoinsSeen = coins, lastOwnedSig = null;
+      function ownedNamesNow(){
+        var parts = [];
+        Object.keys(unlockedItems).forEach(function(k){ if (unlockedItems[k] && itemById(k)) parts.push('món ' + itemById(k).name); });
+        Object.keys(ownedPets).forEach(function(k){ if (ownedPets[k] && petById(k)) parts.push(petById(k).name); });
+        Object.keys(ext.wardrobeOwned).forEach(function(k){ if (ext.wardrobeOwned[k] && k !== 'vayhong' && wardrobeById(k)) parts.push(wardrobeById(k).name); });
+        if (ext.telescope) parts.push('Tầng ngắm sao');
+        return parts;
+      }
+      setInterval(function(){
+        if (coins > lastCoinsSeen) ext.stats.coinsEarned += (coins - lastCoinsSeen);
+        lastCoinsSeen = coins;
+        var sig = ownedNamesNow();
+        if (lastOwnedSig === null) lastOwnedSig = sig;
+        else {
+          sig.forEach(function(n){ if (lastOwnedSig.indexOf(n) < 0 && ext.stats.purchases.indexOf(n) < 0) ext.stats.purchases.push(n); });
+          lastOwnedSig = sig;
+        }
+        if (digTimers.length && Date.now() >= digTimers[0]){ digTimers.shift(); spawnDigSpot(); }
+      }, 800);
+
+      /* Mèo vàng thỉnh thoảng tự vồ trúng bướm */
+      setInterval(function(){
+        if (!ownedPets.meo || gameMode !== 'play' || gState.sleeping) return;
+        if (Math.random() < 0.45) return;
+        var cat = petByKind('meo'); if (!cat) return;
+        cat.__noCountAt = Date.now();
+        cat.happyT = Math.max(cat.happyT, 0.7);
+        if (missionActive('buom')){
+          addProgress('buom');
+          spawnHearts(cat.g.position.clone());
+          toast('Mèo vàng vừa vồ trúng một con bướm giúp bé!');
+        }
+      }, 55000);
+
+      /* ---- Móc vào hệ thống tự lưu ---- */
+      window.__saveExtra = function(){
+        return {
+          plots: plots.map(function(p){ return { c:p.crop, s:p.stage, w:p.watered ? 1 : 0 }; }),
+          jar: ext.jar,
+          seedInv: { carot:ext.seedInv.carot, dau:ext.seedInv.dau, bingu:ext.seedInv.bingu },
+          petData: ext.petData,
+          wardrobeOwned: ext.wardrobeOwned,
+          outfit: ext.outfit,
+          paint: ext.paint,
+          paintOwned: ext.paintOwned,
+          telescope: ext.telescope,
+          album: ext.album,
+          stats: ext.stats,
+          daysSinceFriend: ext.daysSinceFriend,
+          friendToday: ext.friendToday
+        };
+      };
+      window.__applySaveExtra = function(x){
+        if (!x || typeof x !== 'object') return;
+        if (Array.isArray(x.plots)) x.plots.forEach(function(sp, i){
+          var p = plots[i]; if (!p || !sp) return;
+          if (sp.c && CROPS[sp.c]){
+            p.crop = sp.c;
+            p.stage = Math.max(0, Math.min(CROPS[sp.c].days, sp.s|0));
+            p.watered = !!sp.w;
+          }
+          refreshPlot(p);
+        });
+        if (typeof x.jar === 'number') ext.jar = Math.max(0, x.jar|0);
+        if (x.seedInv) ['carot','dau','bingu'].forEach(function(k){ if (typeof x.seedInv[k] === 'number') ext.seedInv[k] = Math.max(0, x.seedInv[k]|0); });
+        if (x.petData && typeof x.petData === 'object') ext.petData = x.petData;
+        if (x.wardrobeOwned && typeof x.wardrobeOwned === 'object') ext.wardrobeOwned = x.wardrobeOwned;
+        if (x.outfit && typeof x.outfit === 'object'){
+          if (x.outfit.dress && DRESS_COLORS[x.outfit.dress]) ext.outfit.dress = x.outfit.dress;
+          ext.outfit.bow = x.outfit.bow === 'do' ? 'do' : 'hong';
+          ext.outfit.head = (x.outfit.head === 'nonrom' || x.outfit.head === 'mulen') ? x.outfit.head : null;
+          ext.outfit.glass = !!x.outfit.glass;
+        }
+        if (x.paint && typeof x.paint === 'object'){
+          ext.paint.wall = x.paint.wall === 'kem' ? 'kem' : 'go';
+          ext.paint.roof = ['do','xanh','tim'].indexOf(x.paint.roof) >= 0 ? x.paint.roof : 'do';
+        }
+        if (x.paintOwned && typeof x.paintOwned === 'object') ext.paintOwned = x.paintOwned;
+        ext.telescope = !!x.telescope;
+        if (telescopeG) telescopeG.visible = ext.telescope;
+        if (Array.isArray(x.album)) ext.album = x.album.filter(function(u){ return typeof u === 'string' && u.indexOf('data:image') === 0; }).slice(0, 4);
+        if (x.stats && typeof x.stats === 'object'){
+          var fs = freshStats();
+          for (var sk in fs){ if (typeof x.stats[sk] === typeof fs[sk]) fs[sk] = x.stats[sk]; }
+          if (!Array.isArray(fs.purchases)) fs.purchases = [];
+          ext.stats = fs;
+        }
+        if (typeof x.daysSinceFriend === 'number') ext.daysSinceFriend = Math.max(0, x.daysSinceFriend|0);
+        ext.friendToday = !!x.friendToday;
+        applyOutfit(); applyPaint(); updateJar(); refreshPhotoFrame(); refreshFestival();
+        lastCoinsSeen = coins;
+      };
+
+      /* ---- Vòng lặp riêng của phần mở rộng ---- */
+      var extClock = new THREE.Clock();
+      var prevMode = modeIdx;
+      function extTick(){
+        requestAnimationFrame(extTick);
+        var dt = Math.min(extClock.getDelta(), 0.05);
+        var t = extClock.elapsedTime;
+        var now = Date.now();
+        if (modeIdx !== prevMode){
+          prevMode = modeIdx;
+          if (modeIdx === 2) fireflies.forEach(function(f){ f.caught = false; });
+          updateJar();
+        }
+        var night = modeIdx === 2;
+        fireflies.forEach(function(f){
+          f.g.visible = night && !f.caught;
+          if (f.g.visible){
+            f.g.position.set(
+              f.cx + Math.sin(t*0.45 + f.seed)*1.5,
+              1.15 + Math.sin(t*0.9 + f.seed*2.1)*0.5,
+              f.cz + Math.cos(t*0.38 + f.seed)*1.5);
+            f.g.scale.setScalar(1 + Math.sin(t*5 + f.seed*3)*0.25);
+          }
+        });
+        for (var i=droplets.length-1;i>=0;i--){
+          var dr = droplets[i]; dr.life += dt;
+          dr.m.position.y -= dt*2.6;
+          dr.m.material.opacity = Math.max(0, 0.95 - dr.life);
+          if (dr.life > 0.75){ worldGroup.remove(dr.m); droplets.splice(i, 1); }
+        }
+        if (night && ext.telescope && !shoot){
+          if (nextShootAt === 0) nextShootAt = now + 8000;
+          else if (now > nextShootAt) spawnShootingStar();
+        }
+        if (shoot){
+          shoot.life += dt;
+          shoot.g.position.x += shoot.vx*dt;
+          shoot.g.position.y += shoot.vy*dt;
+          if (shoot.life > 4.2 || shoot.g.position.x > 20) endShootingStar();
+        }
+        for (var ci=confetti.length-1; ci>=0; ci--){
+          var cf = confetti[ci]; cf.t += dt;
+          cf.m.position.y -= cf.vy*dt;
+          cf.m.position.x += Math.sin(t*3 + ci)*dt*0.4;
+          cf.m.rotation.x += dt*4; cf.m.rotation.z += dt*3;
+          if (cf.m.position.y < 0.05 || cf.t > 7){ worldGroup.remove(cf.m); confetti.splice(ci, 1); }
+        }
+        for (var ni=notesFx.length-1; ni>=0; ni--){
+          var nf = notesFx[ni]; nf.t += dt;
+          nf.g.position.y += dt*0.6; nf.g.rotation.y += dt*2;
+          if (nf.t > 1.6){ worldGroup.remove(nf.g); notesFx.splice(ni, 1); }
+        }
+        if (digSpot) digSpot.star.position.y = 0.42 + Math.sin(t*4)*0.07;
+        updateFriend(dt, t);
+        if (labelPet){
+          if (now > labelUntil){ nameLabelEl.style.display = 'none'; labelPet = null; }
+          else {
+            var wp = labelPet.g.position.clone(); wp.y += 1.05;
+            wp.project(camera);
+            if (wp.z < 1){
+              nameLabelEl.style.left = ((wp.x*0.5 + 0.5)*window.innerWidth) + 'px';
+              nameLabelEl.style.top = ((-wp.y*0.5 + 0.5)*window.innerHeight) + 'px';
+              nameLabelEl.style.display = 'block';
+            } else nameLabelEl.style.display = 'none';
+          }
+        }
+        if (jarLight && ext.jar > 0)
+          jarLight.intensity = Math.min(5, ext.jar) * (modeIdx === 2 ? 0.5 : 0.18) * (0.9 + 0.15*Math.sin(t*3.7));
+      }
+
+      /* ---- Khởi tạo phần mở rộng ---- */
+      applyOutfit();
+      applyPaint();
+      updateJar();
+      refreshFestival();
+      scheduleDigs();
+      extTick();
+
+      /* ---- Hook kiểm chứng cho probe ---- */
+      (function attachProbe(){
+        var tries = 0;
+        var iv = setInterval(function(){
+          tries++;
+          if (window.__game){
+            clearInterval(iv);
+            window.__game.ext = {
+              addCoins: function(n){ coins += (n|0); updateHUD(); },
+              setDay: function(n){ dayNum = Math.max(1, n|0); refreshFestival(); updateHUD(); },
+              forceNight: function(){
+                modeIdx = 2; AudioSys.setMusicMode(2);
+                document.getElementById('modeLabel').textContent = MODES[2].name;
+                document.getElementById('modeIcon').innerHTML = modeIcons[2];
+                sunBall.visible = false; moonBall.visible = true;
+              },
+              spawnFriend: function(){ spawnFriend(); },
+              friendHere: function(){ return !!friend; },
+              shootingStar: function(){ nextShootAt = 0; spawnShootingStar(); return !!shoot; },
+              plant: function(i, id){ var p = plots[i]; if (p && CROPS[id]){ p.crop = id; p.stage = 0; p.watered = false; refreshPlot(p); refreshInteractMarkers(); } },
+              water: function(i){ var p = plots[i]; if (p){ p.watered = true; refreshPlot(p); } },
+              growNight: function(){ growCropsOvernight(); },
+              spawnEgg: function(){ spawnEgg(); return !!eggObj; },
+              spawnDig: function(){ spawnDigSpot(); return !!digSpot; },
+              showDiary: function(){ showDiary(); },
+              state: function(){
+                return {
+                  plots: plots.map(function(p){ return { crop:p.crop, stage:p.stage, watered:p.watered, vis:cropVisStage(p) }; }),
+                  jar: ext.jar, seedInv: ext.seedInv, petData: ext.petData,
+                  outfit: ext.outfit, wardrobeOwned: ext.wardrobeOwned,
+                  paint: ext.paint, telescope: ext.telescope,
+                  albumCount: ext.album.length, stats: ext.stats,
+                  festival: isFestival(), friendHere: !!friend,
+                  digHere: !!digSpot, eggHere: !!eggObj, shootHere: !!shoot
+                };
+              }
+            };
+          }
+          if (tries > 40) clearInterval(iv);
+        }, 250);
+      })();
+
+      /* ============================================================
          TỰ LƯU QUÁ TRÌNH CHƠI (localStorage trên thiết bị)
          ============================================================ */
       var SAVE_KEY = 'xay-nha-cay-3d-save-v1';
@@ -2794,7 +4573,8 @@
             placed: SLOTS.filter(function(s){ return !!s.occupiedBy; }).map(function(s){ return { slot:s.id, item:s.occupiedBy }; }),
             ownedPets: Object.keys(ownedPets).filter(function(k){ return !!ownedPets[k]; }),
             modeIdx: modeIdx,
-            muted: !!AudioSys.muted
+            muted: !!AudioSys.muted,
+            extra: (typeof window.__saveExtra === 'function') ? window.__saveExtra() : null
           };
           localStorage.setItem(SAVE_KEY, JSON.stringify(data));
         }catch(e){ /* localStorage đầy / bị chặn thì bỏ qua, game vẫn chạy */ }
@@ -2883,6 +4663,11 @@
           if (sc) sc.style.display = d.muted ? '' : 'none';
           var sl = document.querySelector('#btnSound .lbl');
           if (sl) sl.textContent = d.muted ? 'Đang tắt' : 'Âm thanh';
+        }
+        /* Phần mở rộng (vườn rau, tủ đồ, thú...): bản lưu cũ không có trường
+           extra thì bỏ qua, lấy mặc định, tuyệt đối không đụng phần cũ. */
+        if (typeof window.__applySaveExtra === 'function' && d.extra){
+          try{ window.__applySaveExtra(d.extra); }catch(e){}
         }
         refreshToolLocks(); refreshMarkers(); refreshInteractMarkers();
       }
@@ -3052,6 +4837,57 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
       });
       document.addEventListener('pointerdown', function(){ AudioSys.ensure(); }, { once:true });
+    })();
+    </script>
+    <script>
+    /* Nút "Thêm": mở/đóng bảng nút phụ trên màn hình nhỏ (chỉ giao diện). */
+    (function(){
+      var btn = document.getElementById('btnMore');
+      var bar = document.querySelector('.topbar');
+      var panel = document.getElementById('morePanel');
+      if (!btn || !bar || !panel) return;
+      function close(){
+        bar.classList.remove('more-open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var open = bar.classList.toggle('more-open');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      panel.addEventListener('click', function(e){
+        var t = e.target;
+        while (t && t !== panel){ if (t.tagName === 'BUTTON'){ close(); break; } t = t.parentNode; }
+      });
+      document.addEventListener('click', function(e){
+        if (!bar.classList.contains('more-open')) return;
+        var t = e.target;
+        while (t){ if (t === bar) return; t = t.parentNode; }
+        close();
+      });
+    })();
+    </script>
+    <script>
+    /* Chip nhiệm vụ gấp gọn trên điện thoại: chạm chip để mở/đóng,
+       chạm ra ngoài cảnh 3D thì tự gấp lại. Chỉ là trạng thái giao diện. */
+    (function(){
+      var panel = document.getElementById('missionPanel');
+      var toggle = document.getElementById('missionToggle');
+      if (!panel || !toggle) return;
+      function sync(){
+        toggle.setAttribute('aria-expanded', panel.classList.contains('collapsed') ? 'false' : 'true');
+        toggle.setAttribute('aria-label', panel.classList.contains('collapsed') ? 'Mở danh sách nhiệm vụ hôm nay' : 'Đóng danh sách nhiệm vụ hôm nay');
+      }
+      sync();
+      toggle.addEventListener('click', function(e){
+        e.stopPropagation();
+        panel.classList.toggle('collapsed');
+        sync();
+      });
+      var scene = document.getElementById('scene');
+      if (scene) scene.addEventListener('pointerdown', function(){
+        if (!panel.classList.contains('collapsed')){ panel.classList.add('collapsed'); sync(); }
+      });
     })();
     </script>
   </body>
