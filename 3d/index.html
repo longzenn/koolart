@@ -277,13 +277,31 @@
       .overlay.open{ display:flex; }
       .sheet{
         background:var(--panel); width:min(540px, 96vw); max-height:84vh; overflow-y:auto;
-        border-radius:24px 24px 0 0; padding:18px 16px calc(16px + env(safe-area-inset-bottom));
+        border-radius:24px 24px 0 0; padding:0 16px calc(16px + env(safe-area-inset-bottom));
         box-shadow:0 -8px 30px rgba(0,0,0,.25);
       }
-      .sheet h2{ margin:0; font-family:"Baloo 2",cursive; font-size:22px; font-weight:800; display:flex; align-items:center; gap:9px; }
+      /* Tiêu đề GHIM CỐ ĐỊNH ở mọi bề rộng (kể cả desktop): h2 sticky, lề
+         ngang âm phủ kín bề ngang sheet, nền panel đục + đổ bóng nhẹ, nên nút
+         đóng ✕ ở góc phải trên luôn bấm được dù đã cuộn tới mục cuối, không
+         phải kéo ngược lên. Trước đây sticky chỉ áp ở mobile ≤760px; bản
+         desktop cuộn trong sheet 84vh thì nút ✕ trôi theo nội dung (user phàn
+         nàn 07/11). Padding trên của sheet để 0 và phần đệm dồn vào chính
+         h2: sticky neo tiêu đề theo hộp nội dung nên nếu sheet còn padding
+         trên, tiêu đề ghim sẽ lệch xuống đúng bằng phần padding đó và nội
+         dung cuộn lộ thành một dải phía trên tiêu đề (đã lái thử bắt được ở
+         cả hai cách để lề âm lẫn lề 0). Sticky vẫn nằm trong luồng nên không
+         che hàng mục đầu/cuối. */
+      .sheet h2{
+        margin:0 -16px; padding:16px 16px 10px;
+        font-family:"Baloo 2",cursive; font-size:22px; font-weight:800;
+        display:flex; align-items:center; gap:9px;
+        position:sticky; top:0; z-index:6; background:var(--panel);
+        border-radius:24px 24px 0 0;
+        box-shadow:0 8px 12px -10px rgba(47,70,50,.45);
+      }
       .sheet .sub{ margin:2px 0 0; font-size:13px; color:var(--ink-soft); font-weight:600; }
       .sheet .close-x{
-        margin-left:auto; width:40px; height:40px; border-radius:50%; border:2px solid var(--panel-line);
+        margin-left:auto; width:44px; height:44px; border-radius:50%; border:2px solid var(--panel-line);
         background:#fff; font-size:18px; cursor:pointer; color:var(--ink); flex:0 0 auto;
       }
       .sheet h3{
@@ -514,7 +532,8 @@
         .sheet h2{
           position:sticky; top:0; z-index:5; background:var(--panel);
           margin:0 -14px; padding:calc(12px + env(safe-area-inset-top)) 14px 10px;
-          font-size:20px; box-shadow:0 8px 12px -10px rgba(47,70,50,.45);
+          font-size:20px; border-radius:0;
+          box-shadow:0 8px 12px -10px rgba(47,70,50,.45);
         }
         .sheet .close-x{ width:48px; height:48px; font-size:19px; }
         .sheet .sub{ font-size:13.5px; margin-top:10px; line-height:1.4; }
@@ -583,7 +602,7 @@
         .tool svg{ width:33px; height:33px; }
         .count-chip{ bottom:calc(var(--toolbar-h) + 52px); }
         .sheet{ height:100dvh; max-height:100dvh; }
-        .sheet h2{ position:sticky; top:0; z-index:5; background:var(--panel); padding:4px 0 8px; }
+        .sheet h2{ position:sticky; top:0; z-index:5; background:var(--panel); padding:10px 16px 8px; }
         .sheet .close-x{ width:48px; height:48px; }
         .shop-row{ min-height:60px; }
         .buy-btn{ min-height:48px; }
@@ -804,7 +823,7 @@
       <svg viewBox="0 0 48 48" width="18" height="18"><path d="M10 24 L24 10 L38 24" fill="none" stroke="#35875a" stroke-width="4" stroke-linecap="round"/><path d="M14 24 v13 h20 v-13" fill="none" stroke="#35875a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Đã đặt <b id="placedCount">0</b> món
     </div>
-    <div class="drag-tip">Kéo để xoay quanh cây · Chụm ngón để phóng to, thu nhỏ</div>
+    <div class="drag-tip">Kéo để xoay · Hai ngón kéo để dịch góc nhìn · Chụm ngón để phóng to, thu nhỏ · Chuột phải kéo để dịch</div>
 
     <div class="stats" aria-label="Trạng thái của bé và số xu">
       <div class="coin-row">
@@ -1385,8 +1404,17 @@
           b.rotation.set(rx, 0, rz); return b;
         }
         branch(0.2, 6.9, -1.2, 0.95, 0.1, 2.4, 0.24);
-        /* hai cành ngang rõ ràng: cành trước phải để treo xích đu, cành trái cao hẳn trên mái để đặt nhà chim */
-        rope(0.3, 6.05, 0.25, 3.25, 6.55, 1.6, 0x63300f, worldGroup, 0.15);
+        /* hai cành ngang rõ ràng: cành trước phải để treo xích đu, cành trái cao hẳn trên mái để đặt nhà chim.
+           Cành xích đu vẽ HAI đoạn nối tiếp: đoạn trong từ thân cây vươn ra tới
+           vùng treo, đoạn ngoài chạy gần như dọc trục x ở z ≈ 1,5 (đúng hàng hai
+           điểm treo của xích đu ở x = 2,68 và 3,52) và vươn qua điểm treo ngoài
+           tới x = 3,98. Cành cũ là một đoạn chéo duy nhất: càng ra xa thân nó
+           càng lệch về z lớn trong khi hai dây xích đu đứng thẳng ở z = 1,5,
+           nên đầu cành dừng trước điểm treo ngoài và dây ngoài treo vào không
+           khí (ảnh user gửi 07/11). Nay cả hai núm vàng (tâm y = 6,38) đều chạm
+           mặt dưới đoạn cành ngoài (trục y ≈ 6,51..6,57, bán kính 0,14). */
+        rope(0.3, 6.05, 0.25, 2.3, 6.48, 1.42, 0x63300f, worldGroup, 0.16);
+        rope(2.3, 6.48, 1.42, 3.98, 6.6, 1.52, 0x63300f, worldGroup, 0.14);
         rope(-0.2, 6.9, 0, -2.7, 7.3, 0.3, 0x4c2408, worldGroup, 0.14);
         /* tán lá: thu nhỏ và nâng cao hẳn lên trên mái, chừa trống mặt trước của nhà */
         var leafCols = [0x05762a, 0x009e35, 0x045c1e, 0x04b83c];
@@ -1867,20 +1895,57 @@
       }
       applyCamera();
 
+      /* PAN: dịch orbit.target trong mặt phẳng camera, giữ nguyên góc + khoảng cách.
+         Giới hạn: bán kính ngang <= 8 quanh tâm vườn (0,0), cao 0..6. */
+      var DEFAULT_TARGET = new THREE.Vector3(-0.55, 3.9, 0);
+      function clampOrbitTarget(){
+        var r = Math.hypot(orbit.target.x, orbit.target.z);
+        if (r > 8){
+          var s = 8 / r;
+          orbit.target.x *= s;
+          orbit.target.z *= s;
+        }
+        orbit.target.y = Math.max(0, Math.min(6, orbit.target.y));
+      }
+      function panBy(dxPx, dyPx){
+        if (!dxPx && !dyPx) return;
+        /* cập nhật ma trận để lấy đúng trục phải/lên hiện tại của camera */
+        camera.updateMatrixWorld();
+        var h = el.clientHeight || window.innerHeight || 800;
+        var wpp = 2 * orbit.radius * Math.tan((camera.fov * Math.PI / 180) / 2) / h;
+        var right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+        var upv = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
+        /* kéo sang phải: cảnh đi theo tay sang phải -> target dịch ngược trục phải;
+           kéo xuống: cảnh đi theo tay xuống -> target dịch theo trục lên */
+        orbit.target.addScaledVector(right, -dxPx * wpp);
+        orbit.target.addScaledVector(upv, dyPx * wpp);
+        clampOrbitTarget();
+      }
+
       var pointers = {};
       var downInfo = null, pinchDist = 0, moved = false;
+      var lastMid = null, singlePan = false, gesturePan = false, multiTouch = false, freezeRemaining = false;
       var el = renderer.domElement;
+      el.addEventListener('contextmenu', function(e){ e.preventDefault(); });
       el.addEventListener('pointerdown', function(e){
         AudioSys.ensure();
-        el.setPointerCapture(e.pointerId);
+        try{ el.setPointerCapture(e.pointerId); }catch(err){}
         pointers[e.pointerId] = { x:e.clientX, y:e.clientY };
         idleTime = 0;
-        if (Object.keys(pointers).length === 1){
+        var count = Object.keys(pointers).length;
+        if (count === 1){
           downInfo = { x:e.clientX, y:e.clientY, t:Date.now() }; moved = false;
-        } else if (Object.keys(pointers).length === 2){
+          multiTouch = false; gesturePan = false; freezeRemaining = false;
+          singlePan = (e.button === 2) || (e.button === 0 && !!e.shiftKey);
+          if (singlePan) gesturePan = true;
+          lastMid = null;
+        } else if (count === 2){
           var ps = Object.values(pointers);
           pinchDist = Math.hypot(ps[0].x-ps[1].x, ps[0].y-ps[1].y);
-          downInfo = null;
+          lastMid = { x:(ps[0].x + ps[1].x) / 2, y:(ps[0].y + ps[1].y) / 2 };
+          downInfo = null; moved = true; multiTouch = true; gesturePan = true; singlePan = false;
+        } else {
+          downInfo = null; moved = true; multiTouch = true; gesturePan = true; lastMid = null;
         }
       });
       el.addEventListener('pointermove', function(e){
@@ -1891,29 +1956,51 @@
         idleTime = 0;
         var n = Object.keys(pointers).length;
         if (n === 1){
-          if (downInfo && Math.hypot(e.clientX-downInfo.x, e.clientY-downInfo.y) > 9) moved = true;
-          if (moved){
-            orbit.theta -= dx * 0.0058;
-            orbit.phi -= dy * 0.0042;
-            orbit.phi = Math.max(0.35, Math.min(1.42, orbit.phi));
+          if (freezeRemaining) return;
+          var isPan = singlePan || !!e.shiftKey;
+          if (isPan){
+            if (downInfo && Math.hypot(e.clientX-downInfo.x, e.clientY-downInfo.y) > 3) moved = true;
+            gesturePan = true;
+            panBy(dx, dy);
+          } else {
+            if (downInfo && Math.hypot(e.clientX-downInfo.x, e.clientY-downInfo.y) > 9) moved = true;
+            if (moved){
+              orbit.theta -= dx * 0.0058;
+              orbit.phi -= dy * 0.0042;
+              orbit.phi = Math.max(0.35, Math.min(1.42, orbit.phi));
+            }
           }
         } else if (n === 2){
+          moved = true; multiTouch = true; gesturePan = true;
           var ps = Object.values(pointers);
+          /* zoom theo thay đổi khoảng cách hai ngón */
           var d = Math.hypot(ps[0].x-ps[1].x, ps[0].y-ps[1].y);
-          if (pinchDist > 0){
+          if (pinchDist > 0 && d > 0){
             orbit.radius *= pinchDist / d;
             orbit.radius = Math.max(7.5, Math.min(26, orbit.radius));
           }
-          pinchDist = d; moved = true;
+          pinchDist = d;
+          /* pan theo tịnh tiến của trung tâm hai ngón, đồng thời với zoom ở trên */
+          var mid = { x:(ps[0].x + ps[1].x) / 2, y:(ps[0].y + ps[1].y) / 2 };
+          if (lastMid){
+            panBy(mid.x - lastMid.x, mid.y - lastMid.y);
+          }
+          lastMid = mid;
         }
       });
       function endPointer(e){
+        var wasTracked = !!pointers[e.pointerId];
         delete pointers[e.pointerId];
-        if (Object.keys(pointers).length < 2) pinchDist = 0;
-        if (downInfo && !moved && Date.now() - downInfo.t < 450){
+        var remain = Object.keys(pointers).length;
+        if (remain < 2){ pinchDist = 0; lastMid = null; }
+        if (remain === 1 && multiTouch) freezeRemaining = true;
+        /* chỉ chạm đơn sạch (không kéo, không pan, không đa chạm) mới kích hoạt tap */
+        if (wasTracked && remain === 0 && downInfo && !moved && !gesturePan && !multiTouch && Date.now() - downInfo.t < 450){
           tapAt(downInfo.x, downInfo.y);
         }
-        if (Object.keys(pointers).length === 0) downInfo = null;
+        if (remain === 0){
+          downInfo = null; singlePan = false; gesturePan = false; multiTouch = false; moved = false; freezeRemaining = false;
+        }
       }
       el.addEventListener('pointerup', endPointer);
       el.addEventListener('pointercancel', endPointer);
@@ -2369,13 +2456,20 @@
       }
 
       /* ---------- XÍCH ĐU & CẦU TRƯỢT: CHƠI THẬT ----------
-         Chạm ở chế độ Chơi: bé đi tới, ngồi lên ghế xích đu và đu cùng nhịp
-         với hoạt ảnh swing sẵn có của nhóm đồ, hoặc leo thang lên sàn rồi
-         trượt theo đúng đường máng xuống cỏ. Trong lúc chơi, gState.play
-         khóa mọi lệnh chạm khác (xem playTap và girlTick). Vùng chạm là
-         proxy riêng bám vật thật: một cầu ở ghế xích đu (đi theo nhóm khi
-         đu) và ba cầu dọc thân máng trượt; chấm lấp lánh cũng bám theo vật. */
-      var SWING_STAND = { x:3.1, z:2.95 };
+         Chạm ở chế độ Chơi: bé ngồi lên ghế xích đu và đu cùng nhịp với hoạt
+         ảnh swing sẵn có của nhóm đồ, hoặc leo thang lên sàn rồi trượt theo
+         đúng đường máng xuống cỏ. Trong lúc chơi, gState.play khóa mọi lệnh
+         chạm khác (xem playTap và girlTick). Vùng chạm là proxy riêng bám vật
+         thật: một cầu ở ghế xích đu (đi theo nhóm khi đu) và ba cầu dọc thân
+         máng trượt; chấm lấp lánh cũng bám theo vật.
+         Riêng xích đu: ghế treo ở cao độ ~4,5 CẠNH SÀN, nên đường chơi đi qua
+         sàn như cầu trượt: đang dưới đất thì bé đi tới chân thang, leo lên sàn
+         rồi đi trên sàn tới điểm lên xích đu ở mép sàn gần ghế nhất, từ mặt
+         sàn mới nhảy lên ghế; đu xong nhảy xuống lại đúng điểm đó trên sàn và
+         kết thúc lượt trong trạng thái đang ở trên sàn (onDeck). Bản cũ cho
+         bé đứng dưới đất nhảy thẳng lên ghế cao 4,1 như siêu nhân (user phàn
+         nàn 07/11) nên đã bỏ hẳn. */
+      var SWING_BOARD = { x:2.1, z:1.02 }; /* điểm trên sàn gần ghế xích đu nhất (ghế ở (3.1, 1.5), hướng ra mép sàn) */
       var SLIDE_END = { x:4.35, z:4.35 };
       var SLIDE_A = 0.75, SLIDE_L = 4.6;
       var SIT_DROP = 0.47; /* độ hạ gốc nhân vật khi ngồi: gấu đầm chạm mặt ghế/máng */
@@ -2445,7 +2539,25 @@
         if (gState.play || gState.sleeping || gameMode !== 'play') return;
         var slot = slotById('xichdu1');
         if (!slot || !slot.occupiedBy || !slot.group) return;
-        startJob(fixedDest(SWING_STAND.x, SWING_STAND.z), function(){ beginSwingRide(); }, 'choi');
+        if (needs.energy <= 0.5){ rideEnergyBlocked(); return; }
+        AudioSys.ensure();
+        gState.sit = false; hideDestMarker();
+        /* Đường chơi qua sàn (giống hệt cách dựng chặng của cầu trượt): dưới
+           đất thì đi tới chân thang, leo lên, vào sàn rồi đi trên sàn tới điểm
+           lên xích đu; đã ở trên sàn thì đi thẳng trên sàn tới đó. Tới nơi,
+           beginSwingRide cho bé nhảy ngắn từ mặt sàn lên ghế. */
+        var legs;
+        if (gState.onDeck){
+          legs = deckLegsTo({ x:girlG.position.x, z:girlG.position.z }, SWING_BOARD);
+        } else {
+          var cur = { x:girlG.position.x, z:girlG.position.z };
+          legs = groundLegsTo(cur, CLIMB_FOOT, true);
+          legs.push(preciseWalk(CLIMB_FOOT.x, CLIMB_FOOT.z));
+          legs.push(climbUpLeg());
+          legs.push(preciseWalk(DECK_ENTRY.x, DECK_ENTRY.z));
+          legs = legs.concat(deckLegsTo(DECK_ENTRY, SWING_BOARD));
+        }
+        gState.move = { legs:legs, actFn:function(){ beginSwingRide(); }, kind:'choi' };
       }
       function beginSwingRide(){
         var slot = slotById('xichdu1');
@@ -2456,7 +2568,7 @@
           slot.group.add(slot.rideAnchor);
         }
         gState.play = { kind:'swing', phase:'mount', t:0, dur:0.6, from:girlG.position.clone(), tilt:0, armPose:null };
-        gState.faceTarget = 0;
+        gState.faceTarget = Math.atan2(3.1 - girlG.position.x, 1.5 - girlG.position.z); /* quay mặt về phía ghế trước khi nhảy từ sàn lên */
         AudioSys.pop();
       }
       function startSlideRide(){
@@ -2513,13 +2625,16 @@
             play.tilt = ss.group.rotation.x * 0.85; /* ngả theo nhịp đu của nhóm xích đu */
             if (play.t >= play.dur){ play.phase = 'dismount'; play.t = 0; play.dur = 0.6; play.from = pos.clone(); play.armPose = null; play.tilt = 0; }
           } else if (play.phase === 'dismount'){
+            /* nhảy ngắn từ ghế về lại điểm lên xích đu TRÊN SÀN, đáp trên mặt
+               sàn (baseY = DECK_TOP, onDeck = true) rồi mới cộng Vui; bé ở lại
+               trên sàn, muốn xuống cỏ thì chạm cỏ để leo thang xuống như thường */
             var k2 = Math.min(1, play.t / play.dur), e2 = k2*k2*(3-2*k2);
-            pos.x = play.from.x + (SWING_STAND.x - play.from.x) * e2;
-            pos.z = play.from.z + (SWING_STAND.z - play.from.z) * e2;
-            pos.y = play.from.y + (0 - play.from.y) * e2 + Math.sin(k2 * Math.PI) * 0.3;
+            pos.x = play.from.x + (SWING_BOARD.x - play.from.x) * e2;
+            pos.z = play.from.z + (SWING_BOARD.z - play.from.z) * e2;
+            pos.y = play.from.y + (DECK_TOP - play.from.y) * e2 + Math.sin(k2 * Math.PI) * 0.3;
             if (k2 >= 1){
-              pos.set(SWING_STAND.x, 0, SWING_STAND.z);
-              gState.baseY = 0; gState.onDeck = false;
+              pos.set(SWING_BOARD.x, DECK_TOP, SWING_BOARD.z);
+              gState.baseY = DECK_TOP; gState.onDeck = true;
               finishRide('Đu xích đu mát quá, bé vui hẳn lên! Thanh Vui đầy thêm rồi.');
             }
           }
@@ -4942,6 +5057,12 @@
         setMode:setMode, goSleep:goSleep, addProgress:addProgress, buyPet:buyPet,
         get pets(){ return pets.map(function(pp){ return pp.kind; }); },
         girlPos:function(){ return { x:girlG.position.x, y:girlG.position.y, z:girlG.position.z }; },
+        get cameraTarget(){ return { x:orbit.target.x, y:orbit.target.y, z:orbit.target.z }; },
+        get cameraPos(){ return { x:camera.position.x, y:camera.position.y, z:camera.position.z }; },
+        get orbit(){ return { theta:orbit.theta, phi:orbit.phi, radius:orbit.radius, target:{ x:orbit.target.x, y:orbit.target.y, z:orbit.target.z } }; },
+        panCamera:function(dxPx, dyPx){ panBy(dxPx || 0, dyPx || 0); idleTime = 0; },
+        setCameraTarget:function(x, y, z){ orbit.target.set(x, y, z); clampOrbitTarget(); idleTime = 0; },
+        resetCameraTarget:function(){ orbit.target.copy(DEFAULT_TARGET); idleTime = 0; },
         focusGirl:function(angleOff){
           orbit.target.set(girlG.position.x, girlG.position.y + 1.0, girlG.position.z);
           orbit.radius = 3.4; orbit.phi = 1.22;
