@@ -397,51 +397,55 @@ updateCandyHud();
 // >= bush canopy radius 1.1 + biggest body radius 1.02 + 0.15), tucked behind
 // the cover instead of inside the leaves. Two old spots sat in the exact
 // centre of a bush; several others sat inside an obstacle's real footprint.
+// LAYOUT v17 — SPACIOUS PARK: fewer obstacles, everything pushed toward the
+// edges, and every remaining hide spot re-audited against the new colliders
+// below (standable at the biggest body radius 1.02 with a real margin, and
+// reachable through corridors whose surface-to-surface gap is >= ~2.6).
+// Removed spots: "sau thùng gỗ" (crates deleted), "sau tảng đá lớn" (rocks
+// deleted) and the second maze spot (the maze is now a single short hedge).
 var HIDE_SPOTS=[
- {name:"sau bụi hoa", pos:[-11.6,0,-10.6]},
- {name:"sau cầu trượt", pos:[-14.9,0,4.6]},
+ {name:"sau bụi hoa", pos:[-16.7,0,-10.6]},
+ {name:"sau cầu trượt", pos:[-14.6,0,4.6]},
  {name:"trong nhà cạnh sofa", pos:[-0.55,0,1.6], inside:true},
- {name:"sau cây to", pos:[-6,0,-12.6]},
+ {name:"sau cây to", pos:[-18.2,0,-13.6]},
  {name:"trong hộp cát", pos:[-3,0,10]},
  {name:"sau vòng quay", pos:[7.5,0,-10.5]},
- {name:"sau ghế đá", pos:[-12.8,0,14.6]},
- {name:"sau xích đu", pos:[-18,0,-3.2]},
+ {name:"sau ghế đá", pos:[12,0,-13.4]},
+ {name:"sau xích đu", pos:[-20.5,0,-3.8]},
  {name:"trong nhà sau tủ sách", pos:[2.6,0,-0.6], inside:true},
- {name:"sau bụi hồng", pos:[6.2,0,14.6]},
- {name:"sau cây nấm", pos:[8,0,-9.7]},
- {name:"sau bập bênh", pos:[-2,0,-7.9]},
- {name:"sau mê cung cây", pos:[-14.3,0,1.8]},
- {name:"sau hàng rào cây", pos:[-11.5,0,4.8]},
- {name:"sau thùng gỗ", pos:[8.3,0,3.1]},
- {name:"sau lều vải", pos:[16.6,0,-10.4]},
- {name:"cạnh ống chui", pos:[-6.2,0,-7.3]},
- {name:"sau xe kem", pos:[-6.4,0,-10.9]},
- {name:"sau tảng đá lớn", pos:[-21.3,0,10.4]},
- {name:"sau nấm khổng lồ", pos:[-15.4,0,9.2]},
- {name:"cạnh bàn picnic", pos:[12.9,0,5.6]},
- {name:"sau quầy bóng bay", pos:[9.8,0,12.0]},
+ {name:"sau bụi hồng", pos:[6,0,13.4]},
+ {name:"sau cây nấm", pos:[12,0,-5.6]},
+ {name:"sau bập bênh", pos:[-4,0,-10.4]},
+ {name:"sau hàng rào cây", pos:[-16,0,12.6]},
+ {name:"sau lều vải", pos:[16.9,0,-10.4]},
+ {name:"cạnh ống chui", pos:[-9.5,0,0.3]},
+ {name:"sau xe kem", pos:[-12.3,0,-12.5]},
+ {name:"sau nấm khổng lồ", pos:[-13,0,12.3]},
+ {name:"cạnh bàn picnic", pos:[15.2,0,2.6]},
+ {name:"sau quầy bóng bay", pos:[19,0,12.6]},
  {name:"trong nhà cạnh lò sưởi", pos:[-1.1,0,-1.45], inside:true}
 ];
-// colliders {x,z,r}
+// colliders {x,z,r} — LAYOUT v17 (spacious park). Deleted obstacles: the
+// crates & gift boxes, both big rocks, 5 of the 10 flower bushes (including
+// the one that sat INSIDE the play tunnel and the ones mid-lawn at (5.6,7.6)
+// and (12,8)), and every mid-park tree. What remains stands at the edges:
+// corner trees only, bushes on the lawn rim, toys spread one per zone, so
+// the corridors between any two facing obstacle surfaces are >= ~2.6 wide
+// (the old tunnel/seesaw pinch was 2.15, the merry/tree pinch 0.7).
 var colliders=[
- {x:-6,z:-15,r:1.2},{x:-15,z:-11,r:1.0},{x:7,z:-15,r:1.0},{x:-19,z:9,r:1.0},{x:11,z:14,r:1.0},
- {x:16.5,z:-13.5,r:1.0},{x:-16,z:16,r:1.0}, // extra big trees
+ {x:-21,z:-14,r:1.05},{x:-14,z:-16,r:1.0},{x:18,z:-15,r:1.0},{x:-20,z:10,r:1.0},{x:21,z:15,r:1.0}, // corner / rim trees only
  {x:2,z:-14,r:3.4}, // merry (enlarged base radius 3.35 + margin; approach point, sparkles and the "sau vòng quay" hide spot were all moved out to match)
  {x:-18,z:-6,r:1.6}, // swing frame approx (two posts handled loosely)
  // flower bushes: the canopy you SEE spans about +/-1.2 in x and +/-0.85 in z
  // (centre ball r0.85 plus side balls r0.6 at +/-0.6), so each bush gets one
- // circle of r=1.1. Most bushes used to have NO collider at all, so characters
- // walked straight into the foliage — and two hide spots sat in a bush centre.
- {x:-14,z:-10,r:1.1},{x:6,z:12,r:1.1},{x:8,z:-7,r:1.1},{x:-10,z:13.6,r:1.1},{x:-21,z:3,r:1.1},
- {x:12,z:8,r:1.1},{x:-8,z:-4,r:1.1},{x:5.6,z:7.6,r:1.1},{x:-1.5,z:16.3,r:1.1},{x:13.5,z:12.5,r:1.1}, // bushes (visible canopy)
- {x:8,z:-7,r:0.55}, // small mushroom
- {x:8.3,z:5.8,r:1.4}, // crates & gift boxes (clear of the central house, corridor kept wide)
- {x:14,z:-8,r:1.6}, // tent
- {x:-7.5,z:-4.5,r:1.5}, // play tunnel (moved clear of the central house)
- {x:-4,z:-10.6,r:1.3}, // ice cream cart
- {x:10,z:10,r:0.9}, // balloon stand
- {x:-20,z:13.2,r:1.3},{x:16.5,z:13.5,r:1.1}, // big rocks
- {x:-13,z:7,r:1.1}, // giant mushroom
+ // circle of r=1.1. Only 5 bushes remain, all on the rim of the lawn.
+ {x:-14,z:-10,r:1.1},{x:9,z:-6,r:1.1},{x:15,z:7,r:1.1},{x:-10,z:16,r:1.1},{x:6,z:16,r:1.1}, // bushes (visible canopy, rim only)
+ {x:12,z:-3,r:0.55}, // small mushroom (moved east of the house, clear of everything)
+ {x:20,z:-10,r:1.6}, // tent (far north-east corner)
+ {x:-9.5,z:-3.5,r:1.5}, // play tunnel (moved west/south: 3.7 clear of the house wall, 4.2+ clear of the seesaw, both mouths open)
+ {x:-9,z:-12.5,r:1.3}, // ice cream cart (north-west rim, clear of merry & seesaw: nearest surface gap 3.2+)
+ {x:19,z:10,r:0.9}, // balloon stand (east rim)
+ {x:-13,z:9.5,r:1.1}, // giant mushroom (west rim, clear of the slide)
  // furniture inside the central fairy house
  {x:-2.2,z:0.8,r:0.62}, // sofa inside (tight to its real footprint so a friend fits beside it)
  {x:3.0,z:-2.4,r:0.75}, // bookshelf / wardrobe inside
@@ -467,16 +471,16 @@ wallColliders.splice(3,1); // drop the lintel placeholder: doorway is fully walk
 // {cx,cz} centre, hw/hd half length & half depth in the object's own frame,
 // rot = the object's rotation.y. The character radius is added on top.
 var boxColliders=[
- {cx:-10,cz:12.2,hw:1.18,hd:0.42,rot:0.3},   // bench (south-west)
- {cx:5,cz:-9,hw:1.18,hd:0.42,rot:-0.4},      // bench in front of the merry-go-round
- {cx:-12,cz:-2,hw:1.18,hd:0.42,rot:1.2},     // bench (west)
- {cx:11,cz:3,hw:1.28,hd:1.18,rot:0.4},       // picnic table + its two side benches
- {cx:-2,cz:-6,hw:1.85,hd:0.5,rot:0},         // seesaw plank (long, flat)
+ // LAYOUT v17: only two benches remain, both axis-parallel (rot 0) and flat
+ // against the north / south rims — the three old benches stood diagonally
+ // across walking lines (the west one, rot 1.2, formed the tunnel-mouth
+ // pocket in the player's screenshot together with the maze hedges).
+ {cx:12,cz:-15.5,hw:1.18,hd:0.42,rot:0},     // bench (north rim, parallel to the fence)
+ {cx:13,cz:15.5,hw:1.18,hd:0.42,rot:0},      // bench (south rim, parallel to the fence)
+ {cx:18,cz:2,hw:1.28,hd:1.18,rot:0},         // picnic table + its two side benches (east rim, axis-parallel)
+ {cx:-4,cz:-8.5,hw:1.85,hd:0.5,rot:0},       // seesaw plank (moved north: the gap to the house's north wall is now 4.2, was 1.7 — impassable for the biggest body)
  {cx:-17,cz:2.45,hw:0.78,hd:2.28,rot:0},     // slide: platform + full chute down to the ground
- {cx:-9.5,cz:3.2,hw:2.25,hd:0.48,rot:0},          // hedge maze north hedge (box matches the real hedge: length 4.4, depth ~0.9)
- {cx:-7.6,cz:1.8,hw:1.65,hd:0.48,rot:Math.PI/2},  // hedge maze east hedge
- {cx:-10.3,cz:0.4,hw:1.45,hd:0.48,rot:0},         // hedge maze south hedge
- {cx:-12.2,cz:1.8,hw:1.65,hd:0.48,rot:Math.PI/2}  // hedge maze west hedge
+ {cx:-16,cz:14.8,hw:1.5,hd:0.48,rot:0}       // hedge remnant: the 4-hedge maze is ONE short hedge on the south-west rim; the other three hedges (which boxed in the tunnel / maze pocket west of the house) are deleted
 ];
 function boxToLocal(b,x,z){ var dx=x-b.cx, dz=z-b.cz; var c=Math.cos(b.rot), s=Math.sin(b.rot); return {lx:dx*c-dz*s, lz:dx*s+dz*c}; }
 function boxToWorld(b,lx,lz){ var c=Math.cos(b.rot), s=Math.sin(b.rot); return {x:b.cx+lx*c+lz*s, z:b.cz-lx*s+lz*c}; }
@@ -1087,13 +1091,22 @@ for(var ci=0;ci<6;ci++){ var g=new THREE.Group(); sph(1.6,0xffffff,-1.4,0,0,g); 
 var swayObjs=[];
 function tree(x,z,s){ var g=new THREE.Group(); g.position.set(x,0,z); cyl(0.28*s,0.36*s,1.8*s,0xb07a45,0,0.9*s,0,g); sph(1.5*s,0x2fe06a,0,2.9*s,0,g); sph(1.05*s,0x5df07e,-0.9*s,2.3*s,0.2,g); sph(1.0*s,0x5df07e,0.9*s,2.4*s,-0.2,g); // apples
  sph(0.16,0xff5a76,0.7*s,2.6*s,1.2*s,g); sph(0.16,0xff5a76,-0.8*s,3.1*s,1.0*s,g); scene.add(g); g.userData.baseX=x; swayObjs.push(g); return g; }
-tree(-6,-15,1.15); tree(-15,-11,0.95); tree(7,-15,1.0); tree(-19,9,1.05); tree(11,14,0.9); tree(-21,-14,0.9); tree(13,-14,0.85);
+// LAYOUT v17: trees only in the corners / on the rim (the mid-park trees at
+// (-6,-15), (-15,-11), (7,-15) and (11,14) are gone — (7,-15) stood 0.7 from
+// the merry-go-round's edge and choked its north corridor)
+tree(-21,-14,0.9); tree(-14,-16,0.9); tree(18,-15,1.0); tree(-20,10,1.0); tree(21,15,0.95);
 // flower bushes
 function bush(x,z,c){ var g=new THREE.Group(); g.position.set(x,0,z); sph(0.85,c||0x3ee673,0,0.55,0,g); sph(0.6,0x63ef8a,-0.6,0.45,0.2,g); sph(0.6,0x63ef8a,0.6,0.45,-0.15,g); var cols=[0xff5e9c,0xffd93d,0xff9f2e,0xb678ff,0xffffff]; for(var i=0;i<7;i++){ sph(0.11,cols[i%5],(Math.random()-0.5)*1.3,0.75+Math.random()*0.35,(Math.random()-0.5)*1.1,g);} scene.add(g); g.userData.baseX=x; swayObjs.push(g); }
-bush(-14,-10); bush(6,12,0xffb7d5); bush(8,-7); bush(-10,13.6); bush(-21,3); bush(12,8); bush(-8,-4,0xffb7d5); bush(5.6,7.6);
+// LAYOUT v17: 5 bushes only, all on the rim. Deleted: (6,12), (8,-7) — which
+// shared its spot with the small mushroom — (-10,13.6), (-21,3), (12,8),
+// (-8,-4) — which sat INSIDE the play tunnel — (5.6,7.6) and the two extras
+// at (-1.5,16.3) / (13.5,12.5) below.
+bush(-14,-10); bush(9,-6); bush(15,7,0xffb7d5); bush(-10,16); bush(6,16,0xffb7d5);
 // benches
 function bench(x,z,ry){ var g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; box(2.2,0.14,0.55,0xc98a5e,0,0.55,0,g); box(2.2,0.5,0.12,0xc98a5e,0,0.95,-0.24,g); box(0.14,0.55,0.5,0x8a5a3b,-0.9,0.27,0,g); box(0.14,0.55,0.5,0x8a5a3b,0.9,0.27,0,g); scene.add(g); }
-bench(-10,12.2,0.3); bench(5,-9,-0.4); bench(-12,-2,1.2);
+// LAYOUT v17: two benches only, axis-parallel on the north & south rims (the
+// diagonal west bench and the bench in front of the merry-go-round are gone)
+bench(12,-15.5,0); bench(13,15.5,0);
 // slide — the chute is long enough that its lower end RESTS ON THE GROUND:
 // centre (0,1.42,0.75), length 4.8, slope 0.62 rad -> top end (y 2.81, z -1.20)
 // meets the platform, bottom end (y 0.03, z 2.70) touches the grass.
@@ -1116,8 +1129,8 @@ var slideGroup=null, swingGroup=null;
 var playSparkles=[];
 (function(){ function starSprite(x,y,z){ var cv=document.createElement('canvas'); cv.width=cv.height=64; var cx=cv.getContext('2d'); cx.font='46px serif'; cx.textAlign='center'; cx.fillStyle='#ffd93d'; cx.fillText('★',32,46); var tx=new THREE.CanvasTexture(cv); var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx, transparent:true, depthWrite:false})); sp.position.set(x,y,z); sp.scale.set(0.85,0.85,1); sp.userData.baseY=y; scene.add(sp); playSparkles.push(sp); }
  starSprite(-18,3.85,-6); starSprite(-16.2,3.3,-6.9); starSprite(-17,3.95,1.2); starSprite(-18.1,3.35,3.6);
- starSprite(2,6.1,-14); starSprite(4.4,5.3,-12.0); starSprite(-2,2.1,-6); starSprite(-3.8,1.7,-6);
- starSprite(-4,3.7,-10.6); starSprite(-5.2,3.2,-10.6); starSprite(-3,1.7,11); starSprite(-4.4,1.5,12.2); })();
+ starSprite(2,6.1,-14); starSprite(4.4,5.3,-12.0); starSprite(-4,2.1,-8.5); starSprite(-5.8,1.7,-8.5);
+ starSprite(-9,3.7,-12.5); starSprite(-10.2,3.2,-12.5); starSprite(-3,1.7,11); starSprite(-4.4,1.5,12.2); })();
  // wind petals / sparkles drifting gently
  var windPetals=[];
  (function(){ for(var i=0;i<12;i++){ var cv=document.createElement('canvas'); cv.width=cv.height=32; var cx=cv.getContext('2d'); cx.font='22px serif'; cx.textAlign='center'; cx.fillStyle=i%2?'#ff8fab':'#ffd93d'; cx.fillText(i%2?'✿':'✦',16,22); var tx=new THREE.CanvasTexture(cv); var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx, transparent:true, depthWrite:false, opacity:0.85})); sp.position.set((Math.random()-0.5)*36,1+Math.random()*2.5,(Math.random()-0.5)*26); sp.scale.set(0.35,0.35,1); sp.userData={seed:Math.random()*10, bx:sp.position.x, bz:sp.position.z}; scene.add(sp); windPetals.push(sp);} })();
@@ -1147,44 +1160,55 @@ var playSparkles=[];
 var merry=new THREE.Group(); merry.position.set(2,0,-14); var merryGroup=merry; var merryHorses=[];
 (function(){ var base=cyl(3.1,3.35,0.3,0xff8fab,0,0.15,0,merry); cyl(0.18,0.18,4.9,0xffd93d,0,2.45,0,merry); var roof=new THREE.Mesh(new THREE.ConeGeometry(3.6,1.5,12), mat(0xff477e)); roof.position.y=4.85; roof.castShadow=true; merry.add(roof); var cols=[0xffd93d,0x4cc9f0,0x6dd66d,0xc77dff]; for(var i=0;i<4;i++){ var a=i*Math.PI/2; var hx=Math.cos(a)*2.1, hz=Math.sin(a)*2.1; cyl(0.06,0.06,3.6,0xffffff,hx,2.1,hz,merry); var horse=box(0.88,0.54,0.38,cols[i],hx,1.45,hz,merry); horse.rotation.y=-a; merryHorses.push(horse); sph(0.24,cols[i],hx,1.86,hz,merry); } scene.add(merry); })();
 // seesaw
-var seesaw=new THREE.Group(); seesaw.position.set(-2,0,-6); var seesawGroup=seesaw;
+var seesaw=new THREE.Group(); seesaw.position.set(-4,0,-8.5); var seesawGroup=seesaw; // LAYOUT v17: moved north-west so the corridor between the plank and the house's north wall is 4.2 wide (was 1.7)
 (function(){ var tri=new THREE.Mesh(new THREE.ConeGeometry(0.6,0.8,4), mat(0x4cc9f0)); tri.position.y=0.4; tri.castShadow=true; seesaw.add(tri); window.__seesawBar=new THREE.Group(); var b=window.__seesawBar; var plank=box(3.6,0.12,0.5,0xffb703,0,0,0,b); box(0.5,0.12,0.5,0xff6b9d,-1.6,0.14,0,b); box(0.5,0.12,0.5,0x6dd66d,1.6,0.14,0,b); b.position.y=0.85; seesaw.add(b); scene.add(seesaw); })();
 // sandbox
 var sandboxGroup=null;
 (function(){ var g=new THREE.Group(); g.position.set(-3,0,11); sandboxGroup=g; box(4.6,0.35,0.25,0xc98a5e,0,0.17,-2.2,g); box(4.6,0.35,0.25,0xc98a5e,0,0.17,2.2,g); box(0.25,0.35,4.6,0xc98a5e,-2.2,0.17,0,g); box(0.25,0.35,4.6,0xc98a5e,2.2,0.17,0,g); var sand=new THREE.Mesh(new THREE.PlaneGeometry(4.3,4.3), mat(0xffe9a8,1)); sand.rotation.x=-Math.PI/2; sand.position.y=0.22; sand.receiveShadow=true; g.add(sand); // castle
  box(0.7,0.6,0.7,0xffdf8e,0.6,0.52,0.4,g); cyl(0.14,0.14,0.7,0xffdf8e,0.25,0.57,0.05,g); cyl(0.14,0.14,0.7,0xffdf8e,0.95,0.57,0.75,g); sph(0.28,0xff8fab,-0.8,0.42,-0.7,g); scene.add(g); })();
-// mushroom decor
-(function(){ var g=new THREE.Group(); g.position.set(8,0,-7); cyl(0.22,0.3,0.7,0xfff3d6,0,0.35,0,g); var cap=new THREE.Mesh(new THREE.SphereGeometry(0.75,16,10,0,Math.PI*2,0,Math.PI/2), mat(0xff5a76)); cap.position.y=0.7; cap.castShadow=true; g.add(cap); sph(0.1,0xffffff,0.3,1.15,0.45,g); sph(0.08,0xffffff,-0.35,1.05,0.4,g); scene.add(g); })();
+// mushroom decor — LAYOUT v17: moved to (12,-3), east of the house on open
+// lawn (it used to share its exact spot with a flower bush at (8,-7))
+(function(){ var g=new THREE.Group(); g.position.set(12,0,-3); cyl(0.22,0.3,0.7,0xfff3d6,0,0.35,0,g); var cap=new THREE.Mesh(new THREE.SphereGeometry(0.75,16,10,0,Math.PI*2,0,Math.PI/2), mat(0xff5a76)); cap.position.y=0.7; cap.castShadow=true; g.add(cap); sph(0.1,0xffffff,0.3,1.15,0.45,g); sph(0.08,0xffffff,-0.35,1.05,0.4,g); scene.add(g); })();
 // ============ EXTRA HIDING OBSTACLES ============
-// hedge maze: low trimmed hedges, center-left of the park
+// hedge remnant — LAYOUT v17: the 4-hedge maze that boxed in the west side
+// of the park (and formed the stuck pocket in the player's screenshot) is
+// reduced to ONE short hedge flat against the south-west rim; the west side
+// of the park is open lawn now.
 (function(){ var hc=0x27c95e, hc2=0x3ee673;
  function hedge(x,z,len,rot){ var g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=rot||0; box(len,1.15,0.8,hc,0,0.58,0,g); var top=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.4,len,10), mat(hc2)); top.rotation.z=Math.PI/2; top.position.y=1.15; top.castShadow=true; g.add(top); sph(0.09,0xff6b9d,-len/3,1.32,0.3,g); sph(0.09,0xffd93d,len/4,1.34,-0.28,g); scene.add(g); }
- hedge(-9.5,3.2,4.4,0); hedge(-7.6,1.8,3.2,Math.PI/2); hedge(-10.3,0.4,2.8,0); hedge(-12.2,1.8,3.2,Math.PI/2);
+ hedge(-16,14.8,3.0,0);
 })();
-// wooden crates & big gift boxes
-(function(){ var g=new THREE.Group(); g.position.set(8.3,0,5.8); box(1.3,1.3,1.3,0xd99a55,0,0.65,0,g); box(1.3,0.16,1.34,0xb57a35,0,1.32,0,g); box(1.0,1.0,1.0,0xc98440,1.1,0.5,0.5,g); box(1.1,1.1,1.1,0xff5e9c,-0.4,1.85,-0.1,g); box(1.14,0.18,0.24,0xffd93d,-0.4,2.42,-0.1,g); box(0.24,0.18,1.14,0xffd93d,-0.4,2.42,-0.1,g); box(1.14,1.14,0.2,0xffd93d,-0.4,1.85,-0.1,g); scene.add(g); })();
-// small fabric tent
-(function(){ var g=new THREE.Group(); g.position.set(14,0,-8); var tent=new THREE.Mesh(new THREE.ConeGeometry(1.9,1.9,4), mat(0xff8fab)); tent.position.y=0.95; tent.rotation.y=Math.PI/4; tent.castShadow=true; g.add(tent); var door=new THREE.Mesh(new THREE.ConeGeometry(0.7,1.1,3), mat(0x7b2d8b)); door.position.set(0,0.55,1.12); g.add(door); cyl(0.04,0.04,0.8,0x9c6644,0,2.2,0,g); box(0.5,0.3,0.04,0xffd93d,0.27,2.45,0,g); scene.add(g); })();
-// playground crawl tunnel
-(function(){ var g=new THREE.Group(); g.position.set(-7.5,0,-4.5); var tube=new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.8,2.8,16,1,true), new THREE.MeshStandardMaterial({color:0x2ec5f5, roughness:0.7, side:THREE.DoubleSide})); tube.rotation.z=Math.PI/2; tube.position.y=0.8; tube.castShadow=true; g.add(tube); [-1.4,1.4].forEach(function(x){ var ring=new THREE.Mesh(new THREE.TorusGeometry(0.82,0.07,8,20), mat(0xff5e9c)); ring.position.set(x,0.8,0); ring.rotation.y=Math.PI/2; g.add(ring); }); box(3.0,0.12,1.9,0xffd93d,0,0.06,0,g); scene.add(g); })();
-// ice cream cart
+// LAYOUT v17: the wooden crates & big gift boxes east of the house are
+// DELETED (visuals + collider) — they were pure clutter in the south-east
+// walking cluster, and their hide spot went with them.
+// small fabric tent — LAYOUT v17: pushed into the far north-east corner
+(function(){ var g=new THREE.Group(); g.position.set(20,0,-10); var tent=new THREE.Mesh(new THREE.ConeGeometry(1.9,1.9,4), mat(0xff8fab)); tent.position.y=0.95; tent.rotation.y=Math.PI/4; tent.castShadow=true; g.add(tent); var door=new THREE.Mesh(new THREE.ConeGeometry(0.7,1.1,3), mat(0x7b2d8b)); door.position.set(0,0.55,1.12); g.add(door); cyl(0.04,0.04,0.8,0x9c6644,0,2.2,0,g); box(0.5,0.3,0.04,0xffd93d,0.27,2.45,0,g); scene.add(g); })();
+// playground crawl tunnel — LAYOUT v17: moved to (-9.5,-3.5) and everything
+// that crowded it is gone (the bush inside it, the diagonal bench, the maze
+// hedges): both mouths now open onto clear lawn, 3.7+ from the house wall
+// and 4.2+ from the seesaw.
+(function(){ var g=new THREE.Group(); g.position.set(-9.5,0,-3.5); var tube=new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.8,2.8,16,1,true), new THREE.MeshStandardMaterial({color:0x2ec5f5, roughness:0.7, side:THREE.DoubleSide})); tube.rotation.z=Math.PI/2; tube.position.y=0.8; tube.castShadow=true; g.add(tube); [-1.4,1.4].forEach(function(x){ var ring=new THREE.Mesh(new THREE.TorusGeometry(0.82,0.07,8,20), mat(0xff5e9c)); ring.position.set(x,0.8,0); ring.rotation.y=Math.PI/2; g.add(ring); }); box(3.0,0.12,1.9,0xffd93d,0,0.06,0,g); scene.add(g); })();
+// ice cream cart — LAYOUT v17: moved to the north-west rim (-9,-12.5), clear
+// of the merry-go-round (gap 6.4), the seesaw corner (gap 3.4) and the bush
 var icecreamGroup=null;
-(function(){ var g=new THREE.Group(); g.position.set(-4,0,-10.6); icecreamGroup=g; box(1.9,1.0,1.0,0xffffff,0,0.85,0,g); box(1.94,0.3,1.04,0xff8fab,0,1.2,0,g); box(1.5,0.5,0.8,0xbfeaff,0,1.55,0,g); [-0.7,0.7].forEach(function(x){ var w=cyl(0.32,0.32,0.1,0x555555,x,0.32,0.45,g); w.rotation.x=Math.PI/2; var w2=cyl(0.32,0.32,0.1,0x555555,x,0.32,-0.45,g); w2.rotation.x=Math.PI/2; }); cyl(0.05,0.05,1.6,0x9c6644,0,2.2,0,g); var umb=new THREE.Mesh(new THREE.ConeGeometry(1.5,0.6,10), mat(0xff6b9d)); umb.position.y=3.1; umb.castShadow=true; g.add(umb); sph(0.18,0xfff3d6,-0.4,1.95,0,g); sph(0.18,0xff8fab,0,1.98,0,g); sph(0.18,0x8a5a3b,0.4,1.95,0,g); scene.add(g); })();
-// balloon stand
+(function(){ var g=new THREE.Group(); g.position.set(-9,0,-12.5); icecreamGroup=g; box(1.9,1.0,1.0,0xffffff,0,0.85,0,g); box(1.94,0.3,1.04,0xff8fab,0,1.2,0,g); box(1.5,0.5,0.8,0xbfeaff,0,1.55,0,g); [-0.7,0.7].forEach(function(x){ var w=cyl(0.32,0.32,0.1,0x555555,x,0.32,0.45,g); w.rotation.x=Math.PI/2; var w2=cyl(0.32,0.32,0.1,0x555555,x,0.32,-0.45,g); w2.rotation.x=Math.PI/2; }); cyl(0.05,0.05,1.6,0x9c6644,0,2.2,0,g); var umb=new THREE.Mesh(new THREE.ConeGeometry(1.5,0.6,10), mat(0xff6b9d)); umb.position.y=3.1; umb.castShadow=true; g.add(umb); sph(0.18,0xfff3d6,-0.4,1.95,0,g); sph(0.18,0xff8fab,0,1.98,0,g); sph(0.18,0x8a5a3b,0.4,1.95,0,g); scene.add(g); })();
+// balloon stand — LAYOUT v17: pushed to the east rim (19,10)
 var balloonBobs=[];
-(function(){ var g=new THREE.Group(); g.position.set(10,0,10); box(1.3,0.8,0.9,0xc77dff,0,0.4,0,g); cyl(0.05,0.05,2.2,0x9c6644,0,1.6,0,g); var cols=[0xff5e8a,0xffd93d,0x4cc9f0,0x6dd66d,0xff9f45,0xc77dff]; for(var i=0;i<6;i++){ var a=i/6*Math.PI*2; var b=sph(0.34,cols[i],Math.cos(a)*0.55,2.9+((i%2)*0.3),Math.sin(a)*0.55,g); b.userData.baseY=b.position.y; balloonBobs.push(b); } var b2=sph(0.38,0xff6b9d,0,3.3,0,g); b2.userData.baseY=3.3; balloonBobs.push(b2); scene.add(g); })();
-// big rocks
-(function(){ var r1=sph(1.15,0xb8c4ce,-20,0.55,13.2); r1.scale.set(1.2,0.75,1); var r2=sph(0.8,0xa8b6c0,-19.2,0.4,12.4); r2.scale.set(1.1,0.7,1); var r3=sph(1.0,0xb8c4ce,16.5,0.5,13.5); r3.scale.set(1.15,0.7,1); })();
-// giant mushroom
-(function(){ var g=new THREE.Group(); g.position.set(-13,0,7); cyl(0.34,0.48,1.2,0xfff3d6,0,0.6,0,g); var cap=new THREE.Mesh(new THREE.SphereGeometry(1.4,18,12,0,Math.PI*2,0,Math.PI/2), mat(0xff5a76)); cap.position.y=1.15; cap.castShadow=true; g.add(cap); sph(0.16,0xffffff,0.5,2.2,0.8,g); sph(0.13,0xffffff,-0.6,2.0,0.7,g); sph(0.11,0xffffff,0.1,2.45,0.5,g); scene.add(g); })();
-// picnic table with cloth
-(function(){ var g=new THREE.Group(); g.position.set(11,0,3); g.rotation.y=0.4; box(2.4,0.14,1.3,0xffffff,0,0.95,0,g); box(2.4,0.1,0.5,0xff8fab,0,1.03,0,g); box(2.2,0.1,0.4,0xc98a5e,0,0.45,0.95,g); box(2.2,0.1,0.4,0xc98a5e,0,0.45,-0.95,g); [[-1,0.6],[1,0.6],[-1,-0.6],[1,-0.6]].forEach(function(p){ box(0.12,0.95,0.12,0x8a5a3b,p[0],0.47,p[1],g); }); sph(0.22,0xffd93d,0.4,1.15,0,g); sph(0.18,0xff6b9d,-0.5,1.13,0.1,g); scene.add(g); })();
+(function(){ var g=new THREE.Group(); g.position.set(19,0,10); box(1.3,0.8,0.9,0xc77dff,0,0.4,0,g); cyl(0.05,0.05,2.2,0x9c6644,0,1.6,0,g); var cols=[0xff5e8a,0xffd93d,0x4cc9f0,0x6dd66d,0xff9f45,0xc77dff]; for(var i=0;i<6;i++){ var a=i/6*Math.PI*2; var b=sph(0.34,cols[i],Math.cos(a)*0.55,2.9+((i%2)*0.3),Math.sin(a)*0.55,g); b.userData.baseY=b.position.y; balloonBobs.push(b); } var b2=sph(0.38,0xff6b9d,0,3.3,0,g); b2.userData.baseY=3.3; balloonBobs.push(b2); scene.add(g); })();
+// LAYOUT v17: the big rocks in both south corners are DELETED (visuals +
+// colliders + their hide spot) — pure obstacles, not toys.
+// giant mushroom — LAYOUT v17: moved south along the west rim to (-13,9.5),
+// clear of the slide's ground end (gap ~3.4, was ~1.6)
+(function(){ var g=new THREE.Group(); g.position.set(-13,0,9.5); cyl(0.34,0.48,1.2,0xfff3d6,0,0.6,0,g); var cap=new THREE.Mesh(new THREE.SphereGeometry(1.4,18,12,0,Math.PI*2,0,Math.PI/2), mat(0xff5a76)); cap.position.y=1.15; cap.castShadow=true; g.add(cap); sph(0.16,0xffffff,0.5,2.2,0.8,g); sph(0.13,0xffffff,-0.6,2.0,0.7,g); sph(0.11,0xffffff,0.1,2.45,0.5,g); scene.add(g); })();
+// picnic table with cloth — LAYOUT v17: pushed to the east rim (18,2) and
+// squared axis-parallel (was diagonal at (11,3) in the middle of the east lawn)
+(function(){ var g=new THREE.Group(); g.position.set(18,0,2); g.rotation.y=0; box(2.4,0.14,1.3,0xffffff,0,0.95,0,g); box(2.4,0.1,0.5,0xff8fab,0,1.03,0,g); box(2.2,0.1,0.4,0xc98a5e,0,0.45,0.95,g); box(2.2,0.1,0.4,0xc98a5e,0,0.45,-0.95,g); [[-1,0.6],[1,0.6],[-1,-0.6],[1,-0.6]].forEach(function(p){ box(0.12,0.95,0.12,0x8a5a3b,p[0],0.47,p[1],g); }); sph(0.22,0xffd93d,0.4,1.15,0,g); sph(0.18,0xff6b9d,-0.5,1.13,0.1,g); scene.add(g); })();
 // big sand castle inside the sandbox
 (function(){ var g=new THREE.Group(); g.position.set(-4.2,0,12.1); box(0.9,0.8,0.9,0xffdf8e,0,0.62,0,g); cyl(0.2,0.2,1.1,0xffdf8e,-0.5,0.77,-0.4,g); cyl(0.2,0.2,1.1,0xffdf8e,0.5,0.77,0.4,g); box(0.4,0.25,0.04,0xff6b9d,0.15,1.45,-0.4,g); scene.add(g); })();
 // (the old wardrobe & sofa that stood beside the old right-side house now live INSIDE the central fairy house below)
-// extra big trees & bushes
-tree(16.5,-13.5,1.15); tree(-16,16,1.05);
-bush(-1.5,16.3,0xffb7d5); bush(13.5,12.5);
+// LAYOUT v17: the extra rim trees & bushes that used to be added here
+// (tree (16.5,-13.5), tree (-16,16), bush (-1.5,16.3), bush (13.5,12.5)) are
+// DELETED — the park keeps only the corner trees and rim bushes placed above.
 // ============ FAIRY-TALE HOUSE IN THE CENTRE — enterable! ============
 var houseRoofGroup=null, houseDoorPivot=null, houseSouthMats=[], smokePuffs=[];
 (function(){ var g=new THREE.Group(); g.position.set(0,0,0);
@@ -1552,7 +1576,7 @@ function showRoundIntro(){
  var seeker=CHARS[round];
  document.getElementById('roundTitle').textContent='Lượt '+(round+1)+': '+seeker.name+' đi tìm!';
  document.getElementById('roundEmoji').textContent=seeker.emoji+' 🔍';
- document.getElementById('roundDesc').textContent='3 bạn kia đang trốn khắp công viên: trong mê cung cây xanh, sau thùng gỗ, trong lều vải, cạnh ống chui, sau xe kem, và cả trong ngôi nhà bánh ngọt ở giữa công viên nữa... Các bạn nấp kín lắm, bé giúp '+seeker.name+' đi tìm thật kỹ nhé!';
+ document.getElementById('roundDesc').textContent='3 bạn kia đang trốn khắp công viên: sau hàng rào cây, trong lều vải, cạnh ống chui, sau xe kem, và cả trong ngôi nhà bánh ngọt ở giữa công viên nữa... Các bạn nấp kín lắm, bé giúp '+seeker.name+' đi tìm thật kỹ nhé!';
  var rh=document.getElementById('roundHiders'); rh.innerHTML='';
  charObjs.forEach(function(co,idx){ if(idx===round) return; var s=document.createElement('span'); s.style.cssText='background:#fff;border:2px solid #ffe3f0;border-radius:999px;padding:8px 14px;font-weight:800;font-size:16px'; s.textContent=CHARS[idx].emoji+' '+CHARS[idx].name; rh.appendChild(s); });
  document.getElementById('roundOverlay').classList.remove('hidden');
@@ -1607,7 +1631,7 @@ document.getElementById('hintBtn').addEventListener('click',function(){
 // input and the catch check are locked while a play sequence runs, and the
 // round state is untouched, so nothing can be caught by accident mid-play.
 // Playing is only offered during the seeking phase, never while hiders run.
-var PLAY_APPROACH={swing:{x:-18,z:-3.55}, slide:{x:-17,z:-0.55}, merry:{x:2,z:-9.15}, seesaw:{x:-3.9,z:-4.7}, icecream:{x:-4,z:-8.15}, sandbox:{x:-3,z:13.95}};
+var PLAY_APPROACH={swing:{x:-18,z:-3.3}, slide:{x:-17,z:-1.0}, merry:{x:2,z:-9.15}, seesaw:{x:-6.4,z:-6.4}, icecream:{x:-9,z:-9.9}, sandbox:{x:-3,z:13.95}}; // LAYOUT v17: approaches re-audited against the new layout (seesaw & ice-cream moved; swing/slide nudged fully clear of their own pads at the biggest body radius)
 var PLAY_LABEL={swing:'🎠 Đi chơi xích đu nào!', slide:'🛝 Đi chơi cầu trượt nào!', merry:'🎠 Đi chơi vòng quay nào!', seesaw:'⚖️ Đi chơi bập bênh nào!', icecream:'🍦 Đi ăn kem nào!', sandbox:'🏖️ Đi đào cát nào!'};
 function startPlay(type){
  if(state!=='seeking'||playMode) return;
@@ -1650,7 +1674,7 @@ function updatePlay(dt,t){
    var movedW=Math.sqrt((gp.x-pm.lastX)*(gp.x-pm.lastX)+(gp.z-pm.lastZ)*(gp.z-pm.lastZ)); pm.lastX=gp.x; pm.lastZ=gp.z;
    if(pm.path&&pm.path.length){ if(movedW<0.03) pm.stallT+=dt; else pm.stallT=0; }
    if(pm.walkT>18 || pm.stallT>2.5){ gp.y=0; pm.t=0; pm.from={x:gp.x,y:0,z:gp.z}; pm.stage = pm.type==='swing'?'mount':(pm.type==='slide'?'climb':(pm.type==='merry'?'mount':(pm.type==='seesaw'?'sit':(pm.type==='icecream'?'serve':'dig')))); return; }
-   if(pm.stallT>0.5 && pm.path&&pm.path.length){ var app0=PLAY_APPROACH[pm.type]; var rideC = pm.type==='swing' ? {x:-18,z:-6} : (pm.type==='slide'?{x:-17,z:2.45}:(pm.type==='merry'?{x:2,z:-14}:(pm.type==='seesaw'?{x:-2,z:-6}:(pm.type==='icecream'?{x:-4,z:-10.6}:{x:-3,z:11})))); var appT=[app0.x,app0.z]; var rt2=routePoints(gp.x,gp.z,[appT],seeker.radius,null,[{x:rideC.x, z:rideC.z, r:(pm.type==='merry'?3.7:2.4)}]); if(rt2&&rt2.length) pm.path=rt2; pm.stallT=0; }
+   if(pm.stallT>0.5 && pm.path&&pm.path.length){ var app0=PLAY_APPROACH[pm.type]; var rideC = pm.type==='swing' ? {x:-18,z:-6} : (pm.type==='slide'?{x:-17,z:2.45}:(pm.type==='merry'?{x:2,z:-14}:(pm.type==='seesaw'?{x:-4,z:-8.5}:(pm.type==='icecream'?{x:-9,z:-12.5}:{x:-3,z:11})))); var appT=[app0.x,app0.z]; var rt2=routePoints(gp.x,gp.z,[appT],seeker.radius,null,[{x:rideC.x, z:rideC.z, r:(pm.type==='merry'?3.7:2.4)}]); if(rt2&&rt2.length) pm.path=rt2; pm.stallT=0; }
    if(pm.path&&pm.path.length){
      var wp=pm.path[0]; var dx=wp.x-gp.x, dz=wp.z-gp.z; var dd=Math.sqrt(dx*dx+dz*dz);
      if(dd<=0.42){ pm.path.shift(); }
@@ -1669,8 +1693,8 @@ function updatePlay(dt,t){
  }
  if(pm.type==='seesaw'){
    var partner=pm.partner;
-   if(pm.stage==='sit'){ var fs2=Math.min(1,pm.t/0.7); gp.x=pm.from.x+(-3.6-pm.from.x)*fs2; gp.z=pm.from.z+(-6-pm.from.z)*fs2; gp.y=fs2*0.95; if(partner){ var pp=partner.group.position; pp.x=pm.partnerFrom.x+(-0.4-pp.x)*0; pp.x=pm.partnerFrom.x+(-0.4-pm.partnerFrom.x)*fs2; pp.z=pm.partnerFrom.z+(-6-pm.partnerFrom.z)*fs2; pp.y=fs2*0.95; partner.group.rotation.y=Math.atan2(gp.x-pp.x,gp.z-pp.z); } if(fs2>=1){ pm.stage='bounce'; pm.t=0; sfxGiggle(); showBubble('Bập bênh vui quá! ⚖️',2000);} return; }
-   if(pm.stage==='bounce'){ var bd2=5.2; var tilt=Math.sin(pm.t*3.6)*0.32; if(window.__seesawBar) window.__seesawBar.rotation.z=tilt; gp.x=-3.6; gp.z=-6; gp.y=0.95 - tilt*1.55; if(partner){ var pp2=partner.group.position; pp2.x=-0.4; pp2.z=-6; pp2.y=0.95 + tilt*1.55; } var cyc2=Math.floor(pm.t*3.6/(Math.PI)); if(pm.lastCyc!==cyc2){ pm.lastCyc=cyc2; if(cyc2%2===0) sfxGiggle(); } if(pm.t>bd2*0.55&&!pm.burstDone){pm.burstDone=true; burst(gp.clone());} if(pm.t>=bd2){ if(window.__seesawBar) window.__seesawBar.rotation.z=0; pm.stage='leave'; pm.t=0; pm.from={x:gp.x,y:gp.y,z:gp.z}; if(partner) pm.partnerFrom2={x:partner.group.position.x,y:partner.group.position.y,z:partner.group.position.z}; } return; }
+   if(pm.stage==='sit'){ var fs2=Math.min(1,pm.t/0.7); gp.x=pm.from.x+(-5.6-pm.from.x)*fs2; gp.z=pm.from.z+(-8.5-pm.from.z)*fs2; gp.y=fs2*0.95; if(partner){ var pp=partner.group.position; pp.x=pm.partnerFrom.x+(-2.4-pp.x)*0; pp.x=pm.partnerFrom.x+(-2.4-pm.partnerFrom.x)*fs2; pp.z=pm.partnerFrom.z+(-8.5-pm.partnerFrom.z)*fs2; pp.y=fs2*0.95; partner.group.rotation.y=Math.atan2(gp.x-pp.x,gp.z-pp.z); } if(fs2>=1){ pm.stage='bounce'; pm.t=0; sfxGiggle(); showBubble('Bập bênh vui quá! ⚖️',2000);} return; }
+   if(pm.stage==='bounce'){ var bd2=5.2; var tilt=Math.sin(pm.t*3.6)*0.32; if(window.__seesawBar) window.__seesawBar.rotation.z=tilt; gp.x=-5.6; gp.z=-8.5; gp.y=0.95 - tilt*1.55; if(partner){ var pp2=partner.group.position; pp2.x=-2.4; pp2.z=-8.5; pp2.y=0.95 + tilt*1.55; } var cyc2=Math.floor(pm.t*3.6/(Math.PI)); if(pm.lastCyc!==cyc2){ pm.lastCyc=cyc2; if(cyc2%2===0) sfxGiggle(); } if(pm.t>bd2*0.55&&!pm.burstDone){pm.burstDone=true; burst(gp.clone());} if(pm.t>=bd2){ if(window.__seesawBar) window.__seesawBar.rotation.z=0; pm.stage='leave'; pm.t=0; pm.from={x:gp.x,y:gp.y,z:gp.z}; if(partner) pm.partnerFrom2={x:partner.group.position.x,y:partner.group.position.y,z:partner.group.position.z}; } return; }
    if(pm.stage==='leave'){ var fl2=Math.min(1,pm.t/0.6); var ap2=PLAY_APPROACH.seesaw; gp.x=pm.from.x+(ap2.x-pm.from.x)*fl2; gp.z=pm.from.z+(ap2.z-pm.from.z)*fl2; gp.y=pm.from.y*(1-fl2); if(partner){ var pp3=partner.group.position; var back=findFreePoint(gp.x+1.2,gp.z+1.0,partner.radius,pm.partnerIdx); pp3.x=pm.partnerFrom2.x+(back.x-pm.partnerFrom2.x)*fl2; pp3.z=pm.partnerFrom2.z+(back.z-pm.partnerFrom2.z)*fl2; pp3.y=pm.partnerFrom2.y*(1-fl2); } if(fl2>=1){ gp.y=0; if(partner) partner.group.position.y=0; endPlay('Chơi bập bênh vui quá! Tiếp tục đi tìm nào!'); } return; }
  }
  if(pm.type==='icecream'){
@@ -1706,7 +1730,7 @@ function updatePlay(dt,t){
    }
    if(pm.stage==='dismount'){
      var f2=Math.min(1,pm.t/0.55);
-     gp.x=pm.from.x+(-18-pm.from.x)*f2; gp.z=pm.from.z+(-3.55-pm.from.z)*f2; gp.y=pm.from.y*(1-f2)+Math.sin(f2*Math.PI)*0.45;
+     gp.x=pm.from.x+(-18-pm.from.x)*f2; gp.z=pm.from.z+(-3.3-pm.from.z)*f2; gp.y=pm.from.y*(1-f2)+Math.sin(f2*Math.PI)*0.45;
      if(f2>=1){ gp.y=0; sfxPop(); endPlay('Chơi xích đu vui quá! Tiếp tục đi tìm nào! 🔍'); }
      return;
    }
