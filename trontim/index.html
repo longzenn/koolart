@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light"/>
 <link rel="icon" href="data:,"/>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
-<title>Trốn Tìm</title>
+<title>Ai Đang Trốn Thế?</title>
 <style>
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none;}
   body{margin:0; overflow:hidden; font-family:"Baloo 2","Comic Sans MS","Segoe UI Rounded",system-ui,sans-serif; background:#8fe3ff; color:#4a2c5a;}
@@ -248,7 +248,7 @@
     <span class="cloudDecor">☁️</span><span class="cloudDecor c2">☁️</span>
     <span class="floaty" style="left:12%; bottom:18px;">💖</span><span class="floaty" style="left:78%; bottom:24px; animation-delay:1.2s;">⭐</span><span class="floaty" style="left:55%; bottom:10px; animation-delay:2.1s;">✨</span>
     <div style="font-size:44px">🏡🌳🎠</div>
-    <h1 class="rainbowTitle">Trốn Tìm Công Viên</h1>
+    <h1 class="rainbowTitle">Ai Đang Trốn Thế?</h1>
     <div class="charsRow" style="margin:16px 0 18px">
       <div class="charCard" style="background:#e0f4ff"><div class="charDot" style="background:#8fd3f4"><div style="position:absolute;top:-8px;left:2px;width:50px;height:24px;background:repeating-linear-gradient(90deg,#ff4d4d 0 8px,#ff9f2e 8px 16px,#ffd93d 16px 24px,#51cf66 24px 32px,#3a9bdc 32px 42px);border-radius:24px 24px 6px 10px;border:2px solid #fff;"></div><span style="position:absolute;top:22px;left:13px;font-size:11px;color:#e75480">• •</span></div><div class="charName">Hoa Nhỏ</div></div>
       <div class="charCard" style="background:#fff0f6"><div class="charDot" style="background:repeating-linear-gradient(180deg,#ff6b9d 0 7px,#ffb703 7px 14px,#6dd66d 14px 21px,#4cc9f0 21px 28px,#b388ff 28px 35px)"></div><div class="charName">Cầu Vồng</div></div>
@@ -686,8 +686,16 @@ function lockedTangent(co,x,z,r,selfIdx,ix,iz){
     if(T_NOW-lock.t>1.2 || !nb || nb.d>r+1.35 || nb.key!==lock.key){ co._slide=null; lock=null; }
   }
   if(lock){
-    lock.t=T_NOW;
-    return {x:-nb.nz*lock.side, z:nb.nx*lock.side};
+    var ldx=-nb.nz*lock.side, ldz=nb.nx*lock.side;
+    var il2=Math.sqrt(ix*ix+iz*iz)||1;
+    // a lock chosen while steering at an EARLIER waypoint can point AWAY
+    // from the current one (the route changed while she was hugging the
+    // same obstacle): keeping it drags her backwards around the pad
+    // indefinitely — she slides away from her goal, gets snapped back by
+    // the next pad, and never arrives. Drop a lock that fights the goal
+    // and re-decide the side for THIS intent instead.
+    if((ldx*ix+ldz*iz)/il2 < -0.15){ co._slide=null; lock=null; }
+    else { lock.t=T_NOW; return {x:ldx, z:ldz}; }
   }
   // Fresh slide: aim it at the blocker that actually blocks the way to the
   // goal (found by walking the intended segment until it stops being
@@ -797,7 +805,7 @@ function resolveFrame(){
 function trackStuck(co, idx, destX, destZ, dt){
   var gp=co.group.position;
   var dd=Math.sqrt((destX-gp.x)*(destX-gp.x)+(destZ-gp.z)*(destZ-gp.z));
-  if(dd<0.7){ co.stuckT=0; co.stuckX=gp.x; co.stuckZ=gp.z; co.stuckBest=dd; co.stuckStartDD=dd; return false; }
+  if(dd<0.7){ co.stuckT=0; co.stuckX=gp.x; co.stuckZ=gp.z; co.stuckBest=dd; co.stuckStartDD=dd; co.stuckEsc=0; return false; }
   if(co.stuckX===undefined || co.stuckT===undefined){ co.stuckX=gp.x; co.stuckZ=gp.z; co.stuckBest=dd; co.stuckStartDD=dd; co.stuckT=0; return false; }
   if(dd<co.stuckBest-0.05) co.stuckBest=dd;
   co.stuckT+=dt;
@@ -809,6 +817,18 @@ function trackStuck(co, idx, destX, destZ, dt){
   // while the distance to the destination never really closed
   if((netD<0.35 && dd>co.stuckBest-0.1) || (netD<0.9 && dd>co.stuckStartDD-0.15)){
     stuck=true;
+    // ESCALATION: a SECOND consecutive stuck window for the same destination
+    // means the partway hops are not enough — the walker is sealed in a
+    // pocket whose mouth every hop and rebuild keeps missing (the tunnel /
+    // bush / bench pocket west of the maze is exactly this: she slides a
+    // few steps, a neighbouring pad snaps her back, the new route leads
+    // straight back in). Hop DIRECTLY to the destination's own free point:
+    // bounded, always lands somewhere legal, and ends the wedge for good.
+    if((co.stuckEsc||0)>=1){
+      var dc=findFreePoint(destX,destZ,co.radius,idx);
+      var dcd=Math.sqrt((dc.x-gp.x)*(dc.x-gp.x)+(dc.z-gp.z)*(dc.z-gp.z));
+      if(dcd>0.3){ burst(new THREE.Vector3(dc.x,0.7,dc.z)); gp.x=dc.x; gp.z=dc.z; co.stuckEsc=0; co.stuckT=0; co.stuckX=gp.x; co.stuckZ=gp.z; co.stuckBest=Math.sqrt((destX-gp.x)*(destX-gp.x)+(destZ-gp.z)*(destZ-gp.z)); co.stuckStartDD=co.stuckBest; return true; }
+    }
     // teleport partway toward the destination; if a landing point cannot
     // be placed (it falls inside a wall pad and slides right back), try a
     // longer hop, then the route's midpoint, then sideways escape hops
@@ -821,6 +841,7 @@ function trackStuck(co, idx, destX, destZ, dt){
     hopPts.push([gp.x+(dirx*0.5+dirz*0.866)*hopL, gp.z+(dirz*0.5-dirx*0.866)*hopL,1]);
     for(var hi=0;hi<hopPts.length;hi++){ var cand=findFreePoint(hopPts[hi][0], hopPts[hi][1], co.radius, idx); var cd=Math.sqrt((cand.x-gp.x)*(cand.x-gp.x)+(cand.z-gp.z)*(cand.z-gp.z)); var cdd=Math.sqrt((destX-cand.x)*(destX-cand.x)+(destZ-cand.z)*(destZ-cand.z)); if(cd>0.4 && (hopPts[hi][2] ? cdd<dd+0.8 : cdd<dd-0.3)){ burst(new THREE.Vector3(cand.x,0.7,cand.z)); gp.x=cand.x; gp.z=cand.z; break; } }
   }
+  if(stuck) co.stuckEsc=(co.stuckEsc||0)+1; else co.stuckEsc=0;
   co.stuckT=0; co.stuckX=gp.x; co.stuckZ=gp.z; co.stuckBest=Math.sqrt((destX-gp.x)*(destX-gp.x)+(destZ-gp.z)*(destZ-gp.z)); co.stuckStartDD=co.stuckBest;
   // "stuck" is reported even when no hop could be placed, so the caller
   // still rebuilds its route / re-picks its slot for the next window
@@ -1462,6 +1483,7 @@ var seekGrace=0; // brief no-catch grace right after the seeking phase begins
 var playMode=null; // active swing/slide play sequence for the seeker, or null
 var seekerStallT=0, seekerLastX=null, seekerLastZ=null, seekerAnchorT=0, seekerEscT=0, seekerEscDX=0, seekerEscDZ=0, seekerWanted=false, seekerWpKey=null, seekerWpT=0; // seeker anti-stall state
 var seekerRebuildCd=0; // minimum gap between anti-stall route rebuilds, so a blocked seeker slides first and only re-routes on a calm cadence
+var seekerDestX=0, seekerDestZ=0, seekerDestAge=0, seekerDestStale=0, seekerDestBest=1e9; // tap-destination watchdog: how long the current tap point has been active, and how long since the seeker last got a full unit closer to it
 var seekerLegKey=null, seekerLegT=0; // time spent steering at the current waypoint: an ORBITING walker (circling a pocket of obstacles) keeps covering ground, so the net-progress stall checks never fire — a stale leg timer catches it instead
 // hide-mode (Gói 2) state: the AI seeker is charObjs[round]; the child's own
 // character is charObjs[playerIdx]
@@ -1501,7 +1523,7 @@ function setupRound(){
  var spots=pickSpots(); var si=0;
  var seekerPos=new THREE.Vector3(SEEKER_SPAWN.x,0,SEEKER_SPAWN.z);
  charObjs.forEach(function(co,idx){
-   co.found=false; co.waveT=0; co.followSeeker=false; co.stallT=0; co.bestD=undefined; co.stallCount=0; co.slotShift=0; co.fStallT=0; co.fLastX=undefined; co.wpKey=null; co.escT=0; co.escCd=0; co.path=null; co.peekPhase=Math.random()*6.28; co.followPath=null; co.followDest=null; co.followRepathT=0; co.followSeekX=undefined; co.followSeekZ=undefined; co.followRot=undefined; co.stuckT=0; co.stuckX=undefined; co.stuckBest=undefined; co._slide=null; co._rebuildCd=0; co.fWinX=undefined;
+   co.found=false; co.waveT=0; co.followSeeker=false; co.stallT=0; co.bestD=undefined; co.stallCount=0; co.slotShift=0; co.fStallT=0; co.fLastX=undefined; co.wpKey=null; co.escT=0; co.escCd=0; co.path=null; co.peekPhase=Math.random()*6.28; co.followPath=null; co.followDest=null; co.followRepathT=0; co.followSeekX=undefined; co.followSeekZ=undefined; co.followRot=undefined; co.stuckT=0; co.stuckX=undefined; co.stuckBest=undefined; co.stuckEsc=0; co._slide=null; co._rebuildCd=0; co.fWinX=undefined;
    co.group.scale.set(1,1,1); co.hideSpotIdx=-1;
    co.group.userData.ring.visible = (idx===round);
    co.isSeeker = (idx===round);
@@ -1728,7 +1750,7 @@ function hideSpotMarkers(){ spotMarkers.forEach(function(m){ m.sprite.visible=fa
 function spotOccupiedByOther(idx){ return charObjs.some(function(co,ci){ return ci!==round && ci!==playerIdx && co.hideSpotIdx===idx; }); }
 function allFreeSpotIdxs(){ var out=[]; HIDE_SPOTS.forEach(function(sp,i){ if(!spotOccupiedByOther(i)) out.push(i); }); return out; }
 function resetCharForRound(co){
- co.found=false; co.waveT=0; co.followSeeker=false; co.stallT=0; co.bestD=undefined; co.stallCount=0; co.fStallT=0; co.fLastX=undefined; co.wpKey=null; co.escT=0; co.escCd=0; co.path=null; co.peekPhase=Math.random()*6.28; co.followPath=null; co.followDest=null; co.followRepathT=0; co.followSeekX=undefined; co.followSeekZ=undefined; co.followRot=undefined; co.stuckT=0; co.stuckX=undefined; co.stuckBest=undefined; co._slide=null; co._rebuildCd=0; co.fWinX=undefined; co.group.scale.set(1,1,1); co.hideSpotIdx=-1;
+ co.found=false; co.waveT=0; co.followSeeker=false; co.stallT=0; co.bestD=undefined; co.stallCount=0; co.fStallT=0; co.fLastX=undefined; co.wpKey=null; co.escT=0; co.escCd=0; co.path=null; co.peekPhase=Math.random()*6.28; co.followPath=null; co.followDest=null; co.followRepathT=0; co.followSeekX=undefined; co.followSeekZ=undefined; co.followRot=undefined; co.stuckT=0; co.stuckX=undefined; co.stuckBest=undefined; co.stuckEsc=0; co._slide=null; co._rebuildCd=0; co.fWinX=undefined; co.group.scale.set(1,1,1); co.hideSpotIdx=-1;
 }
 function setupHideRound(){
  checksDone=0; hideFoundOthers=0; postBothEmpty=0; swapUsed=false; sneakPicking=false; selectedSpot=null; pendingSpotIdx=null; playerSpotIdx=-1; nearEp=false; hideCamMode='seeker'; hideOver=false; aiStage='walk'; aiHasTarget=false; aiChecklist=[]; aiCheckIdx=0;
@@ -1981,7 +2003,7 @@ document.getElementById('photoBtn2').addEventListener('click',function(){ ensure
 
 // ============ CONTROLS ============
 var raycaster=new THREE.Raycaster(); var groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0); var pointerV=new THREE.Vector2();
-var dragging=false, dragMoved=0, lastPX=0;
+var dragging=false, dragMoved=0, lastPX=0, dragId=null;
 function setTargetFromEvent(cx,cy){ var rect=canvas.getBoundingClientRect(); pointerV.x=((cx-rect.left)/rect.width)*2-1; pointerV.y=-((cy-rect.top)/rect.height)*2+1; raycaster.setFromCamera(pointerV,camera); var pt=new THREE.Vector3(); if(raycaster.ray.intersectPlane(groundPlane,pt)){ var c=findFreePoint(pt.x,pt.z,charObjs[round].radius,round);
    // tap-to-move walks AROUND obstacles (and through the front door when the
    // tap crosses the house threshold), never straight through them
@@ -1995,6 +2017,7 @@ function setTargetFromEvent(cx,cy){ var rect=canvas.getBoundingClientRect(); poi
    var route=routePoints(spNow.x,spNow.z,anchors,charObjs[round].radius,null)||[new THREE.Vector3(c.x,0,c.z)];
    seekerTarget=route.length?route[route.length-1]:new THREE.Vector3(c.x,0,c.z);
    seekerPath=route.slice(0,-1);
+   seekerDestX=c.x; seekerDestZ=c.z; seekerDestAge=0; seekerDestStale=0; seekerDestBest=1e9; // the watchdog answers to the TAP point itself, not to any rebuilt route end
    if(charObjs[round]) charObjs[round]._slide=null; // a fresh tap is a fresh intent: any old slide lock belongs to the old destination
    spawnTapRing(pt);} }
 var tapRings=[];
@@ -2002,8 +2025,15 @@ function spawnTapRing(pt){ var r=new THREE.Mesh(new THREE.RingGeometry(0.3,0.45,
  // a little gold star pops up over the tapped spot and fades, so the child
  // clearly sees where her tap landed
  var st=new THREE.Mesh(new THREE.OctahedronGeometry(0.22), new THREE.MeshBasicMaterial({color:0xffb703, transparent:true, opacity:0.95})); st.position.set(pt.x,0.35,pt.z); st.userData.life=0.6; st.userData.kind='star'; scene.add(st); tapRings.push(st); }
-canvas.addEventListener('pointerdown',function(e){ ensureAudio(); startMusic(); dragging=true; dragMoved=0; lastPX=e.clientX; });
-canvas.addEventListener('pointermove',function(e){ if(!dragging) return; var dx=e.clientX-lastPX; lastPX=e.clientX; dragMoved+=Math.abs(dx); if(dragMoved>14){ camYaw -= dx*0.005; } });
+// Camera drag tracks ONE pointer by id, with pointer capture on the canvas.
+// The old handlers took dx from whichever pointer moved last and let ANY
+// pointerup end the drag: when a second finger landed mid-drag (a kid
+// steadying the phone, or tapping with the other hand), lastPX jumped to
+// that finger and the next move spun the camera by the distance BETWEEN
+// the two fingers — the "sometimes the view flips the wrong way" bug —
+// and the second finger's release silently killed the first finger's drag.
+canvas.addEventListener('pointerdown',function(e){ ensureAudio(); startMusic(); if(dragId!==null) return; dragId=(e.pointerId==null?0:e.pointerId); dragging=true; dragMoved=0; lastPX=e.clientX; try{ canvas.setPointerCapture(dragId); }catch(err){} });
+canvas.addEventListener('pointermove',function(e){ if(!dragging || (e.pointerId==null?0:e.pointerId)!==dragId) return; var dx=e.clientX-lastPX; lastPX=e.clientX; if(dx>60) dx=60; else if(dx<-60) dx=-60; dragMoved+=Math.abs(dx); if(dragMoved>14){ camYaw -= dx*0.005; } });
 function pickPlayObject(cx,cy){ var rect=canvas.getBoundingClientRect(); pointerV.x=((cx-rect.left)/rect.width)*2-1; pointerV.y=-((cy-rect.top)/rect.height)*2+1; raycaster.setFromCamera(pointerV,camera);
  if(swingGroup && raycaster.intersectObject(swingGroup,true).length) return 'swing';
  if(slideGroup && raycaster.intersectObject(slideGroup,true).length) return 'slide';
@@ -2012,8 +2042,8 @@ function pickPlayObject(cx,cy){ var rect=canvas.getBoundingClientRect(); pointer
  if(icecreamGroup && raycaster.intersectObject(icecreamGroup,true).length) return 'icecream';
  if(sandboxGroup && raycaster.intersectObject(sandboxGroup,true).length) return 'sandbox';
  return null; }
-canvas.addEventListener('pointerup',function(e){ if(dragging && dragMoved<=14){ if(state==='hideChoose' || sneakPicking){ handleSpotTap(e.clientX,e.clientY); } else if(state==='seeking' && !playMode && gameMode==='seek'){ var po=pickPlayObject(e.clientX,e.clientY); if(po) startPlay(po); else setTargetFromEvent(e.clientX,e.clientY); } } dragging=false; });
-canvas.addEventListener('pointercancel',function(){ dragging=false; });
+canvas.addEventListener('pointerup',function(e){ if((e.pointerId==null?0:e.pointerId)!==dragId) return; if(dragging && dragMoved<=14){ if(state==='hideChoose' || sneakPicking){ handleSpotTap(e.clientX,e.clientY); } else if(state==='seeking' && !playMode && gameMode==='seek'){ var po=pickPlayObject(e.clientX,e.clientY); if(po) startPlay(po); else setTargetFromEvent(e.clientX,e.clientY); } } dragging=false; dragId=null; });
+canvas.addEventListener('pointercancel',function(e){ if((e.pointerId==null?0:e.pointerId)!==dragId) return; dragging=false; dragId=null; });
 window.addEventListener('keydown',function(e){ keys[e.key.toLowerCase()]=true; ensureAudio(); });
 window.addEventListener('keyup',function(e){ keys[e.key.toLowerCase()]=false; });
 // ============ MAIN LOOP ============
@@ -2202,6 +2232,24 @@ function animate(){
      else { sp2.y=Math.sin(t*2.2)*0.04+0.04; }
      seekerWanted=!!(mvx||mvz||seekerTarget||seekerPath.length||seekerEscT>0);
    }
+   // tap-destination watchdog: the hard guarantee behind every softer layer
+   // above. If a tap point has been active for a while AND the seeker has
+   // not managed to get a full unit closer to it for 4.5s, she is wedged in
+   // a way the slides and rebuilds are not solving (a pocket whose mouth
+   // the routes keep re-entering, a doorway her body barely fits, friends
+   // standing in the only gap) — so she sparkles straight to the tap point
+   // and the walk is done. A healthy walk improves the distance steadily
+   // and never trips this; a wedge trips it in seconds instead of forever.
+   if(!playMode && gameMode==='seek' && seekerTarget){
+     seekerDestAge+=dt;
+     var dDw=Math.sqrt((seekerDestX-sp2.x)*(seekerDestX-sp2.x)+(seekerDestZ-sp2.z)*(seekerDestZ-sp2.z));
+     if(dDw<seekerDestBest-1.0){ seekerDestBest=dDw; seekerDestStale=0; } else seekerDestStale+=dt;
+     if(seekerDestAge>4 && seekerDestStale>4.5 && dDw>1.2){
+       var fpW=findFreePoint(seekerDestX,seekerDestZ,seeker.radius,round);
+       burst(new THREE.Vector3(fpW.x,0.7,fpW.z)); sp2.x=fpW.x; sp2.z=fpW.z;
+       seekerTarget=null; seekerPath=[]; seeker._slide=null; seekerDestAge=0; seekerDestStale=0; seekerDestBest=1e9;
+     }
+   } else if(!playMode && !seekerTarget){ seekerDestAge=0; seekerDestStale=0; seekerDestBest=1e9; }
    // universal anti-stuck failsafe for the seeker: only on tap routes (a
    // destination exists only then); if 2.5s pass with no real progress the
    // seeker sparkles partway toward the tap point and the route is rebuilt
