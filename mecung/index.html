@@ -764,7 +764,7 @@ function worldToTile(wx, wz){
 }
 
 /* ================= World building ================= */
-var worldGroup = null, collectibles = [], decorAnim = { clouds: [], butterflies: [], balloons: [], lamps: [], flags: [] };
+var worldGroup = null, collectibles = [], decorAnim = { clouds: [], butterflies: [], balloons: [], lamps: [], flags: [], flowers: null };
 var FLOWER_COLS = [0xff8fc0, 0xffd94d, 0xb98cff, 0xffffff, 0xffa93c];
 function candyHouse(){
   var g = new THREE.Group();
@@ -792,7 +792,7 @@ function buildWorld(levelIdx){
   if (worldGroup) { scene.remove(worldGroup); }
   worldGroup = new THREE.Group(); scene.add(worldGroup);
   collectibles = [];
-  decorAnim = { clouds: [], butterflies: [], balloons: [], lamps: [], flags: [] };
+  decorAnim = { clouds: [], butterflies: [], balloons: [], lamps: [], flags: [], flowers: null };
   var cells = LEVELS[levelIdx];
   var mz = genMaze(cells);
   grid = mz.g; gridSize = mz.size;
@@ -838,20 +838,201 @@ function buildWorld(levelIdx){
   });
   hedgeIM.castShadow = true; hedgeIM.receiveShadow = true; worldGroup.add(hedgeIM);
 
-  /* flowers + leaf puffs on hedges */
-  var flowerSpots = [];
+  /* Blossoms dotted over the hedges: little low-poly flowers, 5 round petals
+     around a contrasting yellow/white centre, with a tiny green leaf or two
+     at the base of the top ones. They grow on hedge TOPS and on the SIDE
+     faces that look onto a corridor, so she sees them walking past, not only
+     from above. Pure decoration: no collision, nothing to pick up, and a
+     flat rosette shape that reads nothing like the stars / hearts / candies
+     on the paths. Placement is seeded per tile + level, so a tile always
+     grows the same flowers. Everything is three InstancedMeshes (petals and
+     leaves share one, centres and stems the others), updated in place for
+     the sway, so even level 3 stays light. */
+  var PETAL_COLS = [0xffb7d5, 0xff5f9e, 0xe23b3b, 0xff8c42, 0xffd94d, 0xffffff, 0xc3a6ff, 0x8fd0ff];
+  var flowerSeedBase = (levelIdx + 1) * 1000003;
+  function tileRng(x, y, salt){
+    var s = (Math.imul(x + 1, 374761393) + Math.imul(y + 1, 668265263) + Math.imul(salt + 1, 974634211) + flowerSeedBase) | 0;
+    return function(){
+      s = (s + 0x6D2B79F5) | 0;
+      var t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  /* mirror of the hedge instance transform above, so blossoms sit exactly
+     on the hedge surface instead of floating or sinking */
+  function hedgeTopY(x, y){ return 0.56 + 0.56 * (0.94 + ((Math.cos(x * 5.3 + y * 2.9) * 0.5 + 0.5) * 0.14)); }
+  function hedgeHalfW(x, y){ return (TILE * 1.02 / 2) * (0.97 + ((Math.sin(x * 3.7 + y * 9.1) * 0.5 + 0.5) * 0.08)); }
+  /* a side blossom must never face the start gate, the candy house, a slide
+     alcove, a landing pad or a decision tile (its turn arrow) */
+  var noSideFace = {};
+  noSideFace[tileKey(startTile.x, startTile.y)] = true;
+  noSideFace[tileKey(goalTile.x, goalTile.y)] = true;
+  slides.forEach(function(sl){
+    noSideFace[tileKey(sl.top.x, sl.top.y)] = true;
+    noSideFace[tileKey(sl.bottom.x, sl.bottom.y)] = true;
+    noSideFace[tileKey(sl.decision.x, sl.decision.y)] = true;
+  });
+  /* chute centrelines (deck point to landing centre): no top blossom may
+     poke up into a chute, and nothing grows right at a landing plunge */
+  var chuteSegs = slides.map(function(sl){
+    var Aw = tileToWorld(sl.top.x, sl.top.y), Bw = tileToWorld(sl.bottom.x, sl.bottom.y);
+    return { x1: Aw.x + (sl.top.x - sl.decision.x) * 0.42, z1: Aw.z + (sl.top.y - sl.decision.y) * 0.42, x2: Bw.x, z2: Bw.z, bx: Bw.x, bz: Bw.z };
+  });
+  function nearChute(x, z, d){
+    for (var i = 0; i < chuteSegs.length; i++)
+      if (pointSegDist(x, z, chuteSegs[i].x1, chuteSegs[i].z1, chuteSegs[i].x2, chuteSegs[i].z2) < d) return true;
+    return false;
+  }
+  function pickBlossom(rng){
+    var petal = PETAL_COLS[Math.floor(rng() * PETAL_COLS.length) % PETAL_COLS.length];
+    var centre = petal === 0xffd94d ? 0xffffff : (petal === 0xffffff ? 0xffd94d : (rng() < 0.6 ? 0xffd94d : 0xffffff));
+    return { petal: petal, centre: centre };
+  }
+  /* Blossoms are BIG now (radius 0.14 to 0.26, about 1.7x the first
+     planting) and they sway gently in the breeze. Each blossom record
+     carries its own seeded sway phase / speed / amplitude, a short stem
+     length, and its base point (x,y,z) ON the hedge surface: the base
+     never moves, the head leans around it on its stem. */
+  var blossoms = []; /* {x,y,z, nx,ny,nz, r, petal, centre, leaves, spin, tilt, stem, swayPh, swaySp, swayAmp} */
+  var dirs4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
   wallTiles.forEach(function(t){
-    if (Math.random() < 0.42) flowerSpots.push(t);
+    var x = t[0], y = t[1], w = tileToWorld(x, y);
+    /* tops: about half the wall tiles grow 1 to 3 blossoms. Skipped beside
+       the start gate and the candy house (their roofs / arches overhang the
+       neighbouring hedges) and anywhere a chute passes overhead. The chute
+       clearance grew with the flowers (0.95 -> 1.30) so a big blossom on
+       its stem can never poke up into a chute or over a landing pad. */
+    var besideGate = (Math.abs(x - startTile.x) + Math.abs(y - startTile.y) === 1) || (Math.abs(x - goalTile.x) + Math.abs(y - goalTile.y) === 1);
+    var rng = tileRng(x, y, 11);
+    if (!besideGate && rng() < 0.42) {
+      var nTop = 1 + Math.floor(rng() * 2.25); /* 1, 2, rarely 3 */
+      var tileTops = [];
+      for (var k = 0; k < nTop; k++) {
+        var fx = w.x + (rng() - 0.5) * 1.25, fz = w.z + (rng() - 0.5) * 1.25;
+        if (nearChute(fx, fz, 1.30)) continue;
+        var pk = pickBlossom(rng);
+        var br = 0.15 + rng() * 0.11; /* 0.15..0.26 */
+        /* keep big siblings on the same tile from overlapping: nudge the
+           newcomer inside its own tile, and shrink it a touch if the tile
+           is crowded, so petals never fuse into one blob */
+        for (var oi = 0; oi < tileTops.length; oi++) {
+          var ob = tileTops[oi];
+          var odx = fx - ob.x, odz = fz - ob.z;
+          var od = Math.hypot(odx, odz), minD = (br + ob.r) * 0.92;
+          if (od >= minD) continue;
+          if (od < 0.001) { odx = (oi % 2 ? 1 : -1) * 0.3; odz = 0.22; od = Math.hypot(odx, odz); }
+          fx = ob.x + odx / od * minD; fz = ob.z + odz / od * minD;
+          fx = Math.max(w.x - 0.58, Math.min(w.x + 0.58, fx));
+          fz = Math.max(w.z - 0.58, Math.min(w.z + 0.58, fz));
+          if (Math.hypot(fx - ob.x, fz - ob.z) < minD) br *= 0.82;
+        }
+        var nb = { x: fx, y: hedgeTopY(x, y) - 0.02, z: fz, nx: 0, ny: 1, nz: 0,
+          r: br, petal: pk.petal, centre: pk.centre,
+          leaves: rng() < 0.7 ? (rng() < 0.3 ? 2 : 1) : 0, spin: rng() * 6.283, tilt: (rng() - 0.5) * 0.45,
+          stem: 0.17 + br * 0.45, swayPh: rng() * 6.283, swaySp: 0.65 + rng() * 0.7, swayAmp: 0.07 + rng() * 0.035 };
+        blossoms.push(nb); tileTops.push(nb);
+      }
+    }
+    /* sides: roughly 3 in 10 corridor-facing faces grow one blossom.
+       They sit a little lower than before (0.40..0.74 plus radius) so a
+       big flower never covers her face when she walks hugging the wall,
+       and the landing-pad clearance grew with the flower size. */
+    for (var di = 0; di < 4; di++) {
+      var nx2 = x + dirs4[di][0], ny2 = y + dirs4[di][1];
+      if (!isOpen(nx2, ny2) || noSideFace[tileKey(nx2, ny2)]) continue;
+      var srng = tileRng(x, y, 31 + di);
+      if (srng() >= 0.26) continue;
+      var hw = hedgeHalfW(x, y);
+      var sx = w.x + dirs4[di][0] * (hw + 0.01), sz = w.z + dirs4[di][1] * (hw + 0.01);
+      var sy = 0.40 + srng() * 0.34;
+      var bad = false; /* keep clear of a slide's plunge into its landing pad */
+      for (var si = 0; si < chuteSegs.length; si++) {
+        var ddx = sx - chuteSegs[si].bx, ddz = sz - chuteSegs[si].bz;
+        if (ddx * ddx + ddz * ddz < 2.56) { bad = true; break; }
+      }
+      if (bad || nearChute(sx, sz, 1.15)) continue;
+      var pk2 = pickBlossom(srng);
+      var br2 = 0.14 + srng() * 0.10; /* 0.14..0.24 */
+      blossoms.push({ x: sx, y: sy, z: sz, nx: dirs4[di][0], ny: 0, nz: dirs4[di][1],
+        r: br2, petal: pk2.petal, centre: pk2.centre,
+        leaves: 0, spin: srng() * 6.283, tilt: (srng() - 0.5) * 0.4,
+        stem: 0.09 + br2 * 0.35, swayPh: srng() * 6.283, swaySp: 0.65 + srng() * 0.7, swayAmp: 0.07 + srng() * 0.035 });
+    }
   });
-  var flowerIM = new THREE.InstancedMesh(new THREE.SphereGeometry(0.09, 8, 6), new THREE.MeshStandardMaterial({ roughness: 0.6 }), Math.max(flowerSpots.length, 1));
-  flowerSpots.forEach(function(t, i){
-    var w = tileToWorld(t[0], t[1]);
-    dummy.position.set(w.x + (Math.random() - 0.5) * 1.3, 1.14 + Math.random() * 0.12, w.z + (Math.random() - 0.5) * 1.3);
-    dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 0.75, 1); dummy.updateMatrix();
-    flowerIM.setMatrixAt(i, dummy.matrix);
-    flowerIM.setColorAt(i, col.setHex(FLOWER_COLS[i % FLOWER_COLS.length]));
+  var petalIM = new THREE.InstancedMesh(new THREE.SphereGeometry(0.5, 7, 5), new THREE.MeshStandardMaterial({ roughness: 0.55 }), Math.max(blossoms.length * 7, 1));
+  var centreIM = new THREE.InstancedMesh(new THREE.SphereGeometry(0.34, 8, 6), new THREE.MeshStandardMaterial({ roughness: 0.5 }), Math.max(blossoms.length, 1));
+  var stemGeo = new THREE.CylinderGeometry(0.85, 1.1, 1, 6); stemGeo.translate(0, 0.5, 0);
+  var stemIM = new THREE.InstancedMesh(stemGeo, new THREE.MeshStandardMaterial({ roughness: 0.7, color: 0x3f9e4d }), Math.max(blossoms.length, 1));
+  petalIM.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  centreIM.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  stemIM.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  /* record each blossom's first petal instance so the sway pass can find it */
+  var petalIdx = 0;
+  blossoms.forEach(function(b){
+    b.petalStart = petalIdx;
+    petalIdx += 5 + b.leaves;
+    b.stemRad = 0.028 + b.r * 0.05;
   });
-  flowerIM.count = flowerSpots.length; worldGroup.add(flowerIM);
+  blossoms.forEach(function(b, bi){
+    for (var pi2 = b.petalStart; pi2 < b.petalStart + 5 + b.leaves; pi2++)
+      petalIM.setColorAt(pi2, col.setHex(pi2 - b.petalStart < 5 ? b.petal : 0x4fae4f));
+    centreIM.setColorAt(bi, col.setHex(b.centre));
+  });
+  petalIM.count = petalIdx; centreIM.count = blossoms.length; stemIM.count = blossoms.length;
+  worldGroup.add(petalIM); worldGroup.add(centreIM); worldGroup.add(stemIM);
+  /* Sway pass, run from the main loop: recomputes every blossom's instance
+     matrices around its FIXED base point. The frame dummy sits at the base
+     (never translated), tilts by the static tilt plus a slow two-axis sway
+     of about 4 to 6 degrees, and the head (petals + centre) rides at the
+     top of the stem in that frame, so the stem foot and the wall anchor
+     stay glued while the head leans. Reused dummies only, no allocation. */
+  var fDummy = new THREE.Object3D(), pDummy = new THREE.Object3D(), sDummy = new THREE.Object3D(), tmpM = new THREE.Matrix4();
+  var UPv = new THREE.Vector3(0, 1, 0), nrmV = new THREE.Vector3();
+  function layoutFlowers(time){
+    for (var bi = 0; bi < blossoms.length; bi++) {
+      var b = blossoms[bi];
+      var headY = b.stem / b.r; /* stem length in the r-scaled local frame */
+      nrmV.set(b.nx, b.ny, b.nz);
+      fDummy.position.set(b.x, b.y, b.z);
+      fDummy.quaternion.setFromUnitVectors(UPv, nrmV);
+      fDummy.rotateY(b.spin);
+      fDummy.rotateX(b.tilt + Math.sin(time * b.swaySp + b.swayPh) * b.swayAmp);
+      fDummy.rotateZ(Math.cos(time * b.swaySp * 0.83 + b.swayPh * 1.37) * b.swayAmp * 0.7);
+      fDummy.scale.set(b.r, b.r, b.r); fDummy.updateMatrix();
+      var pIdx = b.petalStart;
+      for (var p = 0; p < 5; p++) {
+        var pa = p * Math.PI * 2 / 5;
+        pDummy.position.set(Math.cos(pa) * 0.46, headY, Math.sin(pa) * 0.46);
+        pDummy.rotation.set(0, Math.PI / 2 - pa, 0);
+        pDummy.scale.set(0.72, 0.3, 1.05); pDummy.updateMatrix();
+        tmpM.multiplyMatrices(fDummy.matrix, pDummy.matrix);
+        petalIM.setMatrixAt(pIdx++, tmpM);
+      }
+      for (var lf = 0; lf < b.leaves; lf++) {
+        var la = b.spin + lf * 2.4 + 0.7;
+        pDummy.position.set(Math.cos(la) * 0.58, headY * 0.45, Math.sin(la) * 0.58);
+        pDummy.rotation.set(0.5, Math.PI / 2 - la, 0);
+        pDummy.scale.set(0.5, 0.16, 1.15); pDummy.updateMatrix();
+        tmpM.multiplyMatrices(fDummy.matrix, pDummy.matrix);
+        petalIM.setMatrixAt(pIdx++, tmpM);
+      }
+      pDummy.position.set(0, headY + 0.12, 0); pDummy.rotation.set(0, 0, 0);
+      pDummy.scale.set(1, 0.72, 1); pDummy.updateMatrix();
+      tmpM.multiplyMatrices(fDummy.matrix, pDummy.matrix);
+      centreIM.setMatrixAt(bi, tmpM);
+      /* stem: same base, same tilt, grows along the frame's local +Y */
+      sDummy.position.set(b.x, b.y, b.z);
+      sDummy.quaternion.copy(fDummy.quaternion);
+      sDummy.scale.set(b.stemRad, b.stem, b.stemRad); sDummy.updateMatrix();
+      stemIM.setMatrixAt(bi, sDummy.matrix);
+    }
+    petalIM.instanceMatrix.needsUpdate = true;
+    centreIM.instanceMatrix.needsUpdate = true;
+    stemIM.instanceMatrix.needsUpdate = true;
+  }
+  layoutFlowers(0);
+  decorAnim.flowers = { update: layoutFlowers };
   var puffIM = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.34, 0), new THREE.MeshStandardMaterial({ roughness: 0.95, color: 0x6fca6f }), Math.max(wallTiles.length, 1));
   var puffCount = 0;
   wallTiles.forEach(function(t){
@@ -1777,6 +1958,7 @@ function animate(){
     decorAnim.balloons.forEach(function(b){ b.g.position.y = Math.sin(t * 0.9 + b.ph) * 0.35 + 0.2; });
     decorAnim.lamps.forEach(function(l, li){ if (l.material.emissiveIntensity !== undefined) l.material.emissiveIntensity = 0.75 + Math.sin(t * 2.4 + li) * 0.3; });
     decorAnim.flags.forEach(function(f){ f.g.rotation.y = Math.sin(t * 2.6 + f.ph) * 0.35; });
+    if (decorAnim.flowers) decorAnim.flowers.update(t);
 
     /* signs face camera */
     if (worldGroup) {
