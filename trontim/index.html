@@ -208,6 +208,30 @@
     display:none; width:0; height:0;
   }
   ::-webkit-scrollbar-corner{ background:transparent; }
+  /* === Chế độ 3: ĐUA NHAU NÈ (tự động) === */
+  .raceModeBtn{background:linear-gradient(180deg,#ffb703,#ff8c42); box-shadow:0 6px 0 #d96f00, 0 12px 24px rgba(0,0,0,.2); margin-top:10px;}
+  .raceModeBtn:active{box-shadow:0 2px 0 #d96f00;}
+  body.racing .hudPlate{display:none !important;}
+  body.racing #hud{justify-content:flex-end;}
+  #raceHud{position:fixed; top:10px; left:10px; z-index:7; display:flex; flex-direction:column; gap:6px; pointer-events:none; max-width:62vw;}
+  .raceChip{display:flex; align-items:center; gap:7px; background:rgba(255,255,255,.94); border:3px solid #eee; border-radius:999px; padding:4px 12px 4px 6px; font-weight:900; font-size:16px; color:#4a2c5a; box-shadow:0 3px 10px rgba(90,40,120,.16); width:max-content; max-width:62vw;}
+  .raceChip .rPos{display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%; background:#ffd93d; color:#5a3800; font-size:15px; flex:none;}
+  .raceChip .rName{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .raceChip.done{border-color:#ffd93d; background:#fffbe6;}
+  #raceHomeBtn{position:fixed; top:10px; left:50%; transform:translateX(-50%); z-index:7; background:#fff; border:3px solid #ffd93d; color:#7b2d8b; font-size:16px; padding:8px 16px; border-radius:999px; box-shadow:0 4px 0 #f0b429; min-height:44px;}
+  #raceHomeBtn:active{transform:translateX(-50%) translateY(3px); box-shadow:0 1px 0 #f0b429;}
+  #raceCamBtn{position:fixed; top:62px; left:50%; transform:translateX(-50%); z-index:7; background:rgba(255,255,255,.94); border:3px solid #4cc9f0; color:#7b2d8b; font-size:15px; font-weight:900; padding:7px 14px; border-radius:999px; box-shadow:0 4px 0 #2196c9; min-height:44px; white-space:nowrap;}
+  #raceCamBtn:active{transform:translateX(-50%) translateY(3px); box-shadow:0 1px 0 #2196c9;}
+  #raceCamBtn.camMoved{background:#fff3b0; border-color:#ffd93d; box-shadow:0 4px 0 #f0b429;}
+  #raceZoomBtns{position:fixed; top:114px; left:50%; transform:translateX(-50%); z-index:7; display:flex; gap:14px;}
+  .raceZoomBtn{width:48px; height:48px; border-radius:50%; background:rgba(255,255,255,.94); border:3px solid #ff8fab; color:#7b2d8b; font-size:30px; font-weight:900; line-height:1; padding:0 0 4px; box-shadow:0 4px 0 #e56b93; display:flex; align-items:center; justify-content:center;}
+  .raceZoomBtn:active{transform:translateY(3px); box-shadow:0 1px 0 #e56b93;}
+  .raceZoomBtn.dim{opacity:.45;}
+  #raceCount{position:fixed; inset:0; z-index:18; display:flex; align-items:center; justify-content:center; pointer-events:none; font-size:104px; font-weight:900; color:#ff477e; -webkit-text-stroke:3px #fff; text-shadow:0 8px 0 rgba(255,255,255,.85), 0 16px 34px rgba(255,71,126,.4); text-align:center; padding:0 10px;}
+  #raceCount.go{font-size:64px; color:#2fb84d;}
+  @keyframes countPop{0%{transform:scale(.4); opacity:0}35%{transform:scale(1.18); opacity:1}70%{transform:scale(1)}100%{transform:scale(1.02); opacity:1}}
+  #raceCount.pop{animation:countPop .45s ease;}
+  @media(max-width:560px){ #raceCount{font-size:76px;} #raceCount.go{font-size:44px;} .raceChip{font-size:14px; padding:3px 9px 3px 5px;} .raceChip .rPos{width:22px;height:22px;font-size:13px;} }
 </style>
 </head>
 <body>
@@ -257,6 +281,7 @@
     </div>
     <button class="bigBtn" id="startBtn">🔍 Đi Tìm Bạn</button>
     <button class="bigBtn hideModeBtn" id="hideModeBtn">🙈 Bé Trốn Nè!</button>
+    <button class="bigBtn raceModeBtn" id="raceModeBtn">🏁 Đua Nhau Nè!</button>
     <div class="menuRow">
       <button class="menuBtn" id="albumBtn">📖 Album</button>
       <button class="menuBtn" id="wardrobeBtn">👗 Tủ Đồ</button>
@@ -356,6 +381,28 @@
     <div class="wdSection">😎 Đeo mặt</div>
     <div class="wdGrid" id="wdFaceGrid"></div>
     <button class="bigBtn" id="wardrobeCloseBtn">Đóng lại</button>
+  </div>
+</div>
+
+<!-- RACE MODE UI -->
+<div id="raceHud" class="hidden"></div>
+<button id="raceHomeBtn" class="hidden">🏠 Về trang đầu</button>
+<button id="raceCamBtn" class="hidden">🎥 Góc tự động</button>
+<div id="raceZoomBtns" class="hidden"><button id="raceZoomOutBtn" class="raceZoomBtn" aria-label="Zoom xa ra">−</button><button id="raceZoomInBtn" class="raceZoomBtn" aria-label="Zoom lại gần">+</button></div>
+<div id="raceCount" class="hidden"></div>
+
+<!-- RACE RESULT -->
+<div class="overlay hidden" id="raceResultOverlay">
+  <div class="card candyCard">
+    <div class="bannerRibbon">🏁 KẾT QUẢ CUỘC ĐUA 🏁</div>
+    <div style="font-size:52px">🏆🎉🏆</div>
+    <div class="celebrateRow"><span>💙</span><span>🌈</span><span>🌸</span><span>⭐</span></div>
+    <h2 class="rainbowTitle">Cả 4 bạn đều về đích!</h2>
+    <div id="raceResultList"></div>
+    <p id="raceStickerNote" style="font-weight:900; color:#ff477e;"></p>
+    <p style="font-size:19px; font-weight:800;">Bạn nào cũng chạy giỏi hết, vui ơi là vui! 💖</p>
+    <button class="bigBtn green" id="raceAgainBtn">🏁 Đua lại</button>
+    <button class="bigBtn" id="raceHomeBtn2" style="margin-top:10px;">🏠 Về trang đầu</button>
   </div>
 </div>
 
@@ -1476,13 +1523,13 @@ function makeEmojiSprite(emoji,scale){ var cv=document.createElement('canvas'); 
 // Candies scattered in the park during seek-mode rounds: walk within 0.9 of
 // one to pick it up; the total persists in the save across rounds & visits.
 var candies=[];
-function clearCandies(){ candies.forEach(function(c){ scene.remove(c.sp); }); candies=[]; }
+function clearCandies(){ candies.forEach(function(c){ if(c.sp.parent) c.sp.parent.remove(c.sp); }); candies=[]; }
 function spawnCandies(){ clearCandies(); var tries=0; while(candies.length<5 && tries<300){ tries++; var x=(Math.random()*2-1)*21, z=(Math.random()*2-1)*15; if(pointInHouse(x,z,1)) continue; var p=findFreePoint(x,z,0.35,-1); if(Math.abs(p.x-x)>0.6||Math.abs(p.z-z)>0.6) continue; var bad=false;
   charObjs.forEach(function(co,idx){ if(idx===round) return; if(co.target){ var d=Math.sqrt((p.x-co.target.x)*(p.x-co.target.x)+(p.z-co.target.z)*(p.z-co.target.z)); if(d<1.8) bad=true; } });
   candies.forEach(function(c){ var d=Math.sqrt((p.x-c.x)*(p.x-c.x)+(p.z-c.z)*(p.z-c.z)); if(d<2.5) bad=true; });
   if(bad) continue; var sp=makeEmojiSprite('🍬',0.85); sp.position.set(p.x,0.85,p.z); scene.add(sp); candies.push({sp:sp,x:p.x,z:p.z,seed:Math.random()*6}); } }
 function sfxChime(){ if(!soundOn) return; ensureAudio(); tone(1318,0.16,'sine',0.16); tone(1760,0.24,'sine',0.14,0.07); tone(2093,0.3,'triangle',0.1,0.14); }
-function collectCandies(){ if(!candies.length) return; var sp2=charObjs[round].group.position; for(var i=candies.length-1;i>=0;i--){ var c=candies[i]; var d=Math.sqrt((sp2.x-c.x)*(sp2.x-c.x)+(sp2.z-c.z)*(sp2.z-c.z)); if(d<0.9){ scene.remove(c.sp); candies.splice(i,1); SAVE.candy++; persistSave(); updateCandyHud(); sfxChime(); burst(new THREE.Vector3(c.x,0.6,c.z)); toast('🍬 Nhặt được kẹo! Bé có '+SAVE.candy+' viên',1400); } } }
+function collectCandies(){ if(!candies.length) return; var sp2=charObjs[round].group.position; for(var i=candies.length-1;i>=0;i--){ var c=candies[i]; var d=Math.sqrt((sp2.x-c.x)*(sp2.x-c.x)+(sp2.z-c.z)*(sp2.z-c.z)); if(d<0.9){ if(c.sp.parent) c.sp.parent.remove(c.sp); candies.splice(i,1); SAVE.candy++; persistSave(); updateCandyHud(); sfxChime(); burst(new THREE.Vector3(c.x,0.6,c.z)); toast('🍬 Nhặt được kẹo! Bé có '+SAVE.candy+' viên',1400); } } }
 // particles (hearts/stars)
 var particles=[];
 function burst(pos){ var shapes=['❤','⭐','✦','❤','⭐']; for(var i=0;i<14;i++){ var cv=document.createElement('canvas'); cv.width=cv.height=64; var cx=cv.getContext('2d'); cx.font='44px serif'; cx.textAlign='center'; cx.fillStyle=['#ff477e','#ffd93d','#ff8fab','#c77dff'][i%4]; cx.fillText(i%2?'★':'♥',32,44); var tx=new THREE.CanvasTexture(cv); var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx, transparent:true, depthWrite:false})); sp.position.copy(pos); sp.position.y+=1.4; sp.scale.set(0.55,0.55,1); sp.userData={vx:(Math.random()-0.5)*2.4, vy:2+Math.random()*2, vz:(Math.random()-0.5)*2.4, life:1.4}; scene.add(sp); particles.push(sp);} }
@@ -2025,9 +2072,440 @@ function takeGroupPhoto(){
 document.getElementById('photoBtn').addEventListener('click',function(){ ensureAudio(); takeGroupPhoto(); });
 document.getElementById('photoBtn2').addEventListener('click',function(){ ensureAudio(); takeGroupPhoto(); });
 
+// ============ CHẾ ĐỘ 3: ĐUA NHAU NÈ (ĐUA TỰ ĐỘNG) ============
+// All four friends race ONE long lap of a big circuit on a SEPARATE
+// RACE MAP, with NO player control at all: tap-to-move and WASD only
+// act in seek mode, and the race states run in their own animate()
+// branch. Entering the race hides the whole hide-and-seek park (every
+// park object is moved into parkGroup once, then toggled), leaving
+// restores it untouched.
+// THE MAP: a closed circuit of about 162 units (the old front-of-house
+// loop was 22.3 per lap) through themed stretches — a long start
+// straight, wide east curves, a gentle wave along the north, a west
+// leg — roughly 62 x 33 of centre line on its own lawn (about twice
+// the park). One lap only, at dealt finish times of 52-64 s.
+// ANTI-OVERLAP DESIGN (hard placement rule, verified numerically with
+// the game's own three.js over 720 samples x 4 lanes + every item):
+//  * The ribbon is 9.2 wide; the four lanes sit 2.2 apart (offsets
+//    +/-1.1, +/-3.3). The biggest pair of body radii sums to 2.00
+//    (CHAR_RADII 1.02 + 0.98), so two friends running exactly abreast
+//    at FULL size (no shrink any more) keep 0.2 of air, and the
+//    outermost body edge reaches 3.3 + 1.02 = 4.32 < 4.6 ribbon edge.
+//  * EVERY decoration is placed by placeAt() at a measured distance
+//    from the centre line, on one side or the other, so its nearest
+//    edge keeps >= 0.5 of buffer beyond the biggest body edge; the
+//    fixed infield pieces (pond, candy houses, flower garden) and the
+//    grandstand were checked the same way. Gate pillars stand at
+//    +/-5.5 (edge 2.04 from the nearest lane centre) and every arch /
+//    bunting line clears a bouncing head (2.19 + 0.15) by >= 0.6.
+//    Nothing — no post, trunk, cone or sign — ever enters the corridor.
+// Fairness: each racer's progress s counts laps of HER OWN lane, so the
+// longer outer lanes are never a disadvantage. Each race deals the
+// four finish times (52 / 56 / 60 / 64 s, jittered) to the racers in a
+// shuffled order, and each racer's progress curve wiggles around the
+// straight line to her finish time (sparkly fast stretches, brief slow
+// stretches with a little spin) while always ending exactly at her
+// dealt time — so the finishing order is genuinely random every race.
+var raceGroup=null, podiumGroup=null, raceCurve=null, parkGroup=null;
+var RACE_N=720, RACE_LAPS=1, LANE_OFF=[-3.3,-1.1,1.1,3.3], laneSamples=[], raceCenters=[], raceNormals=[], raceClouds=[];
+var racers=[], raceT=0, raceCountT=0, raceLastPhase=-1, raceGoT=0, raceEndWait=0, raceBubbleT=0, raceHudT=0, raceLapShown=0;
+// Race camera: the view still auto-follows the pack every frame, but the
+// player may drag to add their own angle on top of that follow angle. The
+// offset PERSISTS after the finger lifts (no spring-back). The vertical
+// drag tilts the GAZE: drag UP and the camera sinks toward the pack's
+// level so the view tips up toward the track ahead; drag DOWN and the
+// camera climbs for a top-down overview. (The first version did the
+// opposite — drag up raised the camera body and tipped the gaze down —
+// which felt backwards, like an inverted mouse.) A two-finger pinch,
+// the mouse wheel or the + / − buttons zoom the follow distance in and
+// out. Angle, tilt and zoom all reset at the start of every race (or
+// via the "Góc tự động" button).
+var raceCamYawOffset=0, raceCamLift=0, raceCamZoom=1;
+var RACE_CAM_LIFT_MIN=-4.0, RACE_CAM_LIFT_MAX=2.4;
+var RACE_ZOOM_MIN=0.55, RACE_ZOOM_MAX=1.6;
+function raceCamActive(){ return gameMode==='race' && (state==='raceCountdown'||state==='racing'); }
+function updateRaceCamBtn(){ var b=document.getElementById('raceCamBtn'); if(b){ var moved=Math.abs(raceCamYawOffset)>0.02||Math.abs(raceCamLift)>0.05||Math.abs(raceCamZoom-1)>0.02; if(moved) b.classList.add('camMoved'); else b.classList.remove('camMoved'); }
+ var zi=document.getElementById('raceZoomInBtn'), zo=document.getElementById('raceZoomOutBtn');
+ if(zi) zi.classList.toggle('dim', raceCamZoom<=RACE_ZOOM_MIN+0.001);
+ if(zo) zo.classList.toggle('dim', raceCamZoom>=RACE_ZOOM_MAX-0.001); }
+function resetRaceCam(){ raceCamYawOffset=0; raceCamLift=0; raceCamZoom=1; updateRaceCamBtn(); }
+// One drag step of the race camera, shared by the pointer handler and the
+// test hooks so both go through the exact same clamps.
+function applyRaceCamDrag(dx,dy){
+ raceCamYawOffset -= dx*0.0052;
+ while(raceCamYawOffset>Math.PI) raceCamYawOffset-=Math.PI*2;
+ while(raceCamYawOffset<-Math.PI) raceCamYawOffset+=Math.PI*2;
+ raceCamLift += dy*0.045; // drag up (dy<0) lowers the camera so the gaze tips UP; drag down raises it for an overview
+ if(raceCamLift<RACE_CAM_LIFT_MIN) raceCamLift=RACE_CAM_LIFT_MIN;
+ if(raceCamLift>RACE_CAM_LIFT_MAX) raceCamLift=RACE_CAM_LIFT_MAX;
+ updateRaceCamBtn();
+}
+// One zoom step: factor < 1 brings the camera closer, > 1 pulls it back.
+// Shared by pinch, the wheel, the + / − buttons and the test hooks, so
+// every input goes through the exact same clamp.
+function applyRaceCamZoom(f){
+ if(!f || f<=0) return;
+ raceCamZoom*=f;
+ if(raceCamZoom<RACE_ZOOM_MIN) raceCamZoom=RACE_ZOOM_MIN;
+ if(raceCamZoom>RACE_ZOOM_MAX) raceCamZoom=RACE_ZOOM_MAX;
+ updateRaceCamBtn();
+}
+// Zooming in also widens the lens a touch, so the whole pack stays in
+// frame even at the closest distance; leaving the race views restores 55.
+function applyRaceCamFov(){
+ var f=55+Math.max(0,1-raceCamZoom)*18;
+ if(Math.abs(camera.fov-f)>0.01){ camera.fov=f; camera.updateProjectionMatrix(); }
+}
+function resetCamFov(){ if(Math.abs(camera.fov-55)>0.01){ camera.fov=55; camera.updateProjectionMatrix(); } }
+// Rotate an (x,z) offset around the pack by the player's added yaw, using
+// the same Y-rotation convention as the seek camera (offset = RotY(yaw)).
+function raceCamRotate(ox,oz){ var c=Math.cos(raceCamYawOffset), s=Math.sin(raceCamYawOffset); return {x:ox*c+oz*s, z:-ox*s+oz*c}; }
+var raceFinishOrder=[], raceTimeScale=1;
+var RACE_PHRASES=['Nhanh lên!','Chờ tớ với!','Vui quá!','Cố lên nào!','Hi hi, nhanh thật!','Tớ tới đây!','Đua vui quá!'];
+var RACE_CSS=['#8fd3f4','#ff8fab','#ff2e93','#ffd93d'];
+var RACE_SLOTS=[[-24,23.5],[-16,23.5],[-26.5,24.2],[-13.5,24.2]]; // finish-area spots on the grass south of the start straight, centre slots dealt first
+var RACE_PODIUM=[[-8,0.95,26],[-11,0.65,26],[-5,0.4,26],[-1.5,0,26.3]]; // podium on the lawn south of the track, clear of every lane
+// Hide / show the whole hide-and-seek park: on the first race, every
+// scene child that is not a light, a character or a race object is
+// moved into parkGroup (identity transform, so nothing shifts), and
+// from then on the two maps are toggled, never shown together.
+function setParkVisible(v){
+ if(!parkGroup){
+   parkGroup=new THREE.Group(); scene.add(parkGroup);
+   var keep=[];
+   scene.children.slice().forEach(function(ch){
+     if(ch===parkGroup || ch===raceGroup || ch===podiumGroup) return;
+     if(ch.isLight) return;
+     var isChar=false; charObjs.forEach(function(co){ if(co.group===ch) isChar=true; });
+     if(!isChar) keep.push(ch);
+   });
+   keep.forEach(function(ch){ parkGroup.add(ch); });
+ }
+ parkGroup.visible=v;
+ if(houseLight) houseLight.visible=v;
+}
+function raceStripeTexture(c1,c2){ var cv=document.createElement('canvas'); cv.width=64; cv.height=64; var cx=cv.getContext('2d'); cx.fillStyle=c1; cx.fillRect(0,0,64,64); cx.fillStyle=c2; for(var s=-2;s<6;s++){ cx.save(); cx.translate(s*16,0); cx.rotate(0.5); cx.fillRect(0,-20,8,110); cx.restore(); } var tx=new THREE.CanvasTexture(cv); tx.wrapS=tx.wrapT=THREE.RepeatWrapping; tx.repeat.set(1,3); return tx; }
+function raceTrackTexture(){ var cv=document.createElement('canvas'); cv.width=256; cv.height=256; var cx=cv.getContext('2d');
+ cx.fillStyle='#ffeecb'; cx.fillRect(0,0,256,256); // pink-cream strip
+ cx.fillStyle='#ffd9e8'; cx.fillRect(0,0,256,14); cx.fillRect(0,242,256,14); // soft pink edges
+ cx.fillStyle='#ff8fab'; cx.fillRect(0,14,256,5); cx.fillRect(0,237,256,5);
+ cx.strokeStyle='rgba(255,255,255,.95)'; cx.lineWidth=5; cx.setLineDash([18,14]); // dashed lane dividers
+ [64,128,192].forEach(function(y){ cx.beginPath(); cx.moveTo(0,y); cx.lineTo(256,y); cx.stroke(); });
+ cx.setLineDash([]);
+ var dotCols=['#6ec6f0','#ff8fab','#ff2e93','#ffd93d']; // one coloured dot row per lane
+ [32,96,160,224].forEach(function(y,li){ cx.fillStyle=dotCols[li]; for(var x=20;x<256;x+=52){ cx.beginPath(); cx.arc(x,y,6,0,Math.PI*2); cx.fill(); } });
+ var tx=new THREE.CanvasTexture(cv); tx.wrapS=tx.wrapT=THREE.RepeatWrapping; return tx; }
+function raceCheckerTexture(){ var cv=document.createElement('canvas'); cv.width=cv.height=128; var cx=cv.getContext('2d'); for(var y=0;y<4;y++) for(var x=0;x<8;x++){ cx.fillStyle=(x+y)%2?'#4a2c5a':'#ffffff'; cx.fillRect(x*16,y*32,16,32); } return new THREE.CanvasTexture(cv); }
+function buildRaceTrack(){
+ if(raceGroup) return;
+ raceGroup=new THREE.Group(); raceGroup.visible=false; scene.add(raceGroup);
+ // widen the sun's shadow frustum once, so the big race map is covered
+ // (the park keeps working: a 2048 map over the wider frustum stays crisp)
+ if(sun.shadow.camera.left>-55){ sun.shadow.camera.left=-55; sun.shadow.camera.right=55; sun.shadow.camera.top=55; sun.shadow.camera.bottom=-55; sun.shadow.mapSize.set(2048,2048); if(sun.shadow.map){ sun.shadow.map.dispose(); sun.shadow.map=null; } sun.shadow.camera.updateProjectionMatrix(); }
+ // the race map's own ground: a wide lawn with a lighter infield tone
+ var rg=new THREE.Mesh(new THREE.PlaneGeometry(150,110), mat(0x5fe07a,1)); rg.rotation.x=-Math.PI/2; rg.position.y=-0.03; rg.receiveShadow=true; raceGroup.add(rg);
+ var rg2=new THREE.Mesh(new THREE.PlaneGeometry(104,74), mat(0x74ec7e,1)); rg2.rotation.x=-Math.PI/2; rg2.position.y=-0.015; rg2.receiveShadow=true; raceGroup.add(rg2);
+ // Closed circuit, start/finish on the long south straight, running
+ // east: long start straight, wide east curves, a gentle wave along
+ // the north side, then the west leg back down. 'centripetal' keeps
+ // the spline from overshooting, so the sampled corridor below is the
+ // corridor the friends actually run.
+ var rawPts=[[-20,17],[-6,17.4],[8,17.2],[20,16.2],[28,12.5],[31.5,5],[31,-4],[26.5,-10.5],[17,-14.2],[7,-12.2],[-3,-15],[-13,-12.6],[-23,-10.8],[-29.5,-4.5],[-30.5,4],[-28,11.5]];
+ var pts=rawPts.map(function(p){ return new THREE.Vector3(p[0],0,p[1]); });
+ raceCurve=new THREE.CatmullRomCurve3(pts,true,'centripetal');
+ raceCenters=[]; raceNormals=[];
+ for(var i=0;i<RACE_N;i++){ var u=i/RACE_N; var p=raceCurve.getPointAt(u); var tg=raceCurve.getTangentAt(u); var nl=Math.sqrt(tg.z*tg.z+tg.x*tg.x)||1; raceCenters.push(p); raceNormals.push({x:tg.z/nl, z:-tg.x/nl}); }
+ laneSamples=LANE_OFF.map(function(off){ var arr=[]; for(var i2=0;i2<RACE_N;i2++) arr.push(new THREE.Vector3(raceCenters[i2].x+raceNormals[i2].x*off, 0, raceCenters[i2].z+raceNormals[i2].z*off)); return arr; });
+ // ribbon strip, 9.2 wide: outer body edge (4.32) stays on the track
+ var posArr=[], uvArr=[], idxArr=[];
+ for(var s2=0;s2<=RACE_N;s2++){ var ii=s2%RACE_N; var c=raceCenters[ii], n=raceNormals[ii];
+   posArr.push(c.x+n.x*4.6, 0.05, c.z+n.z*4.6, c.x-n.x*4.6, 0.05, c.z-n.z*4.6);
+   uvArr.push(s2/RACE_N*420, 0, s2/RACE_N*420, 1);
+   if(s2<RACE_N){ var a=s2*2; idxArr.push(a,a+1,a+2, a+1,a+3,a+2); } }
+ var geo=new THREE.BufferGeometry();
+ geo.setAttribute('position', new THREE.Float32BufferAttribute(posArr,3));
+ geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvArr,2));
+ geo.setIndex(idxArr); geo.computeVertexNormals();
+ var ribbon=new THREE.Mesh(geo, new THREE.MeshStandardMaterial({map:raceTrackTexture(), roughness:0.95, side:THREE.DoubleSide}));
+ ribbon.receiveShadow=true; raceGroup.add(ribbon);
+ // placeAt(u, side, dist): a point dist from the centre line at lap
+ // fraction u; side +1 = outside of the loop, -1 = infield. THE hard
+ // placement rule: every decoration goes through here (or was checked
+ // by hand against all 4 lanes), with dist >= ribbon half width 4.6
+ // + the item's own radius + a clear buffer, so nothing ever touches
+ // the corridor the friends run in.
+ function placeAt(u,side,dist){ var i3=Math.round(u*RACE_N)%RACE_N; var p=raceCenters[i3], n=raceNormals[i3]; var ox=n.x, oz=n.z; if(p.x*ox+p.z*oz<0){ ox=-ox; oz=-oz; } return {x:p.x+ox*side*dist, z:p.z+oz*side*dist, ox:ox*side, oz:oz*side, cx:p.x, cz:p.z}; }
+ // gates: pillars at +/-5.5 — outside the ribbon edge (4.6) with the
+ // pillar's own radius to spare — and arches sized so the underside
+ // clears a bouncing head everywhere over the lanes
+ function gateGroup(u){ var p=raceCurve.getPointAt(u); var tg=raceCurve.getTangentAt(u); var g=new THREE.Group(); g.position.set(p.x,0,p.z); g.rotation.y=Math.atan2(tg.x,tg.z); raceGroup.add(g); return g; }
+ var sg=gateGroup(0);
+ var chk=new THREE.Mesh(new THREE.PlaneGeometry(9.6,1.6), new THREE.MeshStandardMaterial({map:raceCheckerTexture(), roughness:0.9}));
+ chk.rotation.x=-Math.PI/2; chk.position.y=0.07; chk.receiveShadow=true; sg.add(chk);
+ var caneMatR=new THREE.MeshStandardMaterial({map:raceStripeTexture('#ffffff','#ff3b5c'), roughness:0.55});
+ [-5.5,5.5].forEach(function(px){ var col=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,4.6,12), caneMatR); col.position.set(px,2.3,0); col.castShadow=true; sg.add(col); sph(0.2,0xffffff,px,4.75,0,sg); });
+ [0xff477e,0xffd93d,0x2fb84d].forEach(function(col2,ri){ var arc=new THREE.Mesh(new THREE.TorusGeometry(5.85-ri*0.3,0.14,10,32,Math.PI), mat(col2,0.6)); arc.castShadow=true; sg.add(arc); }); // rainbow arch: underside >= 2.98 over the outermost body edge, head tops out at 2.34
+ // balloon gate (east leg)
+ var bg=gateGroup(0.30);
+ [-5.5,5.5].forEach(function(px){ cyl(0.08,0.08,4.4,0xff8fab,px,2.2,0,bg); });
+ var bCols=[0xff5e8a,0xffd93d,0x4cc9f0,0x6dd66d,0xff9f45,0xc77dff,0xff8fab];
+ for(var bi=0;bi<7;bi++){ var ba=Math.PI*(0.10+0.80*bi/6); sph(0.36,bCols[bi],Math.cos(ba)*5.5,Math.sin(ba)*5.5,0,bg); }
+ // flower gate (north wave)
+ var fg=gateGroup(0.55);
+ [-5.5,5.5].forEach(function(px){ cyl(0.08,0.08,4.4,0x3ee673,px,2.2,0,fg); });
+ var fCols=[0xff6b9d,0xffd93d,0xffffff,0xff9f2e,0xc77dff];
+ for(var fi=0;fi<9;fi++){ var fa=Math.PI*(0.08+0.84*fi/8); var fx=Math.cos(fa)*5.5, fy=Math.sin(fa)*5.5; sph(0.24,fCols[fi%5],fx,fy,0,fg); sph(0.1,0xfff3b0,fx,fy,0.22,fg); }
+ // bunting-flag gate (west leg) — the flag line sags to 4.14 at the
+ // outer lane, flags hang 0.44 below it: still 1.3+ over a head
+ var ug=gateGroup(0.78);
+ [-5.5,5.5].forEach(function(px){ cyl(0.07,0.07,4.4,0xffffff,px,2.2,0,ug); });
+ var flagCols=[0xff477e,0xffd93d,0x2fb84d,0x4cc9f0,0xc77dff,0xff9f2e,0xff8fab];
+ for(var fi2=0;fi2<9;fi2++){ var fx2=-4.9+fi2*(9.8/8); var fy2=4.35-(1-(fx2/5.5)*(fx2/5.5))*0.55; var fl=box(0.38,0.46,0.04,flagCols[fi2%7],fx2,fy2-0.25,0,ug); fl.rotation.z=(fi2%2?0.1:-0.1); }
+ // candy lamps along BOTH sides, alternating (footprint r 0.35 at 6.1)
+ var lampCols=[0xff5e8a,0xffd93d,0x4cc9f0,0xff9f45];
+ for(var lk=0;lk<16;lk++){ var lp=placeAt(lk/16+0.03, lk%2?1:-1, 6.1); cyl(0.06,0.08,1.5,0xffffff,lp.x,0.75,lp.z,raceGroup); sph(0.3,lampCols[lk%4],lp.x,1.68,lp.z,raceGroup); }
+ // candy cones, outside edge only (r 0.32 at 5.8)
+ [0.075,0.20,0.325,0.45,0.575,0.70,0.825,0.95].forEach(function(cu,ck){ var cp=placeAt(cu,1,5.8); var cone=new THREE.Mesh(new THREE.ConeGeometry(0.3,0.72,12), mat(ck%2?0xff8fab:0xff9f45,0.7)); cone.position.set(cp.x,0.36,cp.z); cone.castShadow=true; raceGroup.add(cone); sph(0.14,0xffffff,cp.x,0.8,cp.z,raceGroup); });
+ // flower beds (r 1.7 at 8.4, both sides)
+ [[0.13,1],[0.30,-1],[0.47,1],[0.635,-1],[0.72,1],[0.845,-1]].forEach(function(bs){ var bp=placeAt(bs[0],bs[1],8.4); var mound=sph(1.55,0x3ee673,bp.x,0,bp.z,raceGroup); mound.scale.y=0.32; var fc2=[0xff5e9c,0xffd93d,0xff9f2e,0xb678ff,0xffffff,0xff6b9d,0x4cc9f0]; for(var bf=0;bf<7;bf++){ var ba2=bf/7*Math.PI*2; sph(0.14,fc2[bf%7],bp.x+Math.cos(ba2)*0.95,0.5,bp.z+Math.sin(ba2)*0.95,raceGroup); } sph(0.16,0xffd93d,bp.x,0.56,bp.z,raceGroup); });
+ // trees (canopy r ~1.7 at 11, both sides)
+ [[0.08,-1],[0.22,1],[0.38,1],[0.52,-1],[0.66,1],[0.93,1]].forEach(function(ts){ var tp=placeAt(ts[0],ts[1],11); var s=1.1; cyl(0.3*s,0.38*s,1.9*s,0xb07a45,tp.x,0.95*s,tp.z,raceGroup); sph(1.5*s,0x2fe06a,tp.x,3.0*s,tp.z,raceGroup); sph(1.0*s,0x5df07e,tp.x-0.95*s,2.4*s,tp.z+0.2,raceGroup); sph(0.95*s,0x5df07e,tp.x+0.95*s,2.5*s,tp.z-0.2,raceGroup); sph(0.16,0xff5a76,tp.x+0.7*s,2.7*s,tp.z+1.25*s,raceGroup); });
+ // cheering signs facing the track (r 0.55 at 6.5)
+ var signTexts=['Cố lên!','Nhanh lên!','Tuyệt vời!','Đua vui quá!'];
+ [[0.18,1],[0.42,-1],[0.68,1],[0.90,-1]].forEach(function(ss,si){ var sp2=placeAt(ss[0],ss[1],6.5); var g2=new THREE.Group(); g2.position.set(sp2.x,0,sp2.z); g2.rotation.y=Math.atan2(sp2.cx-sp2.x, sp2.cz-sp2.z); raceGroup.add(g2); cyl(0.05,0.05,1.1,0x9c6644,-0.4,0.55,0,g2); cyl(0.05,0.05,1.1,0x9c6644,0.4,0.55,0,g2);
+   var cv=document.createElement('canvas'); cv.width=256; cv.height=128; var cx2=cv.getContext('2d'); cx2.fillStyle='#fff7fb'; cx2.fillRect(0,0,256,128); cx2.strokeStyle='#ff477e'; cx2.lineWidth=10; cx2.strokeRect(5,5,246,118); cx2.fillStyle='#c9184a'; cx2.font='900 44px sans-serif'; cx2.textAlign='center'; cx2.fillText(signTexts[si],128,80);
+   var board=new THREE.Mesh(new THREE.BoxGeometry(1.7,0.85,0.07), new THREE.MeshStandardMaterial({map:new THREE.CanvasTexture(cv), roughness:0.8})); board.position.y=1.45; board.castShadow=true; g2.add(board); });
+ // balloon clusters (r 0.9 at 7.8)
+ [[0.26,-1],[0.55,1],[0.84,1]].forEach(function(bs2){ var bp2=placeAt(bs2[0],bs2[1],7.8); cyl(0.05,0.05,2.0,0x9c6644,bp2.x,1.0,bp2.z,raceGroup); var bc2=[0xff5e8a,0xffd93d,0x4cc9f0,0x6dd66d,0xff9f45]; for(var bb=0;bb<5;bb++){ var ba3=bb/5*Math.PI*2; sph(0.32,bc2[bb],bp2.x+Math.cos(ba3)*0.42,2.45+((bb%2)*0.25),bp2.z+Math.sin(ba3)*0.42,raceGroup); } });
+ // infield pond with lilies (centre (8,-2), r 4.6 — checked clear of
+ // every lane: the nearest lane centre is 9.4 away)
+ var pond=cyl(4.6,4.6,0.1,0x6fd3ff,8,0.05,-2,raceGroup); pond.castShadow=false;
+ sph(0.3,0x3ee673,6.4,0.16,-3.4,raceGroup); sph(0.26,0x3ee673,9.8,0.16,-0.6,raceGroup); sph(0.13,0xff8fab,6.4,0.3,-3.4,raceGroup); sph(0.12,0xffd93d,9.8,0.3,-0.6,raceGroup);
+ // infield candy village: three mushroom houses west of the pond
+ [[-16,-1,1.15,0xff5a76],[-21.5,4.5,0.95,0xff9f45],[-12.5,5,0.85,0xc77dff]].forEach(function(h){ var hs=h[2]; cyl(0.24*hs,0.32*hs,0.75*hs,0xfff3d6,h[0],0.37*hs,h[1],raceGroup); var cap=new THREE.Mesh(new THREE.SphereGeometry(0.8*hs,16,10,0,Math.PI*2,0,Math.PI/2), mat(h[3])); cap.position.set(h[0],0.72*hs,h[1]); cap.castShadow=true; raceGroup.add(cap); sph(0.1*hs,0xffffff,h[0]+0.32*hs,1.2*hs,h[1]+0.45*hs,raceGroup); });
+ // infield flower garden (centre (0,3), r 3.0)
+ var gm=sph(1.1,0x3ee673,0,0,3,raceGroup); gm.scale.y=0.4;
+ for(var gf=0;gf<10;gf++){ var ga=gf/10*Math.PI*2; sph(0.15,[0xff5e9c,0xffd93d,0xffffff,0xff9f2e,0xb678ff][gf%5],Math.cos(ga)*2.2,0.3,3+Math.sin(ga)*2.2,raceGroup); }
+ // grandstand outside the south straight, east of the podium lawn:
+ // three candy steps facing the track (centre (24,28.5), r 4.2)
+ (function(){ var g=new THREE.Group(); g.position.set(24,0,28.5); raceGroup.add(g);
+   box(7.5,0.55,1.6,0xffc2d4,0,0.28,1.8,g); box(7.5,1.1,1.6,0xffd93d,0,0.55,0.2,g); box(7.5,1.65,1.6,0xff8fab,0,0.83,-1.4,g);
+   [-3.4,3.4].forEach(function(px){ cyl(0.07,0.07,3.1,0xffffff,px,1.55,-1.9,g); });
+   var roof=box(7.9,0.12,2.6,0xff477e,0,3.15,-1.2,g); roof.rotation.x=0.16;
+   for(var gf2=0;gf2<7;gf2++){ sph(0.22,[0xff5e8a,0xffd93d,0x4cc9f0,0x6dd66d,0xff9f45,0xc77dff,0xff8fab][gf2],-3+gf2,2.05,0.2,g); } })();
+ // perimeter fence of the race garden
+ (function(){ var fm=mat(0xffffff); var fx=46, fz=33;
+   for(var px2=-fx;px2<=fx;px2+=5.75){ box(0.18,1,0.18,0xffffff,px2,0.5,-fz,raceGroup).material=fm; box(0.18,1,0.18,0xffffff,px2,0.5,fz,raceGroup).material=fm; }
+   for(var pz2=-fz;pz2<=fz;pz2+=5.5){ box(0.18,1,0.18,0xffffff,-fx,0.5,pz2,raceGroup).material=fm; box(0.18,1,0.18,0xffffff,fx,0.5,pz2,raceGroup).material=fm; }
+   var r1=box(fx*2,0.12,0.12,0xffffff,0,0.85,-fz,raceGroup); r1.material=fm; var r2=r1.clone(); r2.position.z=fz; raceGroup.add(r2); var r3=box(0.12,0.12,fz*2,0xffffff,-fx,0.85,0,raceGroup); r3.material=fm; var r4=r3.clone(); r4.position.x=fx; raceGroup.add(r4); })();
+ // a few clouds over the race garden
+ raceClouds=[];
+ for(var ci2=0;ci2<4;ci2++){ var cg=new THREE.Group(); sph(1.7,0xffffff,-1.5,0,0,cg); sph(2.2,0xffffff,0,0.3,0,cg); sph(1.6,0xffffff,1.6,0,0,cg); cg.position.set(-36+ci2*24, 14+((ci2*7)%3), -20+((ci2*13)%26)); cg.traverse(function(o){ o.castShadow=false; }); raceGroup.add(cg); raceClouds.push(cg); }
+ // podium (shown at the results, on the lawn south of the start
+ // straight, clear of every lane — see RACE_PODIUM)
+ podiumGroup=new THREE.Group(); podiumGroup.visible=false; scene.add(podiumGroup);
+ box(1.9,0.95,1.9,0xffd93d,-8,0.475,26,podiumGroup);
+ box(1.9,0.65,1.9,0xffc2d4,-11,0.325,26,podiumGroup);
+ box(1.9,0.4,1.9,0xffb27a,-5,0.2,26,podiumGroup);
+ sph(0.16,0xff477e,-8.6,1.12,26,podiumGroup); sph(0.16,0x4cc9f0,-7.4,1.12,26,podiumGroup); sph(0.16,0x2fb84d,-8,1.2,26,podiumGroup);
+}
+function racePosAt(lane,s){ var arr=laneSamples[lane]; var f=(((s%1)+1)%1)*RACE_N; var i0=Math.floor(f)%RACE_N, i1=(i0+1)%RACE_N, fr=f-Math.floor(f);
+ var p=new THREE.Vector3().lerpVectors(arr[i0],arr[i1],fr);
+ var d=new THREE.Vector3().subVectors(arr[(i0+2)%RACE_N],arr[(i0+RACE_N-2)%RACE_N]); d.y=0;
+ return {pos:p, dir:d.normalize()}; }
+function raceProgress(r,t){ if(t>=r.T) return RACE_LAPS; var u=t/r.T; var s=u + 0.022*Math.sin(Math.PI*4*u+r.p1)*Math.sin(Math.PI*u) + 0.012*Math.sin(Math.PI*6*u+r.p2)*Math.sin(Math.PI*u)*Math.sin(Math.PI*u); return Math.max(0,Math.min(1,s))*RACE_LAPS; }
+function spawnTrailStar(pos){ var cv=document.createElement('canvas'); cv.width=cv.height=48; var cx=cv.getContext('2d'); cx.font='36px serif'; cx.textAlign='center'; cx.fillStyle='#ffd93d'; cx.fillText('★',24,36); var tx=new THREE.CanvasTexture(cv); var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx, transparent:true, depthWrite:false})); sp.position.copy(pos); sp.position.y+=0.7; sp.scale.set(0.4,0.4,1); sp.userData={vx:(Math.random()-0.5)*0.8, vy:0.7+Math.random()*0.7, vz:(Math.random()-0.5)*0.8, life:0.7}; scene.add(sp); particles.push(sp); }
+function updateRaceHud(){
+ var hudR=document.getElementById('raceHud'); if(!hudR) return;
+ var order=[0,1,2,3].sort(function(a,b){ var ra=racers[a], rb=racers[b]; if(!ra||!rb) return 0; if(ra.finished&&rb.finished) return ra.finishIdx-rb.finishIdx; if(ra.finished) return -1; if(rb.finished) return 1; return rb.s-ra.s; });
+ hudR.innerHTML='';
+ order.forEach(function(idx,pos){ var r=racers[idx]; var d=document.createElement('div'); d.className='raceChip'+(r&&r.finished?' done':''); d.style.borderColor=RACE_CSS[idx];
+   d.innerHTML='<span class="rPos">'+(pos+1)+'</span><span>'+CHARS[idx].emoji+'</span><span class="rName">'+CHARS[idx].name+'</span>'+(r&&r.finished?'<span>🏁</span>':'');
+   hudR.appendChild(d); });
+}
+function placeRacerAtStart(idx){ var r=racers[idx]; var st=racePosAt(r.lane,0); var co=charObjs[idx]; co.group.position.set(st.pos.x,0,st.pos.z); co.group.rotation.y=Math.atan2(st.dir.x,st.dir.z); }
+function startRace(){
+ ensureAudio(); startMusic();
+ buildRaceTrack();
+ gameMode='race'; playMode=null;
+ setParkVisible(false); // the whole park goes away; only the race map shows
+ scene.fog.far=190; // the big map's far fence stays soft, not clipped
+ raceGroup.visible=true; podiumGroup.visible=false;
+ clearCandies(); hideSpotMarkers();
+ document.getElementById('startOverlay').classList.add('hidden');
+ document.getElementById('raceResultOverlay').classList.add('hidden');
+ document.getElementById('roundOverlay').classList.add('hidden');
+ document.getElementById('endOverlay').classList.add('hidden');
+ document.getElementById('hideResultOverlay').classList.add('hidden');
+ document.getElementById('hideEndOverlay').classList.add('hidden');
+ document.getElementById('spotPanel').classList.add('hidden');
+ document.getElementById('hideBar').classList.add('hidden'); document.getElementById('swapNote').classList.add('hidden');
+ bottomBar.classList.add('hidden'); moveHint.classList.add('hidden');
+ hud.classList.remove('hidden'); document.body.classList.add('racing');
+ document.getElementById('raceHud').classList.remove('hidden');
+ document.getElementById('raceHomeBtn').classList.remove('hidden');
+ resetRaceCam(); // every race starts from the default follow angle
+ document.getElementById('raceCamBtn').classList.remove('hidden');
+ document.getElementById('raceZoomBtns').classList.remove('hidden');
+ // deal the lanes and the finish times in shuffled order: no fixed edge
+ var lanes=[0,1,2,3], times=[52,56,60,64];
+ for(var i=3;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t1=lanes[i]; lanes[i]=lanes[j]; lanes[j]=t1; var t2=times[i]; times[i]=times[j]; times[j]=t2; }
+ racers=[]; raceFinishOrder=[];
+ for(var ci=0;ci<4;ci++){ racers.push({lane:lanes[ci], T:times[ci]+(Math.random()*1.2-0.6), p1:Math.random()*6.28, p2:Math.random()*6.28, s:0, prevS:0, factor:1, finished:false, finishIdx:-1, finishTime:0, spinT:0, spinCd:2+Math.random()*4, spinAngle:0, slot:null});
+   var co=charObjs[ci]; co.found=false; co.followSeeker=false; co.target=null; co.path=null; co.followPath=null; co.waveT=0; co.group.scale.set(1,1,1); co.group.userData.ring.visible=false; co.group.position.y=0;
+   placeRacerAtStart(ci); }
+ raceT=0; raceCountT=0; raceLastPhase=-1; raceGoT=0; raceEndWait=0; raceBubbleT=2.2; raceHudT=0; raceLapShown=0;
+ state='raceCountdown';
+ var rc=document.getElementById('raceCount'); rc.textContent=''; rc.classList.remove('hidden','go');
+ updateRaceHud();
+ sfxPop();
+}
+function finishRacer(idx){
+ var r=racers[idx]; r.finished=true; r.s=RACE_LAPS; r.finishTime=raceT; r.finishIdx=raceFinishOrder.length; raceFinishOrder.push(idx);
+ var slot=RACE_SLOTS[r.finishIdx]; r.slot={x:slot[0], z:slot[1]};
+ var co=charObjs[idx]; co.waveT=1.6;
+ burst(co.group.position.clone()); sfxPop();
+ toast('🏁 '+CHARS[idx].name+' về đích thứ '+(r.finishIdx+1)+'!',2000);
+}
+function showRaceResults(){
+ state='raceDone';
+ document.getElementById('raceHud').classList.add('hidden');
+ document.getElementById('raceHomeBtn').classList.add('hidden');
+ document.getElementById('raceCamBtn').classList.add('hidden');
+ document.getElementById('raceZoomBtns').classList.add('hidden');
+ resetCamFov();
+ document.getElementById('raceCount').classList.add('hidden');
+ podiumGroup.visible=true;
+ raceFinishOrder.forEach(function(idx,k){ var co=charObjs[idx]; var pp=RACE_PODIUM[k]; co.group.scale.set(1,1,1); co.group.position.set(pp[0],pp[1],pp[2]); co.group.rotation.y=0; co.group.position.y=pp[1]; burst(co.group.position.clone()); });
+ var stNew=awardSticker();
+ document.getElementById('raceStickerNote').textContent=stNew?('🏅 Bé nhận sticker mới: '+stNew.emoji+' '+stNew.label+'!'):'';
+ var list=document.getElementById('raceResultList'); list.innerHTML='';
+ var medals=['🥇','🥈','🥉','🎖️'];
+ raceFinishOrder.forEach(function(idx,k){ var d=document.createElement('div'); d.className='scoreRow'; d.innerHTML='<span>'+medals[k]+' '+CHARS[idx].emoji+' '+CHARS[idx].name+'</span><span>'+racers[idx].finishTime.toFixed(1)+' giây</span>'; list.appendChild(d); });
+ document.getElementById('raceResultOverlay').classList.remove('hidden');
+ confetti(true); sfxFanfare();
+}
+function exitRaceHome(){
+ if(raceGroup) raceGroup.visible=false;
+ if(podiumGroup) podiumGroup.visible=false;
+ setParkVisible(true); // the park comes back exactly as it was
+ scene.fog.far=120;
+ document.getElementById('raceHud').classList.add('hidden');
+ document.getElementById('raceHomeBtn').classList.add('hidden');
+ document.getElementById('raceCamBtn').classList.add('hidden');
+ document.getElementById('raceZoomBtns').classList.add('hidden');
+ resetCamFov();
+ document.getElementById('raceCount').classList.add('hidden');
+ document.getElementById('raceResultOverlay').classList.add('hidden');
+ document.body.classList.remove('racing');
+ hud.classList.add('hidden');
+ charObjs.forEach(function(co,idx){ co.group.position.set(-4.5+idx*3,0,14); co.group.position.y=0; co.group.rotation.y=0; co.group.scale.set(1,1,1); co.found=false; co.followSeeker=false; co.target=null; co.path=null; co.waveT=0; co.group.userData.ring.visible=false; });
+ gameMode='seek'; state='start';
+ updateCandyHud();
+ document.getElementById('startOverlay').classList.remove('hidden');
+}
+function updateRace(dt,t){
+ var dtR=dt*raceTimeScale;
+ var rc=document.getElementById('raceCount');
+ if(state==='raceCountdown'){
+   raceCountT+=dtR;
+   var phase=Math.floor(raceCountT/0.85);
+   if(phase!==raceLastPhase){ raceLastPhase=phase;
+     if(phase<3){ rc.textContent=String(3-phase); rc.classList.remove('go'); rc.classList.remove('pop'); void rc.offsetWidth; rc.classList.add('pop'); sfxPop(); }
+     else { rc.textContent='Xuất phát!'; rc.classList.add('go'); rc.classList.remove('pop'); void rc.offsetWidth; rc.classList.add('pop'); sfxFanfare(); state='racing'; raceT=0; raceGoT=0.85; } }
+   racers.forEach(function(r,idx){ placeRacerAtStart(idx); charObjs[idx].group.position.y=Math.abs(Math.sin(t*6+idx*1.4))*0.09; });
+   var c0=raceCurve.getPointAt(0);
+   var cOff=raceCamRotate(-8.5*raceCamZoom,11.5*raceCamZoom); // player's added angle and zoom apply at the start line too
+   applyRaceCamFov();
+   camera.position.lerp(new THREE.Vector3(c0.x+cOff.x,1.1+(4.7+raceCamLift)*raceCamZoom,c0.z+cOff.z), 1-Math.pow(0.002,dt));
+   camera.lookAt(c0.x+2.5,1.1,c0.z);
+   return;
+ }
+ if(state==='raceDone'){
+   resetCamFov();
+   charObjs.forEach(function(co,idx){ var baseY=0; for(var k=0;k<raceFinishOrder.length;k++) if(raceFinishOrder[k]===idx) baseY=RACE_PODIUM[k][1]; if(co.waveT<=0) co.group.position.y=baseY+Math.abs(Math.sin(t*3+idx*1.3))*0.1; co.group.rotation.y=Math.sin(t*0.9+idx)*0.18; });
+   camera.position.lerp(new THREE.Vector3(-8,4.6,34.2), 1-Math.pow(0.002,dt));
+   camera.lookAt(-8,1.2,25.6);
+   return;
+ }
+ // state === 'racing'
+ raceT+=dtR;
+ if(raceGoT>0){ raceGoT-=dtR; if(raceGoT<=0) rc.classList.add('hidden'); }
+ var allDone=true;
+ racers.forEach(function(r,idx){ var co=charObjs[idx]; var gp=co.group.position;
+   if(r.finished){
+     gp.x+=(r.slot.x-gp.x)*Math.min(1,dt*2.4); gp.z+=(r.slot.z-gp.z)*Math.min(1,dt*2.4);
+     if(co.waveT<=0){ gp.y=Math.abs(Math.sin(t*2.6+idx))*0.05; co.group.rotation.y+=(0-co.group.rotation.y)*Math.min(1,dt*3); }
+     return;
+   }
+   allDone=false;
+   r.prevS=r.s; r.s=raceProgress(r,raceT);
+   if(dtR>0.0001) r.factor=((r.s-r.prevS)/dtR)*r.T/RACE_LAPS;
+   var st=racePosAt(r.lane,r.s);
+   // NO lateral wobble: the lane spacing (2.2) only just exceeds the
+   // biggest pair of full-size body radii (2.00), so any sideways sway
+   // would put side-by-side racers back inside each other. The bounce
+   // is purely vertical instead.
+   gp.x=st.pos.x; gp.z=st.pos.z;
+   gp.y=Math.abs(Math.sin(t*11+idx*1.7))*0.15;
+   // brief slow stretch: one cute little spin, then back to running
+   if(r.spinCd>0) r.spinCd-=dtR;
+   if(r.factor<0.68 && r.spinCd<=0 && raceT>3 && raceT<r.T-3){ r.spinT=0.55; r.spinCd=6+Math.random()*5; r.spinAngle=0; showBubble(CHARS[idx].name+': Chờ tớ với! 🌀',1300); }
+   if(r.spinT>0){ r.spinT-=dtR; r.spinAngle+=dtR*(Math.PI*2/0.55); if(r.spinT<=0) r.spinAngle=0; }
+   co.group.rotation.y=Math.atan2(st.dir.x,st.dir.z)+r.spinAngle;
+   // sparkly fast stretch: a little star trail
+   if(r.factor>1.24 && Math.random()<dtR*7) spawnTrailStar(gp.clone());
+   if(r.s>=RACE_LAPS) finishRacer(idx);
+ });
+ // lap shout-out as the leader rolls into each new lap
+ var leadS=0; racers.forEach(function(r){ if(r.s>leadS) leadS=r.s; });
+ var lapNow=Math.min(RACE_LAPS-1,Math.floor(leadS));
+ if(lapNow>raceLapShown){ raceLapShown=lapNow; toast('🏁 Vòng '+(lapNow+1)+'/'+RACE_LAPS+' rồi!',1800); }
+ // live ranking chips
+ raceHudT-=dt; if(raceHudT<=0){ raceHudT=0.15; updateRaceHud(); }
+ // cheerful speech bubbles now and then
+ raceBubbleT-=dt;
+ if(raceBubbleT<=0){ raceBubbleT=4.2+Math.random()*1.6; var act=[]; racers.forEach(function(r,idx){ if(!r.finished) act.push(idx); }); if(act.length){ var pick=act[Math.floor(Math.random()*act.length)]; showBubble(CHARS[pick].name+': '+RACE_PHRASES[Math.floor(Math.random()*RACE_PHRASES.length)],1700); } }
+ // camera: smooth film-style follow of the pack, pulled wider than the
+ // old loop's so the long straights and the trackside decoration on
+ // both sides stay in frame as the pack rolls past them
+ var cx=0, cz=0, sSum=0, nAct=0;
+ racers.forEach(function(r,idx){ var gp=charObjs[idx].group.position; cx+=gp.x; cz+=gp.z; if(!r.finished){ sSum+=r.s; nAct++; } });
+ cx/=4; cz/=4;
+ var avgS=nAct? sSum/nAct : (RACE_LAPS-0.01);
+ var tg=raceCurve.getTangentAt(((avgS%1)+1)%1);
+ // auto-follow offset (behind + slightly beside the pack), rotated by the
+ // player's persistent added yaw and lifted by their clamped lift: the
+ // look point still tracks the pack, so the pack stays in frame at any
+ // added angle and the view never springs back when the finger lifts.
+ var fOff=raceCamRotate((-tg.x*11.5+tg.z*2.2)*raceCamZoom, (-tg.z*11.5-tg.x*2.2)*raceCamZoom);
+ applyRaceCamFov();
+ var desired=new THREE.Vector3(cx+fOff.x, 1.0+(6.8+raceCamLift)*raceCamZoom, cz+fOff.z);
+ camera.position.lerp(desired, 1-Math.pow(0.002,dt));
+ camera.lookAt(cx+tg.x*3.0, 1.0, cz+tg.z*3.0);
+ raceClouds.forEach(function(c,ci3){ c.position.x += dt*0.3; if(c.position.x>52) c.position.x=-52; });
+ if(allDone || raceFinishOrder.length>=4){ raceEndWait+=dt; if(raceEndWait>1.4) showRaceResults(); }
+}
+document.getElementById('raceModeBtn').addEventListener('click',function(){ startRace(); });
+document.getElementById('raceAgainBtn').addEventListener('click',function(){ ensureAudio(); sfxPop(); startRace(); });
+document.getElementById('raceHomeBtn').addEventListener('click',function(){ ensureAudio(); sfxPop(); exitRaceHome(); });
+document.getElementById('raceHomeBtn2').addEventListener('click',function(){ ensureAudio(); sfxPop(); exitRaceHome(); });
+document.getElementById('raceCamBtn').addEventListener('click',function(){ ensureAudio(); sfxPop(); resetRaceCam(); });
+document.getElementById('raceZoomInBtn').addEventListener('click',function(){ ensureAudio(); sfxPop(); applyRaceCamZoom(1/1.3); });
+document.getElementById('raceZoomOutBtn').addEventListener('click',function(){ ensureAudio(); sfxPop(); applyRaceCamZoom(1.3); });
+canvas.addEventListener('wheel',function(e){ if(!raceCamActive()) return; e.preventDefault(); applyRaceCamZoom(e.deltaY<0?0.88:1.14); },{passive:false});
+// Test hooks (invisible): let the game's own loop be driven fast in checks.
+window.__raceHooks={ start:function(){ startRace(); }, again:function(){ startRace(); }, exit:function(){ exitRaceHome(); },
+ setScale:function(k){ raceTimeScale=k; },
+ cam:function(){ var dir=camera.getWorldDirection(new THREE.Vector3()); return { yawOffset:+raceCamYawOffset.toFixed(4), lift:+raceCamLift.toFixed(3), zoom:+raceCamZoom.toFixed(3), fov:+camera.fov.toFixed(1), dirY:+dir.y.toFixed(3), camPos:{x:+camera.position.x.toFixed(2), y:+camera.position.y.toFixed(2), z:+camera.position.z.toFixed(2)} }; },
+ dragCam:function(dx,dy){ applyRaceCamDrag(dx||0,dy||0); },
+ zoomBy:function(f){ applyRaceCamZoom(f||1); },
+ resetCam:function(){ resetRaceCam(); },
+ info:function(){ return { state:state, mode:gameMode, raceT:raceT, finishOrder:raceFinishOrder.slice(), racers:racers.map(function(r){ return {s:r.s, T:r.T, lane:r.lane, finished:r.finished, finishTime:r.finishTime}; }), pos:charObjs.map(function(c){ return {x:+c.group.position.x.toFixed(2), z:+c.group.position.z.toFixed(2)}; }), trackVisible:!!(raceGroup&&raceGroup.visible) }; } };
+
 // ============ CONTROLS ============
 var raycaster=new THREE.Raycaster(); var groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0); var pointerV=new THREE.Vector2();
-var dragging=false, dragMoved=0, lastPX=0, dragId=null;
+var dragging=false, dragMoved=0, lastPX=0, lastPY=0, dragId=null;
 function setTargetFromEvent(cx,cy){ var rect=canvas.getBoundingClientRect(); pointerV.x=((cx-rect.left)/rect.width)*2-1; pointerV.y=-((cy-rect.top)/rect.height)*2+1; raycaster.setFromCamera(pointerV,camera); var pt=new THREE.Vector3(); if(raycaster.ray.intersectPlane(groundPlane,pt)){ var c=findFreePoint(pt.x,pt.z,charObjs[round].radius,round);
    // tap-to-move walks AROUND obstacles (and through the front door when the
    // tap crosses the house threshold), never straight through them
@@ -2049,15 +2527,27 @@ function spawnTapRing(pt){ var r=new THREE.Mesh(new THREE.RingGeometry(0.3,0.45,
  // a little gold star pops up over the tapped spot and fades, so the child
  // clearly sees where her tap landed
  var st=new THREE.Mesh(new THREE.OctahedronGeometry(0.22), new THREE.MeshBasicMaterial({color:0xffb703, transparent:true, opacity:0.95})); st.position.set(pt.x,0.35,pt.z); st.userData.life=0.6; st.userData.kind='star'; scene.add(st); tapRings.push(st); }
-// Camera drag tracks ONE pointer by id, with pointer capture on the canvas.
-// The old handlers took dx from whichever pointer moved last and let ANY
-// pointerup end the drag: when a second finger landed mid-drag (a kid
-// steadying the phone, or tapping with the other hand), lastPX jumped to
-// that finger and the next move spun the camera by the distance BETWEEN
-// the two fingers — the "sometimes the view flips the wrong way" bug —
-// and the second finger's release silently killed the first finger's drag.
-canvas.addEventListener('pointerdown',function(e){ ensureAudio(); startMusic(); if(dragId!==null) return; dragId=(e.pointerId==null?0:e.pointerId); dragging=true; dragMoved=0; lastPX=e.clientX; try{ canvas.setPointerCapture(dragId); }catch(err){} });
-canvas.addEventListener('pointermove',function(e){ if(!dragging || (e.pointerId==null?0:e.pointerId)!==dragId) return; var dx=e.clientX-lastPX; lastPX=e.clientX; if(dx>60) dx=60; else if(dx<-60) dx=-60; dragMoved+=Math.abs(dx); if(dragMoved>14){ camYaw -= dx*0.005; } });
+// Camera gestures track pointers by id, with pointer capture on the
+// canvas. The old handlers took dx from whichever pointer moved last and
+// let ANY pointerup end the drag: when a second finger landed mid-drag
+// (a kid steadying the phone, or tapping with the other hand), lastPX
+// jumped to that finger and the next move spun the camera by the distance
+// BETWEEN the two fingers — the "sometimes the view flips the wrong way"
+// bug — and the second finger's release silently killed the first
+// finger's drag. So one finger drags (rotate / tilt), tracked by id.
+// During a race, a SECOND finger switches the gesture to PINCH zoom:
+// while pinching, rotation pauses and the finger distance drives the
+// zoom (the old "extra fingers change nothing" rule must not freeze
+// this); when one finger lifts, the remaining finger is re-anchored at
+// its current spot and becomes the drag finger again, so the camera
+// never jumps. Outside the race camera, extra fingers stay ignored.
+var activePtrs={}, pinch=null;
+canvas.addEventListener('pointerdown',function(e){ ensureAudio(); startMusic(); var pid=(e.pointerId==null?0:e.pointerId); activePtrs[pid]={x:e.clientX,y:e.clientY};
+ if(dragId===null){ dragId=pid; dragging=true; dragMoved=0; lastPX=e.clientX; lastPY=e.clientY; try{ canvas.setPointerCapture(pid); }catch(err){} }
+ else if(!pinch && raceCamActive()){ var p0=activePtrs[dragId]; pinch={a:dragId,b:pid,dist:Math.max(12,Math.hypot(e.clientX-p0.x,e.clientY-p0.y))}; dragging=false; try{ canvas.setPointerCapture(pid); }catch(err){} } });
+canvas.addEventListener('pointermove',function(e){ var pid=(e.pointerId==null?0:e.pointerId); if(activePtrs[pid]){ activePtrs[pid].x=e.clientX; activePtrs[pid].y=e.clientY; }
+ if(pinch){ if(pid!==pinch.a && pid!==pinch.b) return; var pa=activePtrs[pinch.a], pb=activePtrs[pinch.b]; if(!pa||!pb) return; var pd=Math.hypot(pa.x-pb.x,pa.y-pb.y); if(pd>12 && pinch.dist>12) applyRaceCamZoom(pinch.dist/pd); pinch.dist=pd; return; }
+ if(!dragging || pid!==dragId) return; var dx=e.clientX-lastPX; lastPX=e.clientX; var dy=e.clientY-lastPY; lastPY=e.clientY; if(dx>60) dx=60; else if(dx<-60) dx=-60; if(dy>60) dy=60; else if(dy<-60) dy=-60; dragMoved+=Math.abs(dx)+Math.abs(dy); if(dragMoved>14){ if(raceCamActive()){ applyRaceCamDrag(dx,dy); } else { camYaw -= dx*0.005; } } });
 function pickPlayObject(cx,cy){ var rect=canvas.getBoundingClientRect(); pointerV.x=((cx-rect.left)/rect.width)*2-1; pointerV.y=-((cy-rect.top)/rect.height)*2+1; raycaster.setFromCamera(pointerV,camera);
  if(swingGroup && raycaster.intersectObject(swingGroup,true).length) return 'swing';
  if(slideGroup && raycaster.intersectObject(slideGroup,true).length) return 'slide';
@@ -2066,8 +2556,16 @@ function pickPlayObject(cx,cy){ var rect=canvas.getBoundingClientRect(); pointer
  if(icecreamGroup && raycaster.intersectObject(icecreamGroup,true).length) return 'icecream';
  if(sandboxGroup && raycaster.intersectObject(sandboxGroup,true).length) return 'sandbox';
  return null; }
-canvas.addEventListener('pointerup',function(e){ if((e.pointerId==null?0:e.pointerId)!==dragId) return; if(dragging && dragMoved<=14){ if(state==='hideChoose' || sneakPicking){ handleSpotTap(e.clientX,e.clientY); } else if(state==='seeking' && !playMode && gameMode==='seek'){ var po=pickPlayObject(e.clientX,e.clientY); if(po) startPlay(po); else setTargetFromEvent(e.clientX,e.clientY); } } dragging=false; dragId=null; });
-canvas.addEventListener('pointercancel',function(e){ if((e.pointerId==null?0:e.pointerId)!==dragId) return; dragging=false; dragId=null; });
+function endPinchPointer(pid){
+ // One pinch finger lifted: the pinch ends cleanly and the remaining
+ // finger takes over as the drag finger, re-anchored where it is right
+ // now — no camera jump, and its later release is not read as a tap.
+ var other=(pid===pinch.a)?pinch.b:pinch.a; pinch=null;
+ if(activePtrs[other]){ dragId=other; dragging=true; dragMoved=15; lastPX=activePtrs[other].x; lastPY=activePtrs[other].y; }
+ else { dragging=false; dragId=null; }
+}
+canvas.addEventListener('pointerup',function(e){ var pid=(e.pointerId==null?0:e.pointerId); delete activePtrs[pid]; if(pinch && (pid===pinch.a||pid===pinch.b)){ endPinchPointer(pid); return; } if(pid!==dragId) return; if(dragging && dragMoved<=14){ if(state==='hideChoose' || sneakPicking){ handleSpotTap(e.clientX,e.clientY); } else if(state==='seeking' && !playMode && gameMode==='seek'){ var po=pickPlayObject(e.clientX,e.clientY); if(po) startPlay(po); else setTargetFromEvent(e.clientX,e.clientY); } } dragging=false; dragId=null; });
+canvas.addEventListener('pointercancel',function(e){ var pid=(e.pointerId==null?0:e.pointerId); delete activePtrs[pid]; if(pinch && (pid===pinch.a||pid===pinch.b)){ endPinchPointer(pid); return; } if(pid!==dragId) return; dragging=false; dragId=null; });
 window.addEventListener('keydown',function(e){ keys[e.key.toLowerCase()]=true; ensureAudio(); });
 window.addEventListener('keyup',function(e){ keys[e.key.toLowerCase()]=false; });
 // ============ MAIN LOOP ============
@@ -2091,8 +2589,8 @@ function animate(){
  butterflies.forEach(function(b){ var u=b.userData; b.position.x=u.cx+Math.sin(t*0.5+u.seed)*2.2; b.position.z=u.cz+Math.cos(t*0.4+u.seed)*1.8; b.position.y=1.3+Math.sin(t*2+u.seed)*0.3; u.w1.rotation.y=Math.sin(t*14+u.seed)*0.7; u.w2.rotation.y=-Math.sin(t*14+u.seed)*0.7; });
  if(hintBeam){ hintBeam.material.opacity=0.4+Math.sin(t*8)*0.2; hintBeam.rotation.y+=dt*2; }
  if(hintArrow){ hintArrow.position.y=7.4+Math.sin(t*4)*0.3; }
- for(var ri=tapRings.length-1;ri>=0;ri--){ var rr=tapRings[ri]; rr.userData.life-=dt; if(rr.userData.kind==='star'){ var lf=Math.max(0,rr.userData.life); rr.position.y=0.35+Math.sin((0.6-lf)/0.6*Math.PI)*0.55; rr.rotation.y+=dt*7; rr.material.opacity=lf/0.6*0.95; } else { rr.scale.multiplyScalar(1+dt*3); rr.material.opacity=Math.max(0,rr.userData.life); } if(rr.userData.life<=0){ scene.remove(rr); tapRings.splice(ri,1);} }
- for(var pi=particles.length-1;pi>=0;pi--){ var p=particles[pi]; p.userData.life-=dt; p.position.x+=p.userData.vx*dt; p.position.y+=p.userData.vy*dt; p.position.z+=p.userData.vz*dt; p.userData.vy-=dt*1.2; p.material.opacity=Math.max(0,p.userData.life/1.4); if(p.userData.life<=0){ scene.remove(p); particles.splice(pi,1);} }
+ for(var ri=tapRings.length-1;ri>=0;ri--){ var rr=tapRings[ri]; rr.userData.life-=dt; if(rr.userData.kind==='star'){ var lf=Math.max(0,rr.userData.life); rr.position.y=0.35+Math.sin((0.6-lf)/0.6*Math.PI)*0.55; rr.rotation.y+=dt*7; rr.material.opacity=lf/0.6*0.95; } else { rr.scale.multiplyScalar(1+dt*3); rr.material.opacity=Math.max(0,rr.userData.life); } if(rr.userData.life<=0){ if(rr.parent) rr.parent.remove(rr); tapRings.splice(ri,1);} }
+ for(var pi=particles.length-1;pi>=0;pi--){ var p=particles[pi]; p.userData.life-=dt; p.position.x+=p.userData.vx*dt; p.position.y+=p.userData.vy*dt; p.position.z+=p.userData.vz*dt; p.userData.vy-=dt*1.2; p.material.opacity=Math.max(0,p.userData.life/1.4); if(p.userData.life<=0){ if(p.parent) p.parent.remove(p); particles.splice(pi,1);} }
 
  // fairy-house door + roof behaviour (runs in every state)
  var doorNear=false;
@@ -2399,6 +2897,8 @@ function animate(){
    camera.position.lerp(desired, 1-Math.pow(0.001,dt));
    var look=new THREE.Vector3(focPos.x,1.2,focPos.z); camera.lookAt(look);
    if(gameMode==='hide') updateHideAI(dt,t);
+ } else if(state==='raceCountdown'||state==='racing'||state==='raceDone'){
+   updateRace(dt,t);
  } else {
    // idle camera orbit for start/intro/end screens
    var ang=t*0.08; camera.position.lerp(new THREE.Vector3(Math.sin(ang)*20,10,Math.cos(ang)*20), 0.03); camera.lookAt(0,1,0);
