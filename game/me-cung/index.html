@@ -80,6 +80,18 @@
         border: 7px solid transparent; border-top: 10px solid #ff9ec7; border-bottom: 0;
       }
       #bubble.show { opacity: 1; transform: translateX(-50%) scale(1); }
+      #hud-theme { border-color: #9fd8ff; color: #2b7fc4; font-size: 15px; padding: 4px 11px; }
+      #theme-banner {
+        position: fixed; left: 50%; top: 34%; transform: translate(-50%,-50%) scale(.7);
+        background: linear-gradient(180deg,#fff,#fff0f7);
+        color: #d63384; font-weight: 800; font-size: clamp(24px,6vw,40px);
+        padding: 16px 30px; border-radius: 28px; border: 5px solid #ff9ec7;
+        box-shadow: 0 14px 34px rgba(180,60,130,.35);
+        opacity: 0; pointer-events: none; z-index: 30; text-align: center;
+        transition: opacity .3s, transform .3s; max-width: 88vw;
+      }
+      #theme-banner.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+      #theme-banner small { display: block; font-size: .5em; color: #a04a78; margin-top: 2px; }
 
       /* ---------- Touch controls ---------- */
       #controls {
@@ -203,6 +215,10 @@
         #dpad button { border-radius: 14px; font-size: 21px; }
         #controls { padding-left: 8px; padding-right: 8px; }
         #bubble { font-size: 17px; top: 64px; }
+        #hud-theme { font-size: 12px; padding: 3px 8px; border-width: 2px; }
+        #hud { flex-wrap: wrap; row-gap: 5px; }
+        .hud-right { margin-left: auto; }
+        #bubble { top: 118px; }
       }
     </style>
   </head>
@@ -213,6 +229,7 @@
     <div id="hud">
       <div class="hud-left">
         <div class="hud-chip" id="hud-level">Màn 1</div>
+        <div class="hud-chip" id="hud-theme">Vườn Hoa</div>
         <div class="hud-chip">
           <svg class="star-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.8l3.1 6.6 7.2.8-5.3 4.9 1.4 7.1L12 17.7l-6.4 3.5 1.4-7.1L1.7 9.2l7.2-.8z" fill="#ffc93c" stroke="#e8930c" stroke-width="1.4"/></svg>
           <span id="hud-stars">0</span>
@@ -226,6 +243,7 @@
     </div>
 
     <div id="bubble" role="status"></div>
+    <div id="theme-banner" role="status"></div>
 
     <!-- Touch controls -->
     <div id="controls">
@@ -303,7 +321,7 @@ window.addEventListener('unhandledrejection', function(e){ showErr('Lỗi: ' + (
 
 /* ================= Save ================= */
 var SAVE_KEY = 'me-cung-3d-save-v1';
-var save = { char: 0, level: 1, stars: {}, muted: false, finished: false };
+var save = { char: 0, level: 1, stars: {}, muted: false, finished: false, themes: {} };
 try {
   var raw = localStorage.getItem(SAVE_KEY);
   if (raw) { var p = JSON.parse(raw); if (p && typeof p === 'object') save = Object.assign(save, p); }
@@ -766,6 +784,116 @@ function worldToTile(wx, wz){
 /* ================= World building ================= */
 var worldGroup = null, collectibles = [], decorAnim = { clouds: [], butterflies: [], balloons: [], lamps: [], flags: [], flowers: null };
 var FLOWER_COLS = [0xff8fc0, 0xffd94d, 0xb98cff, 0xffffff, 0xffa93c];
+
+/* ================= Maze themes (random per level) =================
+   One shared build path driven by this parameter table: palette, wall
+   texture kind, top/side decoration kind and its motion. Only the look
+   changes per theme; maze, slides, movement and pickups never do. */
+var THEMES = [
+  { id: 'garden',  name: 'Vườn Hoa',            sky: 0xaee6ff, fog: 0xcdeffd, ground: 0x8fd96a, apron: 0xa8e284, pathA: 0xfff3d6, pathB: 0xffe3ee, wallCols: [0x5cb85c, 0x55b567, 0x63c168], wallTex: null,    hemiSky: 0xeaf7ff, hemiGround: 0x8fd07a, sun: 0xfff3d6, fill: 0xffd9ec, puff: 0x6fca6f, decor: 'flower',    cap: null },
+  { id: 'brick',   name: 'Tường Gạch Cổ Tích',  sky: 0xaee6ff, fog: 0xd8f3ff, ground: 0x8fd96a, apron: 0x9ccf74, pathA: 0xe9e2d4, pathB: 0xdfd5c2, wallCols: [0xffffff, 0xf7ece4, 0xfff6ee], wallTex: 'brick', hemiSky: 0xeaf7ff, hemiGround: 0x8fd07a, sun: 0xfff3d6, fill: 0xffd9ec, puff: 0x4fae4f, decor: 'miniFlower', cap: null },
+  { id: 'anthill', name: 'Tổ Kiến Đất',         sky: 0xffe3b3, fog: 0xffe9c4, ground: 0xd9b06a, apron: 0xcfa75e, pathA: 0xf2d492, pathB: 0xecc987, wallCols: [0xffffff, 0xfdf3e3, 0xf7ead2], wallTex: 'earth', hemiSky: 0xfff3d6, hemiGround: 0xcfa75e, sun: 0xffe0b0, fill: 0xffd9a8, puff: 0x7ec850, decor: 'anthill',   cap: 0xd8b57e },
+  { id: 'cloud',   name: 'Khu Vườn Trên Mây',   sky: 0x8fd4ff, fog: 0xcdeffd, ground: 0x7ec8ff, apron: 0xbfe6ff, pathA: 0xd6f0ff, pathB: 0xbfe3ff, wallCols: [0xffffff, 0xf4faff, 0xeaf6ff], wallTex: 'cloud', hemiSky: 0xffffff, hemiGround: 0xbfe3ff, sun: 0xfff6e0, fill: 0xd6f0ff, puff: 0xffffff, decor: 'cloud',     cap: 0xffffff },
+  { id: 'candy',   name: 'Vườn Kẹo Ngọt',       sky: 0xffd9ec, fog: 0xffe6f2, ground: 0xffc2dd, apron: 0xffd3e8, pathA: 0xfff0d6, pathB: 0xffe6c7, wallCols: [0xffffff, 0xfff6fa, 0xf2fff9], wallTex: 'candy', hemiSky: 0xfff0f7, hemiGround: 0xffc2dd, sun: 0xfff3d6, fill: 0xffb3d9, puff: 0xff8fc0, decor: 'candy',     cap: null },
+  { id: 'ice',     name: 'Lâu Đài Băng Tuyết',  sky: 0xd6f0ff, fog: 0xe6f7ff, ground: 0xeaf7ff, apron: 0xdff2ff, pathA: 0xffffff, pathB: 0xe3f3ff, wallCols: [0xffffff, 0xf0faff, 0xe6f6ff], wallTex: 'ice',   hemiSky: 0xf4fbff, hemiGround: 0xbfe0f0, sun: 0xeaf6ff, fill: 0xbfe8ff, puff: 0xffffff, decor: 'ice',       cap: 0xffffff },
+  { id: 'coral',   name: 'Đáy Biển San Hô',     sky: 0x9fe3f2, fog: 0xbdf0ea, ground: 0x2f9db8, apron: 0xe8cf8f, pathA: 0xf7e3ac, pathB: 0xf0d794, wallCols: [0xffffff, 0xfffaf0, 0xfdf3da], wallTex: 'sand',  hemiSky: 0xd8fbff, hemiGround: 0x3fa7c4, sun: 0xfff6d6, fill: 0x8fe8ff, puff: 0xff9e7e, decor: 'coral',     cap: null },
+  { id: 'honey',   name: 'Tổ Ong Mật',          sky: 0xfff0b8, fog: 0xfff3c4, ground: 0xa8d97a, apron: 0xf7d774, pathA: 0xfff3c2, pathB: 0xffe9a3, wallCols: [0xffffff, 0xfffdf2, 0xfff8e0], wallTex: 'honey', hemiSky: 0xfffbe8, hemiGround: 0xd9b84a, sun: 0xffe9a8, fill: 0xffd94d, puff: 0xffc93c, decor: 'honey',     cap: null }
+];
+var THEME_BY_ID = {};
+THEMES.forEach(function(t){ THEME_BY_ID[t.id] = t; });
+var currentTheme = THEMES[0], currentThemeId = 'garden';
+/* hidden test hook: ?theme=<id> (or 1..8) forces one theme, never saved */
+var forcedThemeId = null;
+try {
+  var tp = new URLSearchParams(window.location.search).get('theme');
+  if (tp) {
+    if (THEME_BY_ID[tp]) forcedThemeId = tp;
+    else { var tn = parseInt(tp, 10); if (tn >= 1 && tn <= THEMES.length) forcedThemeId = THEMES[tn - 1].id; }
+  }
+} catch (e) {}
+function themeForLevel(levelIdx, forceNew){
+  var level = levelIdx + 1;
+  if (forcedThemeId) { currentThemeId = forcedThemeId; currentTheme = THEME_BY_ID[forcedThemeId]; return currentTheme; }
+  if (!save.themes || typeof save.themes !== 'object') save.themes = {};
+  var existing = save.themes[level];
+  if (existing && THEME_BY_ID[existing] && !forceNew) { currentThemeId = existing; currentTheme = THEME_BY_ID[existing]; return currentTheme; }
+  var used = {};
+  for (var k in save.themes) { if (String(k) !== String(level) && THEME_BY_ID[save.themes[k]]) used[save.themes[k]] = true; }
+  if (forceNew && existing) used[existing] = true; /* replay must differ from the theme just played */
+  var cands = THEMES.filter(function(t){ return !used[t.id]; });
+  if (!cands.length) cands = THEMES.filter(function(t){ return t.id !== existing; });
+  var pick = cands[Math.floor(Math.random() * cands.length)];
+  save.themes[level] = pick.id; persist();
+  currentThemeId = pick.id; currentTheme = pick;
+  return pick;
+}
+function rethemeLevel(level){ /* Chơi Lại: pick a fresh, different theme for this level */
+  if (forcedThemeId) return;
+  themeForLevel(level - 1, true);
+}
+/* procedural wall textures, drawn once and cached */
+var wallTexCache = {};
+function wallTexture(kind){
+  if (!kind) return null;
+  if (wallTexCache[kind]) return wallTexCache[kind];
+  var c = document.createElement('canvas'); c.width = c.height = 256;
+  var g = c.getContext('2d');
+  var i, j;
+  if (kind === 'brick') {
+    g.fillStyle = '#eadfce'; g.fillRect(0, 0, 256, 256);
+    var bh = 32, bw = 62;
+    for (var row = 0; row * bh < 256; row++) {
+      var off = (row % 2) * (bw / 2);
+      for (var bx = -1; bx * bw < 256 + bw; bx++) {
+        g.fillStyle = ['#b5563c', '#c0684a', '#a84e35', '#bd5f43'][(row * 3 + bx + 8) % 4];
+        g.fillRect(bx * bw + off + 3, row * bh + 3, bw - 6, bh - 6);
+        g.fillStyle = 'rgba(255,255,255,.14)'; g.fillRect(bx * bw + off + 3, row * bh + 3, bw - 6, 6);
+      }
+    }
+  } else if (kind === 'candy') {
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, 256, 256);
+    var cols = ['#ff9ec7', '#8fe3c0', '#ffffff', '#ffb3d9', '#a8e6ff'];
+    g.save(); g.translate(128, 128); g.rotate(-Math.PI / 5); g.translate(-256, -256);
+    for (i = 0; i < 12; i++) { g.fillStyle = cols[i % cols.length]; g.fillRect(i * 44, 0, 44, 512); }
+    g.restore();
+  } else if (kind === 'honey') {
+    g.fillStyle = '#f5a623'; g.fillRect(0, 0, 256, 256);
+    var r = 30, hh = Math.sqrt(3) * r;
+    for (var hy = 0; hy < 6; hy++) for (var hx = 0; hx < 6; hx++) {
+      var cx = hx * r * 1.5, cy = hy * hh + (hx % 2 ? hh / 2 : 0);
+      g.beginPath();
+      for (var a = 0; a < 6; a++) { var ang = Math.PI / 3 * a + Math.PI / 6; var px = cx + Math.cos(ang) * (r - 3), py = cy + Math.sin(ang) * (r - 3); if (a === 0) g.moveTo(px, py); else g.lineTo(px, py); }
+      g.closePath();
+      g.fillStyle = (hx + hy) % 2 ? '#ffc93c' : '#ffb703'; g.fill();
+      g.strokeStyle = '#d98e04'; g.lineWidth = 4; g.stroke();
+    }
+  } else if (kind === 'earth') {
+    g.fillStyle = '#b98a52'; g.fillRect(0, 0, 256, 256);
+    for (i = 0; i < 260; i++) { g.fillStyle = ['rgba(90,60,25,.25)', 'rgba(255,230,180,.20)', 'rgba(140,100,55,.3)'][i % 3]; g.beginPath(); g.arc(Math.random() * 256, Math.random() * 256, 2 + Math.random() * 6, 0, 6.29); g.fill(); }
+    g.strokeStyle = 'rgba(90,60,25,.28)'; g.lineWidth = 3;
+    for (j = 0; j < 5; j++) { g.beginPath(); g.moveTo(0, 40 + j * 48); g.bezierCurveTo(80, 20 + j * 48, 170, 60 + j * 48, 256, 36 + j * 48); g.stroke(); }
+  } else if (kind === 'cloud') {
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, 256, 256);
+    for (i = 0; i < 26; i++) { g.fillStyle = 'rgba(190,220,250,.35)'; g.beginPath(); g.arc(Math.random() * 256, Math.random() * 256, 16 + Math.random() * 30, 0, 6.29); g.fill(); }
+    for (i = 0; i < 18; i++) { g.fillStyle = 'rgba(255,255,255,.8)'; g.beginPath(); g.arc(Math.random() * 256, Math.random() * 256, 10 + Math.random() * 22, 0, 6.29); g.fill(); }
+  } else if (kind === 'ice') {
+    g.fillStyle = '#bfe6fa'; g.fillRect(0, 0, 256, 256);
+    var grad = g.createLinearGradient(0, 0, 256, 256); grad.addColorStop(0, 'rgba(255,255,255,.5)'); grad.addColorStop(1, 'rgba(120,190,235,.35)');
+    g.fillStyle = grad; g.fillRect(0, 0, 256, 256);
+    g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = 2;
+    for (i = 0; i < 9; i++) { g.beginPath(); var sx = Math.random() * 256, sy = Math.random() * 256; g.moveTo(sx, sy); g.lineTo(sx + 30 - Math.random() * 60, sy + 26 + Math.random() * 30); g.lineTo(sx + 54 - Math.random() * 40, sy + 60 + Math.random() * 30); g.stroke(); }
+    g.fillStyle = 'rgba(255,255,255,.9)';
+    for (i = 0; i < 40; i++) { g.beginPath(); g.arc(Math.random() * 256, Math.random() * 256, 1.6, 0, 6.29); g.fill(); }
+  } else if (kind === 'sand') {
+    g.fillStyle = '#ecd28f'; g.fillRect(0, 0, 256, 256);
+    for (i = 0; i < 420; i++) { g.fillStyle = ['rgba(190,150,70,.3)', 'rgba(255,250,220,.35)', 'rgba(160,120,60,.22)'][i % 3]; g.beginPath(); g.arc(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 2.6, 0, 6.29); g.fill(); }
+  }
+  var tex = new THREE.CanvasTexture(c);
+  if ('colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  wallTexCache[kind] = tex;
+  return tex;
+}
 function candyHouse(){
   var g = new THREE.Group();
   var wallM = mat(0xfff6ec, 0.7);
@@ -788,11 +916,18 @@ function candyHouse(){
   var chimney = box(0.45, 0.8, 0.45, mat(0xd98a5f, 0.7)); chimney.position.set(0.8, 2.9, -0.4); g.add(chimney);
   return g;
 }
-function buildWorld(levelIdx){
+function buildWorld(levelIdx, forceNewTheme){
   if (worldGroup) { scene.remove(worldGroup); }
   worldGroup = new THREE.Group(); scene.add(worldGroup);
   collectibles = [];
   decorAnim = { clouds: [], butterflies: [], balloons: [], lamps: [], flags: [], flowers: null };
+  var theme = themeForLevel(levelIdx, !!forceNewTheme);
+  /* sky, fog and light follow the theme */
+  scene.background.setHex(theme.sky);
+  scene.fog.color.setHex(theme.fog);
+  hemi.color.setHex(theme.hemiSky); hemi.groundColor.setHex(theme.hemiGround);
+  sun.color.setHex(theme.sun);
+  fill.color.setHex(theme.fill);
   var cells = LEVELS[levelIdx];
   var mz = genMaze(cells);
   grid = mz.g; gridSize = mz.size;
@@ -803,9 +938,9 @@ function buildWorld(levelIdx){
   var worldSpan = gridSize * TILE;
 
   /* ground */
-  var ground = new THREE.Mesh(new THREE.PlaneGeometry(worldSpan + 90, worldSpan + 90), mat(0x8fd96a, 0.95));
+  var ground = new THREE.Mesh(new THREE.PlaneGeometry(worldSpan + 90, worldSpan + 90), mat(theme.ground, 0.95));
   ground.rotation.x = -Math.PI / 2; ground.position.y = -0.03; ground.receiveShadow = true; worldGroup.add(ground);
-  var apron = box(worldSpan + 1.2, 0.06, worldSpan + 1.2, mat(0xa8e284, 0.95));
+  var apron = box(worldSpan + 1.2, 0.06, worldSpan + 1.2, mat(theme.apron, 0.95));
   apron.position.y = -0.015; apron.receiveShadow = true; worldGroup.add(apron);
 
   /* path tiles + hedges (instanced) */
@@ -820,12 +955,16 @@ function buildWorld(levelIdx){
     var w = tileToWorld(t[0], t[1]);
     dummy.position.set(w.x, 0.035, w.z); dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix();
     pathIM.setMatrixAt(i, dummy.matrix);
-    pathIM.setColorAt(i, col.setHex((t[0] + t[1]) % 2 === 0 ? 0xfff3d6 : 0xffe3ee));
+    pathIM.setColorAt(i, col.setHex((t[0] + t[1]) % 2 === 0 ? theme.pathA : theme.pathB));
   });
   pathIM.receiveShadow = true; worldGroup.add(pathIM);
 
   var hedgeGeo = new THREE.BoxGeometry(TILE * 1.02, 1.12, TILE * 1.02);
-  var hedgeIM = new THREE.InstancedMesh(hedgeGeo, new THREE.MeshStandardMaterial({ roughness: 0.95 }), wallTiles.length);
+  var hedgeMat = new THREE.MeshStandardMaterial({ roughness: theme.wallTex === 'ice' ? 0.35 : 0.95 });
+  var wTex = wallTexture(theme.wallTex);
+  if (wTex) hedgeMat.map = wTex;
+  if (theme.wallTex === 'ice') { hedgeMat.transparent = true; hedgeMat.opacity = 0.94; }
+  var hedgeIM = new THREE.InstancedMesh(hedgeGeo, hedgeMat, wallTiles.length);
   wallTiles.forEach(function(t, i){
     var w = tileToWorld(t[0], t[1]);
     dummy.position.set(w.x, 0.56, w.z);
@@ -834,7 +973,7 @@ function buildWorld(levelIdx){
     dummy.scale.set(s, 0.94 + ((Math.cos(t[0] * 5.3 + t[1] * 2.9) * 0.5 + 0.5) * 0.14), s);
     dummy.updateMatrix();
     hedgeIM.setMatrixAt(i, dummy.matrix);
-    hedgeIM.setColorAt(i, col.setHex([0x5cb85c, 0x55b567, 0x63c168][Math.abs(t[0] * 7 + t[1] * 13) % 3]));
+    hedgeIM.setColorAt(i, col.setHex(theme.wallCols[Math.abs(t[0] * 7 + t[1] * 13) % theme.wallCols.length]));
   });
   hedgeIM.castShadow = true; hedgeIM.receiveShadow = true; worldGroup.add(hedgeIM);
 
@@ -960,6 +1099,152 @@ function buildWorld(levelIdx){
         stem: 0.09 + br2 * 0.35, swayPh: srng() * 6.283, swaySp: 0.65 + srng() * 0.7, swayAmp: 0.07 + srng() * 0.035 });
     }
   });
+  /* ---- theme decoration: the blossom spots computed above (same slide /
+     gate avoidance for every theme) become the anchor points for whichever
+     decoration the theme asks for. Garden keeps the big swaying flowers
+     exactly as before; brick reuses them smaller under ivy puffs; the other
+     themes build their own instanced decor on the same spots and register
+     their gentle motion in the same decorAnim.flowers slot the main loop
+     already updates. ---- */
+  function buildAltDecor(){
+    var tops = blossoms.filter(function(b){ return b.ny === 1; });
+    var sides = blossoms.filter(function(b){ return b.ny !== 1; });
+    var D = new THREE.Object3D(); var C = new THREE.Color();
+    var UP = new THREE.Vector3(0, 1, 0), NV = new THREE.Vector3();
+    function makeIM(geo, material, count, dyn){
+      var im = new THREE.InstancedMesh(geo, material, Math.max(count, 1));
+      if (dyn) im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      worldGroup.add(im); return im;
+    }
+    function setI(im, i, x, y, z, sx, sy, sz, rx, ry, rz, hex){
+      D.position.set(x, y, z); D.rotation.set(rx || 0, ry || 0, rz || 0);
+      D.scale.set(sx, sy == null ? sx : sy, sz == null ? sx : sz); D.quaternion.setFromEuler(D.rotation);
+      D.updateMatrix(); im.setMatrixAt(i, D.matrix);
+      if (hex != null) im.setColorAt(i, C.setHex(hex));
+    }
+    if (theme.decor === 'anthill') {
+      var pebCols = [0x8a6f4d, 0xa08b6d, 0x6e5638, 0xbfae94];
+      var pebIM = makeIM(new THREE.SphereGeometry(0.09, 7, 6), new THREE.MeshStandardMaterial({ roughness: 0.95 }), blossoms.length);
+      blossoms.forEach(function(b, i){ setI(pebIM, i, b.x, b.y + 0.03, b.z, 0.6 + b.r * 2.6, (0.6 + b.r * 2.6) * 0.62, 0.6 + b.r * 2.6, 0, b.spin, 0, pebCols[i % 4]); });
+      pebIM.count = blossoms.length;
+      var sprIM = makeIM(new THREE.ConeGeometry(0.085, 0.3, 6), new THREE.MeshStandardMaterial({ roughness: 0.7, color: 0x5cb85c }), tops.length, true);
+      var rootIM = makeIM(new THREE.CylinderGeometry(0.028, 0.05, 0.36, 6), new THREE.MeshStandardMaterial({ roughness: 0.9, color: 0x7a5a35 }), sides.length);
+      sides.forEach(function(b, i){
+        NV.set(b.nx, 0, b.nz); D.position.set(b.x + b.nx * 0.06, b.y, b.z + b.nz * 0.06);
+        D.quaternion.setFromUnitVectors(UP, NV); D.rotateX(1.15); D.scale.set(1, 1, 1); D.updateMatrix(); rootIM.setMatrixAt(i, D.matrix);
+      });
+      rootIM.count = sides.length;
+      decorAnim.flowers = { update: function(time){
+        tops.forEach(function(b, i){ setI(sprIM, i, b.x, b.y + 0.13, b.z, 0.8 + b.r * 1.6, 0.8 + b.r * 2.2, 0.8 + b.r * 1.6, Math.sin(time * b.swaySp + b.swayPh) * 0.14, b.spin, Math.cos(time * b.swaySp * 0.8 + b.swayPh) * 0.12, null); });
+        sprIM.count = tops.length; sprIM.instanceMatrix.needsUpdate = true;
+      } };
+      decorAnim.flowers.update(0);
+    } else if (theme.decor === 'cloud') {
+      var puffIM2 = makeIM(new THREE.SphereGeometry(0.5, 10, 8), new THREE.MeshStandardMaterial({ roughness: 0.95, color: 0xffffff }), tops.length * 3, true);
+      var starIM = makeIM(new THREE.OctahedronGeometry(0.1), new THREE.MeshStandardMaterial({ roughness: 0.3, color: 0xffd94d, emissive: 0xffaa00, emissiveIntensity: 0.35 }), Math.ceil(tops.length / 3));
+      var starN = 0;
+      tops.forEach(function(b, i){ if (i % 3 === 0) { setI(starIM, starN++, b.x, b.y + 0.42, b.z, 1, 1.5, 1, 0, b.spin, 0, null); } });
+      starIM.count = starN;
+      tops.forEach(function(b, i){ if (i % 13 === 4) { var rb = rainbowArch(0.52, 0.045); rb.position.set(b.x, b.y + 0.05, b.z); rb.rotation.y = b.spin; worldGroup.add(rb); } });
+      decorAnim.flowers = { update: function(time){
+        var n = 0;
+        tops.forEach(function(b){
+          for (var k = 0; k < 3; k++) {
+            var ox = Math.cos(b.spin + k * 2.1) * 0.3, oz = Math.sin(b.spin + k * 2.1) * 0.3;
+            var bob = Math.sin(time * 0.8 + b.swayPh + k * 1.3) * 0.05;
+            setI(puffIM2, n++, b.x + ox, b.y + 0.14 + bob, b.z + oz, 0.85 - k * 0.16, 0.5 - k * 0.07, 0.85 - k * 0.16, 0, 0, 0, null);
+          }
+        });
+        puffIM2.count = n; puffIM2.instanceMatrix.needsUpdate = true;
+      } };
+      decorAnim.flowers.update(0);
+    } else if (theme.decor === 'candy') {
+      var canCols = [0xff5f9e, 0x3fd9a4, 0xb98cff, 0xffd94d, 0x4db8ff, 0xff8c42];
+      var canIM = makeIM(new THREE.SphereGeometry(0.16, 10, 8), new THREE.MeshStandardMaterial({ roughness: 0.35 }), blossoms.length);
+      blossoms.forEach(function(b, i){ setI(canIM, i, b.x + b.nx * 0.05, b.y + (b.ny === 1 ? 0.1 : 0), b.z + b.nz * 0.05, 0.55 + b.r * 2.2, 0.55 + b.r * 2.2, 0.55 + b.r * 2.2, 0, b.spin, 0, canCols[i % 6]); });
+      canIM.count = blossoms.length;
+      var pops = [];
+      tops.forEach(function(b, i){
+        if (i % 3 !== 0) return;
+        var pop = new THREE.Group();
+        var stick = cyl(0.03, 0.03, 0.4, MAT.white, 8); stick.position.y = 0.2; pop.add(stick);
+        var disc = cyl(0.17, 0.17, 0.06, mat(canCols[i % 6], 0.35), 18); disc.rotation.x = Math.PI / 2.6; disc.position.y = 0.48; pop.add(disc);
+        pop.position.set(b.x, b.y, b.z); pop.userData.ph = b.swayPh;
+        worldGroup.add(pop); pops.push(pop);
+      });
+      decorAnim.flowers = { update: function(time){ pops.forEach(function(p){ p.rotation.z = Math.sin(time * 1.1 + p.userData.ph) * 0.13; p.rotation.x = Math.cos(time * 0.9 + p.userData.ph) * 0.1; }); } };
+    } else if (theme.decor === 'ice') {
+      var cryIM = makeIM(new THREE.OctahedronGeometry(0.14), new THREE.MeshStandardMaterial({ roughness: 0.2, color: 0xffffff }), blossoms.length, true);
+      var cryCols = [0xbfe8ff, 0x8fd0ff, 0xffffff, 0xd6f4ff];
+      blossoms.forEach(function(b, i){ cryIM.setColorAt(i, C.setHex(cryCols[i % 4])); });
+      var snowIM = makeIM(new THREE.SphereGeometry(0.05, 6, 5), new THREE.MeshStandardMaterial({ roughness: 0.9, color: 0xffffff }), sides.length * 2);
+      var sn = 0;
+      sides.forEach(function(b){ for (var k = 0; k < 2; k++) setI(snowIM, sn++, b.x + b.nx * 0.03 + (k ? 0.22 : -0.2), b.y + (k ? 0.24 : -0.18), b.z + b.nz * 0.03 + (k ? -0.15 : 0.2), 1, 1, 1, 0, 0, 0, null); });
+      snowIM.count = sn;
+      decorAnim.flowers = { update: function(time){
+        blossoms.forEach(function(b, i){
+          var s = (0.7 + b.r * 1.8) * (1 + Math.sin(time * 2 + b.swayPh) * 0.18);
+          setI(cryIM, i, b.x + b.nx * 0.06, b.y + (b.ny === 1 ? 0.14 : 0), b.z + b.nz * 0.06, s, s * 1.5, s, 0, time * 0.4 + b.spin, 0, null);
+        });
+        cryIM.count = blossoms.length; cryIM.instanceMatrix.needsUpdate = true;
+      } };
+      decorAnim.flowers.update(0);
+    } else if (theme.decor === 'coral') {
+      var corCols = [0xff8c42, 0xff6b9d, 0xb98cff, 0xffd166];
+      var bulbIM = makeIM(new THREE.SphereGeometry(0.13, 8, 7), new THREE.MeshStandardMaterial({ roughness: 0.6 }), blossoms.length);
+      blossoms.forEach(function(b, i){ setI(bulbIM, i, b.x + b.nx * 0.05, b.y + (b.ny === 1 ? 0.08 : 0), b.z + b.nz * 0.05, 0.6 + b.r * 2, (0.6 + b.r * 2) * 1.35, 0.6 + b.r * 2, 0, b.spin, 0, corCols[i % 4]); });
+      bulbIM.count = blossoms.length;
+      var brIM = makeIM(new THREE.CylinderGeometry(0.024, 0.046, 0.34, 6), new THREE.MeshStandardMaterial({ roughness: 0.65 }), tops.length * 2);
+      var bn = 0;
+      tops.forEach(function(b){ for (var k = 0; k < 2; k++) setI(brIM, bn++, b.x + Math.cos(b.spin + k * 2.4) * 0.18, b.y + 0.15, b.z + Math.sin(b.spin + k * 2.4) * 0.18, 1, 1, 1, Math.cos(b.spin + k) * 0.4, 0, Math.sin(b.spin + k * 1.7) * 0.4, corCols[(bn + k) % 4]); });
+      brIM.count = bn;
+      var fanIM = makeIM(new THREE.CircleGeometry(0.17, 10), new THREE.MeshStandardMaterial({ roughness: 0.7, side: THREE.DoubleSide }), sides.length);
+      sides.forEach(function(b, i){
+        NV.set(b.nx, 0, b.nz); D.position.set(b.x + b.nx * 0.05, b.y, b.z + b.nz * 0.05);
+        D.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), NV); D.scale.set(1, 1.25, 1); D.updateMatrix();
+        fanIM.setMatrixAt(i, D.matrix); fanIM.setColorAt(i, C.setHex(corCols[(i + 1) % 4]));
+      });
+      fanIM.count = sides.length;
+      var bubIM = makeIM(new THREE.SphereGeometry(0.055, 8, 6), new THREE.MeshStandardMaterial({ roughness: 0.15, color: 0xd8fbff, transparent: true, opacity: 0.55 }), 36, true);
+      var bubSeeds = [];
+      for (var bi2 = 0; bi2 < 36; bi2++) { var wt = wallTiles[Math.floor(Math.random() * wallTiles.length)]; var ww = tileToWorld(wt[0], wt[1]); bubSeeds.push({ x: ww.x + (Math.random() - 0.5), z: ww.z + (Math.random() - 0.5), ph: Math.random() * 6.28, sp: 0.14 + Math.random() * 0.12 }); }
+      decorAnim.flowers = { update: function(time){
+        bubSeeds.forEach(function(s, i){ var yy = 1.35 + ((time * s.sp + s.ph) % 1.7); setI(bubIM, i, s.x + Math.sin(time * 0.9 + s.ph) * 0.12, yy, s.z, 1, 1, 1, 0, 0, 0, null); });
+        bubIM.count = bubSeeds.length; bubIM.instanceMatrix.needsUpdate = true;
+      } };
+      decorAnim.flowers.update(0);
+    } else if (theme.decor === 'honey') {
+      var dropIM = makeIM(new THREE.SphereGeometry(0.115, 10, 8), new THREE.MeshStandardMaterial({ roughness: 0.15, color: 0xffffff }), blossoms.length);
+      blossoms.forEach(function(b, i){ setI(dropIM, i, b.x + b.nx * 0.05, b.y + (b.ny === 1 ? 0.07 : -0.04), b.z + b.nz * 0.05, 0.6 + b.r * 2, (0.6 + b.r * 2) * 1.35, 0.6 + b.r * 2, 0, 0, 0, [0xffb703, 0xffc93c, 0xffaa00][i % 3]); });
+      dropIM.count = blossoms.length;
+      var bees = [];
+      var beeTiles = wallTiles.filter(function(t, i){ return i % 17 === 5; }).slice(0, 7);
+      beeTiles.forEach(function(t, i){
+        var w = tileToWorld(t[0], t[1]);
+        var bee = new THREE.Group();
+        var bbody = sph(0.1, mat(0xffd94d, 0.4)); bbody.scale.set(1.3, 1, 1); bee.add(bbody);
+        var stripe = box(0.05, 0.17, 0.17, MAT.black); stripe.position.x = 0.01; bee.add(stripe);
+        var bhead = sph(0.055, MAT.black); bhead.position.set(0.14, 0.01, 0); bee.add(bhead);
+        var wingM = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.75, side: THREE.DoubleSide });
+        [-1, 1].forEach(function(s){ var wing = new THREE.Mesh(new THREE.CircleGeometry(0.07, 8), wingM); wing.rotation.x = -Math.PI / 2.4; wing.position.set(-0.02, 0.1, s * 0.06); bee.add(wing); });
+        bee.userData = { cx: w.x, cz: w.z, ph: i * 1.9, sp: 0.5 + (i % 3) * 0.12, r: 0.85 };
+        worldGroup.add(bee); bees.push(bee);
+      });
+      decorAnim.flowers = { update: function(time){
+        bees.forEach(function(bee){
+          var u = bee.userData, a = time * u.sp + u.ph;
+          bee.position.set(u.cx + Math.cos(a) * u.r, 1.95 + Math.sin(time * 1.7 + u.ph) * 0.18, u.cz + Math.sin(a) * u.r);
+          bee.rotation.y = Math.atan2(-Math.sin(a), Math.cos(a)) + Math.PI / 2;
+        });
+      } };
+    }
+  }
+  if (theme.decor === 'miniFlower') {
+    blossoms = blossoms.filter(function(b, i){ return i % 5 < 2; });
+    blossoms.forEach(function(b){ b.r *= 0.55; b.stem *= 0.7; });
+  }
+  var useFlowers = (theme.decor === 'flower' || theme.decor === 'miniFlower');
+  if (useFlowers) {
   var petalIM = new THREE.InstancedMesh(new THREE.SphereGeometry(0.5, 7, 5), new THREE.MeshStandardMaterial({ roughness: 0.55 }), Math.max(blossoms.length * 7, 1));
   var centreIM = new THREE.InstancedMesh(new THREE.SphereGeometry(0.34, 8, 6), new THREE.MeshStandardMaterial({ roughness: 0.5 }), Math.max(blossoms.length, 1));
   var stemGeo = new THREE.CylinderGeometry(0.85, 1.1, 1, 6); stemGeo.translate(0, 0.5, 0);
@@ -1033,14 +1318,29 @@ function buildWorld(levelIdx){
   }
   layoutFlowers(0);
   decorAnim.flowers = { update: layoutFlowers };
-  var puffIM = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.34, 0), new THREE.MeshStandardMaterial({ roughness: 0.95, color: 0x6fca6f }), Math.max(wallTiles.length, 1));
+  } else {
+    buildAltDecor();
+  }
+  /* rounded / snowy / cloudy wall-top caps for the themes that ask for one */
+  if (theme.cap != null) {
+    var capIM = new THREE.InstancedMesh(new THREE.SphereGeometry(0.5, 10, 8), new THREE.MeshStandardMaterial({ roughness: 0.95, color: theme.cap }), Math.max(wallTiles.length, 1));
+    var capN = 0;
+    wallTiles.forEach(function(t){
+      var w = tileToWorld(t[0], t[1]);
+      dummy.position.set(w.x, hedgeTopY(t[0], t[1]) - 0.04, w.z);
+      dummy.rotation.set(0, 0, 0); dummy.scale.set(2.08, 0.34, 2.08); dummy.updateMatrix();
+      capIM.setMatrixAt(capN++, dummy.matrix);
+    });
+    capIM.count = capN; capIM.receiveShadow = true; worldGroup.add(capIM);
+  }
+  var puffIM = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.34, 0), new THREE.MeshStandardMaterial({ roughness: 0.95, color: theme.puff }), Math.max(wallTiles.length, 1));
   var puffCount = 0;
   wallTiles.forEach(function(t){
     if (Math.random() < 0.5) {
       var w = tileToWorld(t[0], t[1]);
       dummy.position.set(w.x + (Math.random() - 0.5) * 1.1, 1.2, w.z + (Math.random() - 0.5) * 1.1);
       dummy.rotation.set(Math.random() * 3, Math.random() * 3, 0);
-      var s = 0.7 + Math.random() * 0.6; dummy.scale.set(s, s * 0.7, s); dummy.updateMatrix();
+      var s = (0.7 + Math.random() * 0.6) * (theme.decor === 'cloud' ? 1.5 : theme.decor === 'anthill' ? 0.55 : 1); dummy.scale.set(s, s * 0.7, s); dummy.updateMatrix();
       puffIM.setMatrixAt(puffCount++, dummy.matrix);
     }
   });
@@ -1475,14 +1775,25 @@ var particles = [], ripples = [];
 var ENCOURAGE = ['Cố lên, sắp tới rồi!', 'Bé giỏi lắm!', 'Đi theo vệt sáng lấp lánh nhé!', 'Cố lên nào, nhà kẹo ở phía trước!', 'Bé làm tốt lắm!', 'Thêm một chút nữa thôi!'];
 
 var hudEl = document.getElementById('hud'), controlsEl = document.getElementById('controls');
-var hudLevel = document.getElementById('hud-level'), hudStars = document.getElementById('hud-stars');
+var hudLevel = document.getElementById('hud-level'), hudStars = document.getElementById('hud-stars'), hudTheme = document.getElementById('hud-theme');
+var themeBanner = document.getElementById('theme-banner'), themeBannerTimer = null;
 var bubbleEl = document.getElementById('bubble'), bubbleTimer = null;
 function showBubble(text, dur){
   bubbleEl.textContent = text; bubbleEl.classList.add('show');
   if (bubbleTimer) clearTimeout(bubbleTimer);
   bubbleTimer = setTimeout(function(){ bubbleEl.classList.remove('show'); }, dur || 2600);
 }
-function updateHUD(){ hudLevel.textContent = 'Màn ' + currentLevel; hudStars.textContent = starsCollected; }
+function updateHUD(){ hudLevel.textContent = 'Màn ' + currentLevel; hudStars.textContent = starsCollected; if (hudTheme) hudTheme.textContent = currentTheme.name; }
+function showThemeBanner(level){
+  if (!themeBanner) return;
+  themeBanner.innerHTML = '';
+  var main = document.createElement('span'); main.textContent = 'Màn ' + level + ': ' + currentTheme.name + '!';
+  var sub = document.createElement('small'); sub.textContent = 'Một thế giới mới đang chờ bé khám phá!';
+  themeBanner.appendChild(main); themeBanner.appendChild(sub);
+  themeBanner.classList.add('show');
+  if (themeBannerTimer) clearTimeout(themeBannerTimer);
+  themeBannerTimer = setTimeout(function(){ themeBanner.classList.remove('show'); }, 3000);
+}
 
 function makeWp(tx, ty){ var w = tileToWorld(tx, ty); return { x: w.x, z: w.z, tile: { x: tx, y: ty } }; }
 function spawnPlayer(charIdx){
@@ -1509,8 +1820,9 @@ function startLevel(level, charIdx){
   document.getElementById('win-screen').classList.remove('show');
   document.getElementById('final-screen').classList.remove('show');
   hudEl.classList.add('show'); controlsEl.classList.add('show');
-  showBubble('Thấy cầu trượt thì bé có thể đi thẳng tiếp, hoặc rẽ vào trượt qua đường khác nha!', 3800);
-  setTimeout(function(){ if (state === 'playing' && !slideAnim) showBubble('Tìm đường tới nhà kẹo Về Đích nhé!', 2400); }, 4000);
+  showThemeBanner(level);
+  setTimeout(function(){ if (state === 'playing' && !slideAnim) showBubble('Thấy cầu trượt thì bé có thể đi thẳng tiếp, hoặc rẽ vào trượt qua đường khác nha!', 3400); }, 3200);
+  setTimeout(function(){ if (state === 'playing' && !slideAnim) showBubble('Tìm đường tới nhà kẹo Về Đích nhé!', 2400); }, 6900);
 }
 function goToSelect(){
   state = 'select';
@@ -1780,11 +2092,11 @@ function refreshProgressNote(){
   document.getElementById('btn-reset-progress').style.display = ((save.level || 1) > 1 || save.finished || total > 0) ? '' : 'none';
 }
 document.getElementById('btn-reset-progress').addEventListener('click', function(){
-  save.level = 1; save.stars = {}; save.finished = false; currentLevel = 1; persist();
+  save.level = 1; save.stars = {}; save.finished = false; save.themes = {}; currentLevel = 1; persist();
   buildWorld(0); refreshProgressNote(); showBubble('Đã quay lại Màn 1!', 1800);
 });
 document.getElementById('btn-hint').addEventListener('click', function(){ audioInit(); showHint(); });
-document.getElementById('btn-restart').addEventListener('click', function(){ if (state === 'playing' || state === 'won') startLevel(currentLevel, currentChar); });
+document.getElementById('btn-restart').addEventListener('click', function(){ if (state === 'playing' || state === 'won') { rethemeLevel(currentLevel); startLevel(currentLevel, currentChar); } });
 var musicBtn = document.getElementById('btn-music');
 function refreshMusicBtn(){ musicBtn.textContent = save.muted ? 'Nhạc: Tắt' : 'Nhạc: Bật'; musicBtn.classList.toggle('off', !!save.muted); }
 musicBtn.addEventListener('click', function(){
@@ -1796,7 +2108,7 @@ document.getElementById('btn-next-level').addEventListener('click', function(){ 
 document.getElementById('btn-change-char').addEventListener('click', goToSelect);
 document.getElementById('btn-final-change-char').addEventListener('click', goToSelect);
 document.getElementById('btn-play-again').addEventListener('click', function(){
-  save.level = 1; save.stars = {}; save.finished = false; currentLevel = 1; persist(); goToSelect();
+  save.level = 1; save.stars = {}; save.finished = false; save.themes = {}; currentLevel = 1; persist(); goToSelect();
 });
 document.getElementById('btn-cam-left').addEventListener('click', function(){ camAzTarget += Math.PI / 4; });
 document.getElementById('btn-cam-right').addEventListener('click', function(){ camAzTarget -= Math.PI / 4; });
@@ -1838,6 +2150,7 @@ function buildCharCards(){
       audioInit(); sfxPop();
       save.char = i; persist();
       var restart = !!save.finished;
+      if (restart) save.themes = {}; /* a fresh run gets a fresh set of themes */
       startLevel(restart ? 1 : (save.level || 1), i);
       if (restart) { save.finished = false; save.level = 1; persist(); }
     });
