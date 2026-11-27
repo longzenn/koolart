@@ -130,6 +130,12 @@
         text-shadow: 0 2px 2px rgba(160,20,90,.4);
       }
       #dpad button:active { transform: translateY(3px); box-shadow: 0 1px 0 #d63384; }
+      #dpad button { touch-action: none; -webkit-touch-callout: none; }
+      #dpad button.held {
+        transform: translateY(3px);
+        box-shadow: 0 1px 0 #d63384, 0 3px 6px rgba(90,40,120,.25);
+        background: linear-gradient(180deg, #ff8fc0, #ff6fae);
+      }
       #btn-up { grid-area: 1 / 2; } #btn-left { grid-area: 2 / 1; }
       #btn-right { grid-area: 2 / 3; } #btn-down { grid-area: 3 / 2; }
 
@@ -429,6 +435,34 @@ function box(w, h, d, material){
   var m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
   m.castShadow = true; m.receiveShadow = true;
   return m;
+}
+/* Soft cushion block: a box whose every corner and edge is rounded by
+   `radius`. Built from a subdivided BoxGeometry by pushing each vertex
+   onto the rounded surface (clamp to the inner box, then step out along
+   the offset direction by the radius), so the box UVs survive untouched:
+   brick / honeycomb / candy-stripe wall textures stay square and readable
+   on the flat faces and only ease around the rounding. The analytic
+   normals keep the shading smooth even with modest segment counts. One
+   geometry is shared by every wall tile through the InstancedMesh. */
+function roundedBoxGeometry(w, h, d, radius, segW, segH, segD){
+  var geo = new THREE.BoxGeometry(w, h, d, segW, segH, segD);
+  var pos = geo.attributes.position, nor = geo.attributes.normal;
+  var ix = w / 2 - radius, iy = h / 2 - radius, iz = d / 2 - radius;
+  var vx, vy, vz, cx, cy, cz, dx, dy, dz, len;
+  for (var i = 0; i < pos.count; i++) {
+    vx = pos.getX(i); vy = pos.getY(i); vz = pos.getZ(i);
+    cx = Math.max(-ix, Math.min(ix, vx));
+    cy = Math.max(-iy, Math.min(iy, vy));
+    cz = Math.max(-iz, Math.min(iz, vz));
+    dx = vx - cx; dy = vy - cy; dz = vz - cz;
+    len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    if (len < 1e-7) { dx = 0; dy = 1; dz = 0; len = 1; }
+    dx /= len; dy /= len; dz /= len;
+    pos.setXYZ(i, cx + dx * radius, cy + dy * radius, cz + dz * radius);
+    nor.setXYZ(i, dx, dy, dz);
+  }
+  pos.needsUpdate = true; nor.needsUpdate = true;
+  return geo;
 }
 function cyl(rt, rb, h, material, seg){
   var m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg || 20), material);
@@ -761,24 +795,8 @@ function bfsPath(sx, sy, tx, ty){
   }
   return null;
 }
-function nearestOpen(x, y){
-  if (isOpen(x, y)) return { x: x, y: y };
-  for (var r = 1; r < gridSize; r++)
-    for (var dy = -r; dy <= r; dy++)
-      for (var dx = -r; dx <= r; dx++) {
-        if (Math.max(Math.abs(dx), Math.abs(dy)) !== r || !isOpen(x + dx, y + dy)) continue;
-        /* a tap on a hedge must not snap into a slide alcove: entering the
-           alcove (and sliding) is always a deliberate tap on the alcove itself */
-        if (typeof slideTopMap !== 'undefined' && slideTopMap[tileKey(x + dx, y + dy)]) continue;
-        return { x: x + dx, y: y + dy };
-      }
-  return { x: startTile.x, y: startTile.y };
-}
 function tileToWorld(tx, ty){
   return { x: (tx - (gridSize - 1) / 2) * TILE, z: (ty - (gridSize - 1) / 2) * TILE };
-}
-function worldToTile(wx, wz){
-  return { x: Math.round(wx / TILE + (gridSize - 1) / 2), y: Math.round(wz / TILE + (gridSize - 1) / 2) };
 }
 
 /* ================= World building ================= */
@@ -959,7 +977,15 @@ function buildWorld(levelIdx, forceNewTheme){
   });
   pathIM.receiveShadow = true; worldGroup.add(pathIM);
 
-  var hedgeGeo = new THREE.BoxGeometry(TILE * 1.02, 1.12, TILE * 1.02);
+  /* walls are soft rounded cushions now, not sharp boxes: every vertical
+     corner and every top / bottom edge is rounded by WALL_R (0.2 of a
+     tile). The body of the block still fills its tile almost completely,
+     so neighbouring cushions read as plump blocks side by side with only
+     a shallow soft groove between them, never a see-through gap, and the
+     grid collision is unchanged. Peak height is exactly the old 1.12, so
+     slide-chute head clearance is untouched. */
+  var WALL_R = TILE * 0.2;
+  var hedgeGeo = roundedBoxGeometry(TILE * 1.02, 1.12, TILE * 1.02, WALL_R, 14, 8, 14);
   var hedgeMat = new THREE.MeshStandardMaterial({ roughness: theme.wallTex === 'ice' ? 0.35 : 0.95 });
   var wTex = wallTexture(theme.wallTex);
   if (wTex) hedgeMat.map = wTex;
@@ -1000,8 +1026,26 @@ function buildWorld(levelIdx, forceNewTheme){
   }
   /* mirror of the hedge instance transform above, so blossoms sit exactly
      on the hedge surface instead of floating or sinking */
-  function hedgeTopY(x, y){ return 0.56 + 0.56 * (0.94 + ((Math.cos(x * 5.3 + y * 2.9) * 0.5 + 0.5) * 0.14)); }
-  function hedgeHalfW(x, y){ return (TILE * 1.02 / 2) * (0.97 + ((Math.sin(x * 3.7 + y * 9.1) * 0.5 + 0.5) * 0.08)); }
+  function hedgeScaleX(x, y){ return 0.97 + ((Math.sin(x * 3.7 + y * 9.1) * 0.5 + 0.5) * 0.08); }
+  function hedgeScaleY(x, y){ return 0.94 + ((Math.cos(x * 5.3 + y * 2.9) * 0.5 + 0.5) * 0.14); }
+  function hedgeTopY(x, y){ return 0.56 + 0.56 * hedgeScaleY(x, y); }
+  function hedgeHalfW(x, y){ return (TILE * 1.02 / 2) * hedgeScaleX(x, y); }
+  /* height of the ROUNDED top surface at world offset (dx, dz) from the
+     tile centre: flat across the middle of the cushion, then easing down
+     the quarter-round shoulder, mirroring roundedBoxGeometry's profile
+     (in the instance's local, unscaled frame). Top decorations anchor
+     with this so nothing floats over a shoulder or sinks into the dome. */
+  function hedgeTopYAt(x, y, dx, dz){
+    var lx = dx / hedgeScaleX(x, y), lz = dz / hedgeScaleX(x, y);
+    var flat = TILE * 1.02 / 2 - WALL_R;
+    var qx = Math.max(Math.abs(lx) - flat, 0), qz = Math.max(Math.abs(lz) - flat, 0);
+    var d2 = qx * qx + qz * qz, topLocal = 0.56;
+    if (d2 > 0) {
+      var d = Math.sqrt(d2);
+      topLocal = d >= WALL_R ? 0.56 - WALL_R : (0.56 - WALL_R) + Math.sqrt(WALL_R * WALL_R - d2);
+    }
+    return 0.56 + topLocal * hedgeScaleY(x, y);
+  }
   /* a side blossom must never face the start gate, the candy house, a slide
      alcove, a landing pad or a decision tile (its turn arrow) */
   var noSideFace = {};
@@ -1066,7 +1110,7 @@ function buildWorld(levelIdx, forceNewTheme){
           fz = Math.max(w.z - 0.58, Math.min(w.z + 0.58, fz));
           if (Math.hypot(fx - ob.x, fz - ob.z) < minD) br *= 0.82;
         }
-        var nb = { x: fx, y: hedgeTopY(x, y) - 0.02, z: fz, nx: 0, ny: 1, nz: 0,
+        var nb = { x: fx, y: hedgeTopYAt(x, y, fx - w.x, fz - w.z) - 0.02, z: fz, nx: 0, ny: 1, nz: 0,
           r: br, petal: pk.petal, centre: pk.centre,
           leaves: rng() < 0.7 ? (rng() < 0.3 ? 2 : 1) : 0, spin: rng() * 6.283, tilt: (rng() - 0.5) * 0.45,
           stem: 0.17 + br * 0.45, swayPh: rng() * 6.283, swaySp: 0.65 + rng() * 0.7, swayAmp: 0.07 + rng() * 0.035 };
@@ -1327,8 +1371,11 @@ function buildWorld(levelIdx, forceNewTheme){
     var capN = 0;
     wallTiles.forEach(function(t){
       var w = tileToWorld(t[0], t[1]);
-      dummy.position.set(w.x, hedgeTopY(t[0], t[1]) - 0.04, w.z);
-      dummy.rotation.set(0, 0, 0); dummy.scale.set(2.08, 0.34, 2.08); dummy.updateMatrix();
+      /* sunk a little lower and a touch plumper than on the old square
+         walls, so the cap wraps over the rounded shoulders of the
+         cushion instead of hovering above the curve at its rim */
+      dummy.position.set(w.x, hedgeTopY(t[0], t[1]) - 0.12, w.z);
+      dummy.rotation.set(0, 0, 0); dummy.scale.set(2.02, 0.42, 2.02); dummy.updateMatrix();
       capIM.setMatrixAt(capN++, dummy.matrix);
     });
     capIM.count = capN; capIM.receiveShadow = true; worldGroup.add(capIM);
@@ -1771,7 +1818,7 @@ var starsCollected = 0, itemsCollected = 0;
 var camAz = 0, camAzTarget = 0, overviewUntil = 0, hintUntil = 0, hintMeshes = [];
 var camPos = new THREE.Vector3(0, 30, 40), camLook = new THREE.Vector3(0, 0, 0);
 var stageGroup = null, stageChars = [];
-var particles = [], ripples = [];
+var particles = [];
 var ENCOURAGE = ['Cố lên, sắp tới rồi!', 'Bé giỏi lắm!', 'Đi theo vệt sáng lấp lánh nhé!', 'Cố lên nào, nhà kẹo ở phía trước!', 'Bé làm tốt lắm!', 'Thêm một chút nữa thôi!'];
 
 var hudEl = document.getElementById('hud'), controlsEl = document.getElementById('controls');
@@ -1813,7 +1860,7 @@ function startLevel(level, charIdx){
   buildWorld(level - 1);
   spawnPlayer(charIdx);
   starsCollected = 0; itemsCollected = 0;
-  camAz = 0; camAzTarget = 0; overviewUntil = 0; slideAnim = null; clearHint();
+  camAz = 0; camAzTarget = 0; overviewUntil = 0; slideAnim = null; clearHint(); clearAllHolds();
   state = 'playing';
   updateHUD();
   document.getElementById('select-screen').classList.remove('show');
@@ -1826,6 +1873,7 @@ function startLevel(level, charIdx){
 }
 function goToSelect(){
   state = 'select';
+  clearAllHolds();
   if (playerGroup) { scene.remove(playerGroup); playerGroup = null; }
   if (stageGroup) { scene.remove(stageGroup); stageGroup = null; stageChars = []; buildWorld(currentLevel - 1); }
   hudEl.classList.remove('show'); controlsEl.classList.remove('show');
@@ -1838,6 +1886,7 @@ function goToSelect(){
 /* ================= Slide ride ================= */
 function beginSlide(sl){
   playerPath = [];
+  clearAllHolds(); /* a ride locks the controls; after landing she must press again, never auto-resumes */
   var A = tileToWorld(sl.top.x, sl.top.y), B = tileToWorld(sl.bottom.x, sl.bottom.y);
   var dix = sl.top.x - sl.decision.x, diz = sl.top.y - sl.decision.y;
   var deckPos = new THREE.Vector3(A.x + dix * 0.42, 0, A.z + diz * 0.42);
@@ -1920,22 +1969,6 @@ function stepMove(dx, dy){
   var wp = makeWp(nx, ny);
   playerPath = head ? [head, wp] : [wp];
 }
-function tapMove(wx, wz){
-  if (state !== 'playing' || !playerGroup) return;
-  if (slideAnim) return;
-  var t = worldToTile(wx, wz);
-  var target = nearestOpen(t.x, t.y);
-  var head = playerPath.length ? playerPath[0] : null;
-  var from = head ? head.tile : playerTile;
-  var path = bfsPath(from.x, from.y, target.x, target.y);
-  if (!path) return;
-  var wps = [];
-  for (var i = 1; i < path.length; i++) wps.push(makeWp(path[i][0], path[i][1]));
-  if (!wps.length && !head) return;
-  playerPath = head ? [head].concat(wps) : wps;
-  var tw = tileToWorld(target.x, target.y);
-  spawnRipple(tw.x, tw.z);
-}
 function camRelativeDirs(){
   var fx = -Math.sin(camAz), fz = -Math.cos(camAz);
   var fwd = Math.abs(fx) > Math.abs(fz) ? { x: Math.sign(fx), y: 0 } : { x: 0, y: Math.sign(fz) };
@@ -1950,12 +1983,6 @@ function dpad(dir){
 }
 
 /* ================= Effects ================= */
-var rippleGeo = new THREE.RingGeometry(0.42, 0.55, 32);
-function spawnRipple(x, z){
-  var m = new THREE.Mesh(rippleGeo, new THREE.MeshBasicMaterial({ color: 0xffc93c, transparent: true, opacity: 0.95, side: THREE.DoubleSide, depthWrite: false }));
-  m.rotation.x = -Math.PI / 2; m.position.set(x, 0.12, z);
-  scene.add(m); ripples.push({ m: m, t: 0 });
-}
 var burstGeoS = new THREE.SphereGeometry(0.07, 8, 6);
 function spawnBurst(pos, colors, n, up){
   for (var i = 0; i < (n || 8); i++) {
@@ -2015,6 +2042,7 @@ function showHint(){
 function onReachGoal(){
   state = 'won';
   playerPath = [];
+  clearAllHolds();
   var prev = save.stars[currentLevel] || 0;
   save.stars[currentLevel] = Math.max(prev, starsCollected);
   if (currentLevel < 3) save.level = currentLevel + 1;
@@ -2115,24 +2143,111 @@ document.getElementById('btn-cam-right').addEventListener('click', function(){ c
 document.getElementById('btn-overview').addEventListener('click', function(){
   overviewUntil = performance.now() + 3500; showBubble('Nhìn toàn cảnh mê cung nè!', 1800);
 });
+/* ---- hold-to-move -------------------------------------------------------
+   Holding an on-screen arrow (touch or mouse) or a WASD / arrow key keeps
+   her stepping tile by tile in that direction until it is released; a quick
+   tap still steps exactly once, as before. The most recently pressed
+   direction wins; releasing it falls back to any direction still held.
+   Tap-to-move stays removed on purpose: nothing here pathfinds for her. */
+var holdStack = []; /* [{token, dir, btn}] — last entry is the active direction */
+var dpadPtr = {};   /* pointerId -> hold token, for multi-touch on the arrows */
+function activeHoldDir(){ return holdStack.length ? holdStack[holdStack.length - 1].dir : null; }
+function syncBtnVisuals(){
+  ['up', 'down', 'left', 'right'].forEach(function(d){ document.getElementById('btn-' + d).classList.remove('held'); });
+  holdStack.forEach(function(h){ if (h.btn) h.btn.classList.add('held'); });
+}
+function holdPress(token, dir, btn){
+  holdStack = holdStack.filter(function(h){ return h.token !== token; });
+  holdStack.push({ token: token, dir: dir, btn: btn || null });
+  syncBtnVisuals();
+  dpad(dir); /* the press itself steps once, exactly like a tap */
+}
+function holdRelease(token){
+  var had = holdStack.length;
+  holdStack = holdStack.filter(function(h){ return h.token !== token; });
+  if (had && !holdStack.length && playerPath.length > 1) playerPath.length = 1; /* finish the current step, then stop */
+  syncBtnVisuals();
+}
+function clearAllHolds(){
+  holdStack = [];
+  dpadPtr = {};
+  if (playerPath.length > 1) playerPath.length = 1;
+  syncBtnVisuals();
+}
+function dirVector(dir){
+  var d = camRelativeDirs(), v;
+  if (dir === 'up') v = d.fwd; else if (dir === 'down') v = { x: -d.fwd.x, y: -d.fwd.y };
+  else if (dir === 'right') v = d.right; else v = { x: -d.right.x, y: -d.right.y };
+  return v;
+}
+/* per-frame driver: while a direction is held, keep the next step queued
+   behind the current one so steps flow at the normal step speed with no
+   pause between tiles. A wall simply queues nothing — no repeated bump,
+   no shake, no sound — and a mid-walk direction change swaps the queue. */
+function driveHold(){
+  var dir = activeHoldDir();
+  if (!dir) return;
+  var v = dirVector(dir);
+  if (playerPath.length) {
+    var base = playerPath[0].tile;
+    var wx = base.x + v.x, wy = base.y + v.y;
+    if (playerPath.length > 1) {
+      var q = playerPath[1].tile;
+      if (q.x === wx && q.y === wy) return;
+      playerPath.length = 1; /* direction changed: drop the stale queued step */
+    }
+    if (isOpen(wx, wy)) playerPath.push(makeWp(wx, wy));
+  } else if (isOpen(playerTile.x + v.x, playerTile.y + v.y)) {
+    playerPath.push(makeWp(playerTile.x + v.x, playerTile.y + v.y));
+  }
+}
 ['up', 'down', 'left', 'right'].forEach(function(dir){
   var b = document.getElementById('btn-' + dir);
-  b.addEventListener('pointerdown', function(e){ e.preventDefault(); audioInit(); dpad(dir); });
+  b.addEventListener('pointerdown', function(e){
+    e.preventDefault(); audioInit();
+    /* drop the browser's implicit touch capture so sliding the finger off
+       the button fires pointerleave and stops her, like releasing would */
+    try { if (b.hasPointerCapture && b.hasPointerCapture(e.pointerId)) b.releasePointerCapture(e.pointerId); } catch (err) {}
+    var token = 'p:' + e.pointerId + ':' + dir;
+    dpadPtr[e.pointerId] = token;
+    holdPress(token, dir, b);
+  });
+  b.addEventListener('pointerleave', function(e){
+    var token = dpadPtr[e.pointerId];
+    if (token) { delete dpadPtr[e.pointerId]; holdRelease(token); }
+  });
 });
+/* releases are heard at window level: letting go outside the button, or a
+   cancelled touch, still stops her */
+window.addEventListener('pointerup', function(e){
+  var token = dpadPtr[e.pointerId];
+  if (token) { delete dpadPtr[e.pointerId]; holdRelease(token); }
+});
+window.addEventListener('pointercancel', function(e){
+  var token = dpadPtr[e.pointerId];
+  if (token) { delete dpadPtr[e.pointerId]; holdRelease(token); }
+});
+document.getElementById('controls').addEventListener('contextmenu', function(e){ e.preventDefault(); });
+var KEYMAP = { arrowup: 'up', w: 'up', arrowdown: 'down', s: 'down', arrowleft: 'left', a: 'left', arrowright: 'right', d: 'right' };
 window.addEventListener('keydown', function(e){
   var k = e.key.toLowerCase();
-  var map = { arrowup: 'up', w: 'up', arrowdown: 'down', s: 'down', arrowleft: 'left', a: 'left', arrowright: 'right', d: 'right' };
-  if (map[k]) { e.preventDefault(); audioInit(); dpad(map[k]); }
-});
-/* tap-to-move */
-var raycaster = new THREE.Raycaster(), groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), hitPoint = new THREE.Vector3();
-renderer.domElement.addEventListener('pointerdown', function(e){
+  if (!KEYMAP[k]) return;
+  e.preventDefault();
+  if (e.repeat) return; /* OS auto-repeat is not a new press */
   audioInit();
-  if (state !== 'playing') return;
-  var ndc = new THREE.Vector2((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
-  raycaster.setFromCamera(ndc, camera);
-  if (raycaster.ray.intersectPlane(groundPlane, hitPoint)) tapMove(hitPoint.x, hitPoint.z);
+  holdPress('k:' + k, KEYMAP[k], null);
 });
+window.addEventListener('keyup', function(e){
+  var k = e.key.toLowerCase();
+  if (!KEYMAP[k]) return; /* an unrelated keyup never stops the held direction */
+  holdRelease('k:' + k);
+});
+/* winning a level, opening a panel or losing window focus cancels any hold,
+   so she never walks on her own when play resumes */
+window.addEventListener('blur', clearAllHolds);
+document.addEventListener('visibilitychange', function(){ if (document.hidden) clearAllHolds(); });
+/* no tap-to-move: tapping a tile must never auto-pathfind the character.
+   Movement is step-by-step only, via the on-screen arrows or WASD/arrow keys. */
 window.addEventListener('pointerdown', function(){ audioInit(); }, { once: true });
 
 /* character select cards (thumbnails rendered one-by-one so the page stays responsive) */
@@ -2197,6 +2312,7 @@ function animate(){
     /* ---- player movement ---- */
     if (playerGroup && (state === 'playing')) {
       var moving = false;
+      if (!slideAnim) driveHold(); /* hold-to-move: queue the next step while a direction is held */
       if (slideAnim) {
         updateSlide(dt, now);
       } else if (playerPath.length) {
@@ -2294,7 +2410,7 @@ function animate(){
       else hintMeshes.forEach(function(m){ var s2 = 0.85 + Math.sin(t * 6 + m.userData.ph) * 0.3; m.scale.setScalar(s2); m.rotation.y += dt * 3; });
     }
 
-    /* ---- particles & ripples ---- */
+    /* ---- particles ---- */
     for (var pi = particles.length - 1; pi >= 0; pi--) {
       var p = particles[pi]; p.life += dt;
       if (p.life >= p.max) { scene.remove(p.m); particles.splice(pi, 1); continue; }
@@ -2304,13 +2420,6 @@ function animate(){
       p.m.rotation.y += p.spin * dt; p.m.rotation.x += p.spin * 0.7 * dt;
       var lf = 1 - p.life / p.max; p.m.scale.setScalar(Math.max(0.15, lf));
     }
-    for (var ri2 = ripples.length - 1; ri2 >= 0; ri2--) {
-      var r = ripples[ri2]; r.t += dt;
-      var k = r.t / 0.6;
-      if (k >= 1) { scene.remove(r.m); ripples.splice(ri2, 1); continue; }
-      r.m.scale.setScalar(0.4 + k * 1.6); r.m.material.opacity = 0.95 * (1 - k);
-    }
-
     /* ---- confetti ---- */
     if (confetti && confetti.visible) {
       if (now > confettiUntil) confetti.visible = false;
